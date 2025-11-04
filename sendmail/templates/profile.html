@@ -1,0 +1,188 @@
+{% extends "layout.html" %}
+
+{% block title %}User Profile - LinkedIn Automation{% endblock %}
+
+{% block additional_styles %}
+<style>
+  .card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    color: #fff;
+  }
+
+  .form-control {
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    color: #000 !important;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+
+  .form-control::placeholder {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .form-control:focus {
+    background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(0, 198, 255, 0.6);
+    color: #000 !important;
+  }
+
+  .btn-primary {
+    background: linear-gradient(90deg, #0072ff, #00c6ff);
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 600;
+    transition: 0.3s;
+  }
+
+  .btn-primary:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <div class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" id="successToast">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        Profile saved successfully!
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card p-4">
+        <h4 class="mb-4"><i class="bi bi-person-circle me-2"></i>Your Profile</h4>
+        
+        <form id="profileForm" enctype="multipart/form-data">
+          <div class="mb-4">
+            <label class="form-label">Default Email Subject Template</label>
+            <input type="text" id="emailSubject" name="emailSubject" class="form-control" placeholder="e.g., Application for DevOps Engineer Role">
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Default Email Content Template</label>
+            <textarea id="emailContent" name="emailContent" class="form-control" rows="8" placeholder="Your default email content..."></textarea>
+            <div class="form-text text-light-50">
+              You can use placeholders like {company_name}, {job_title} which will be replaced when sending emails.
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Upload Default Resume</label>
+            <input type="file" id="resumeFile" name="resumeFile" class="form-control" accept=".pdf,.doc,.docx">
+            <div class="mt-2">
+              <small class="text-light-50">Current resume: <span id="currentResume">None</span></small>
+            </div>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save me-2"></i>Save Profile
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Load user profile data
+  loadProfile();
+
+  // Initialize toast
+  const successToast = new bootstrap.Toast(document.getElementById('successToast'), {
+    animation: true,
+    autohide: true,
+    delay: 3000
+  });
+
+  // Handle form submission
+  const profileForm = document.getElementById('profileForm');
+  const saveButton = profileForm.querySelector('button[type="submit"]');
+  
+  profileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Show loading state
+    saveButton.disabled = true;
+    const originalText = saveButton.innerHTML;
+    saveButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+    
+    const formData = new FormData(profileForm);
+    try {
+      const response = await fetch('/save_profile', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save profile');
+      }
+
+      // Show success toast
+      successToast.show();
+
+    } catch (error) {
+      console.error('Error:', error);
+      // Show error toast
+      const errorToast = document.createElement('div');
+      errorToast.className = 'toast align-items-center text-white bg-danger border-0';
+      errorToast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>
+            Failed to save profile: ${error.message}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      `;
+      document.body.appendChild(errorToast);
+      new bootstrap.Toast(errorToast, { animation: true, autohide: true, delay: 5000 }).show();
+      errorToast.addEventListener('hidden.bs.toast', () => errorToast.remove());
+    } finally {
+      // Restore button state
+      saveButton.disabled = false;
+      saveButton.innerHTML = '<i class="bi bi-save me-2"></i>Save Profile';
+    }
+  });
+});
+
+async function loadProfile() {
+  try {
+    const response = await fetch('/get_profile');
+    if (!response.ok) {
+      throw new Error('Failed to load profile');
+    }
+    
+    const profile = await response.json();
+    
+    // Fill form with profile data
+    document.getElementById('emailSubject').value = profile.emailSubject || '';
+    document.getElementById('emailContent').value = profile.emailContent || '';
+    document.getElementById('currentResume').textContent = profile.resumeFilename || 'None';
+    
+  } catch (error) {
+    console.error('Error loading profile:', error);
+  }
+}
+</script>
+{% endblock %}

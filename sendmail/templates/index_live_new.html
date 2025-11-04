@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LinkedIn Email Automation</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #95b4d2 0%, #eef1f1 100%);
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      color: #fff;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      border: none;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .input-group-text {
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #fff;
+      border-radius: 10px 0 0 10px;
+    }
+
+    .form-control {
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #fff;
+      border-radius: 0 10px 10px 0;
+      padding: 12px 14px;
+      font-size: 15px;
+    }
+
+    .form-control:focus {
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 0 2px rgba(0, 198, 255, 0.6);
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #0072ff, #00c6ff);
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    .btn-primary:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
+    }
+
+    .progress-container {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      height: 18px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-bar {
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      height: 100%;
+      width: 0%;
+      border-radius: 10px;
+      transition: width 0.3s ease-in-out;
+    }
+
+    .progress-box {
+      background: #0d1117;
+      border-radius: 12px;
+      padding: 15px;
+      height: 250px;
+      overflow-y: auto;
+      font-family: "Fira Code", monospace;
+      font-size: 14px;
+      color: #b9dfff;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+      white-space: pre-wrap;
+    }
+
+    footer {
+      text-align: center;
+      color: #f1f5f9;
+      opacity: 0.8;
+      font-size: 0.9rem;
+      margin-top: 20px;
+    }
+
+    /* New status pill styles */
+    .status-pill {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(40, 167, 69, 0.95);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg mb-4">
+    <div class="container">
+      <a class="navbar-brand" href="/"><i class="bi bi-linkedin me-2"></i>LinkedIn Automation</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="/send">Email Sender</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/jobs">Job Posts</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/logout">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Running Status Pill -->
+  <div id="statusPill" class="status-pill">
+    <i class="bi bi-clock-history me-2"></i>Automation Running...
+  </div>
+
+  <div class="container py-5">
+    <div class="col-lg-6 col-md-8 col-sm-10 mx-auto">
+      <div class="card p-4 p-md-5">
+        <div class="d-flex align-items-center mb-3">
+          <i class="bi bi-rocket-takeoff-fill fs-2 text-info me-2"></i>
+          <h4 class="mb-0">LinkedIn Email Automation</h4>
+        </div>
+        <p class="text-light-50 mb-4">
+          Run LinkedIn job automation using Chrome profile <b>D:\Profile</b>.
+          Operates in headless mode — no Chrome window opens.
+        </p>
+
+        <form id="automationForm">
+          <div class="mb-3">
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle me-2"></i>
+              Emails will be sent from manudrive06@gmail.com with your email in CC
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label>Email Subject</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+              <input type="text" name="subject" class="form-control" placeholder="Application for DevOps Engineer..." required />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label>Email Body</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-chat-dots"></i></span>
+              <textarea name="content" class="form-control" rows="5" placeholder="Write your message here..." required></textarea>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label>Attach Resume</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-paperclip"></i></span>
+              <input type="file" name="resume" class="form-control" required />
+            </div>
+          </div>
+
+          <div class="d-grid mt-4">
+            <button type="submit" id="runBtn" class="btn btn-primary">
+              <i class="bi bi-play-circle me-2"></i>Run Automation
+            </button>
+          </div>
+        </form>
+
+        <!-- Stats Cards -->
+        <div class="row mt-4">
+          <div class="col-md-4">
+            <div class="card bg-info bg-opacity-10 border-0">
+              <div class="card-body text-center">
+                <i class="bi bi-envelope-fill fs-3 text-info mb-2"></i>
+                <h3 id="emailsFound" class="mb-0">0</h3>
+                <div class="text-muted">Emails Found</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card bg-success bg-opacity-10 border-0">
+              <div class="card-body text-center">
+                <i class="bi bi-send-fill fs-3 text-success mb-2"></i>
+                <h3 id="emailsSent" class="mb-0">0</h3>
+                <div class="text-muted">Emails Sent</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card bg-warning bg-opacity-10 border-0">
+              <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle-fill fs-3 text-warning mb-2"></i>
+                <h3 id="emailsFailed" class="mb-0">0</h3>
+                <div class="text-muted">Failed Sends</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container mt-4">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+
+        <div class="mt-3">
+          <h6 class="text-info"><i class="bi bi-terminal me-2"></i>Live Progress</h6>
+          <div id="progressBox" class="progress-box"></div>
+        </div>
+
+        <!-- Email list collapse -->
+        <div class="mt-3">
+          <button class="btn btn-link p-0 text-decoration-none text-info" type="button" data-bs-toggle="collapse" data-bs-target="#emailList">
+            <i class="bi bi-list-ul me-2"></i>View Email List
+          </button>
+          <div class="collapse mt-2" id="emailList">
+            <div class="card bg-dark">
+              <div class="card-body">
+                <div id="emailListContent" class="small" style="font-family: monospace;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>Developed by <b>Manu Chaturvedi</b> • Flask + Selenium LinkedIn Bot</footer>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("automationForm");
+    const progressBox = document.getElementById("progressBox");
+    const runBtn = document.getElementById("runBtn");
+    const progressBar = document.getElementById("progressBar");
+    const statusPill = document.getElementById("statusPill");
+
+    // State persistence
+    const STATE_KEY = 'emailAutomationState';
+    let isAutomationRunning = false;
+
+    function saveState() {
+      const state = {
+        isRunning: isAutomationRunning,
+        stats: stats,
+        progress: progressBox.innerHTML,
+        progressBarWidth: progressBar.style.width,
+        lastUpdate: new Date().toISOString()
+      };
+      localStorage.setItem(STATE_KEY, JSON.stringify(state));
+    }
+
+    function restoreState() {
+      try {
+        const saved = localStorage.getItem(STATE_KEY);
+        if (!saved) return;
+
+        const state = JSON.parse(saved);
+        if (!state.isRunning) {
+          localStorage.removeItem(STATE_KEY);
+          return;
+        }
+
+        // Restore progress log
+        progressBox.innerHTML = state.progress;
+        progressBox.scrollTop = progressBox.scrollHeight;
+
+        // Restore stats
+        stats = state.stats;
+        updateStats();
+
+        // Restore progress bar
+        progressBar.style.width = state.progressBarWidth;
+
+        // If was running, reconnect SSE and show status
+        if (state.isRunning) {
+          isAutomationRunning = true;
+          runBtn.disabled = true;
+          runBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Running...';
+          statusPill.style.display = 'block';
+          listenProgress();
+        }
+      } catch (e) {
+        console.error('Error restoring state:', e);
+      }
+    }
+
+    // Navigation warning
+    window.addEventListener('beforeunload', (e) => {
+      if (isAutomationRunning) {
+        e.preventDefault();
+        e.returnValue = 'Automation is running. Progress will be saved but you may miss real-time updates. Continue?';
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      progressBox.innerHTML = "🚀 Starting automation...\n";
+      progressBar.style.width = "0%";
+      runBtn.disabled = true;
+      runBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Running...';
+      isAutomationRunning = true;
+      statusPill.style.display = 'block';
+      saveState();
+
+      const formData = new FormData(form);
+      const res = await fetch("/run", { method: "POST", body: formData });
+      if (res.ok) listenProgress();
+    });
+
+    const stats = {
+      emailsFound: 0,
+      emailsSent: 0,
+      emailsFailed: 0,
+      emailList: new Set()
+    };
+
+    function updateStats() {
+      document.getElementById('emailsFound').textContent = stats.emailsFound;
+      document.getElementById('emailsSent').textContent = stats.emailsSent;
+      document.getElementById('emailsFailed').textContent = stats.emailsFailed;
+      
+      // Update email list
+      const emailListContent = document.getElementById('emailListContent');
+      emailListContent.innerHTML = Array.from(stats.emailList)
+        .map(email => `<div class="mb-1">📧 ${email}</div>`)
+        .join('');
+      
+      // Update progress bar
+      if (stats.emailsFound > 0) {
+        const progress = ((stats.emailsSent + stats.emailsFailed) / stats.emailsFound) * 100;
+        progressBar.style.width = `${progress}%`;
+        if (stats.emailsFailed > 0) {
+          progressBar.style.backgroundColor = '#ffc107';
+        }
+      }
+      // Save current state
+      if (isAutomationRunning) saveState();
+    }
+
+    function addLogLine(msg) {
+      const time = new Date().toLocaleTimeString();
+      progressBox.innerHTML += `[${time}] ${msg}\n`;
+      progressBox.scrollTop = progressBox.scrollHeight;
+
+      // Parse message for stats
+      if (msg.includes('📧 Found')) {
+        const match = msg.match(/Found (\d+) email/);
+        if (match) {
+          stats.emailsFound = parseInt(match[1]);
+        }
+      }
+      else if (msg.includes('✅ Sent to')) {
+        stats.emailsSent++;
+        const email = msg.split('✅ Sent to ')[1];
+        if (email) stats.emailList.add(email);
+      }
+      else if (msg.includes('❌ Failed to send email to')) {
+        stats.emailsFailed++;
+        const email = msg.split('❌ Failed to send email to ')[1].split(':')[0];
+        if (email) stats.emailList.add(email);
+      }
+
+      updateStats();
+
+      // Check for completion message
+      if (msg.includes("✅ Automation completed successfully")) {
+        // Re-enable the run button
+        runBtn.disabled = false;
+        runBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Run Automation';
+        isAutomationRunning = false;
+        localStorage.removeItem(STATE_KEY);
+        statusPill.style.display = 'none';
+        
+        // Show completion status
+        progressBar.style.width = "100%";
+        if (stats.emailsFailed === 0) {
+          progressBar.style.backgroundColor = "#28a745";
+        }
+        
+        // Show completion toast
+        const toast = new bootstrap.Toast(document.createElement('div'));
+        toast.innerHTML = `
+          <div class="toast-header ${stats.emailsFailed === 0 ? 'bg-success' : 'bg-warning'} text-white">
+            <i class="bi bi-check-circle me-2"></i>
+            <strong class="me-auto">Automation Complete</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+          </div>
+          <div class="toast-body">
+            ✅ Found: ${stats.emailsFound} emails<br>
+            📨 Sent: ${stats.emailsSent} emails<br>
+            ${stats.emailsFailed > 0 ? `❌ Failed: ${stats.emailsFailed} emails` : ''}
+          </div>
+        `;
+        document.body.appendChild(toast._element);
+        toast.show();
+        
+        // Clean up toast after it's hidden
+        toast._element.addEventListener('hidden.bs.toast', () => {
+          toast._element.remove();
+        });
+      }
+    }
+
+    function listenProgress() {
+      const evtSource = new EventSource("/progress");
+      evtSource.onmessage = function (event) {
+        const data = event.data;
+
+        // If a new job was saved, show a quick link to the Job Posts page
+        if (data.startsWith("NEW_JOB:")) {
+          addLogLine(data);
+          if (!document.getElementById('viewJobsBtn')) {
+            const container = document.createElement('div');
+            container.id = 'viewJobsBtn';
+            container.className = 'mt-3';
+            container.innerHTML = `<a href="/jobs" target="_blank" class="btn btn-sm btn-outline-info">View Job Posts</a>`;
+            // Append to card footer area
+            const card = document.querySelector('.card');
+            if (card) card.appendChild(container);
+          }
+          return;
+        }
+
+        // Handle progress bar updates
+        if (data.startsWith("PROGRESS:")) {
+          const percent = data.replace("PROGRESS:", "");
+          progressBar.style.width = percent + "%";
+          return;
+        }
+
+        addLogLine(data);
+
+        if (data.includes("🏁")) {
+          evtSource.close();
+          runBtn.disabled = false;
+          runBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Run Again';
+        }
+      };
+    }
+
+    // Restore state on page load
+    document.addEventListener('DOMContentLoaded', restoreState);
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

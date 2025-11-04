@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+
+{% block title %}Home - LinkedIn Automation{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card p-4">
+      <div class="d-flex align-items-start">
+        <div class="me-3">
+          <i class="bi bi-robot fs-1 text-info"></i>
+        </div>
+            <div>
+              <h3 class="mb-2">Welcome, {{ user }}!</h3>
+              <p class="text-muted">This tool automates sending application emails found on LinkedIn posts. It uses a headless Chrome profile to search recent posts, extracts contact emails, and sends your attached resume with a message. Progress is streamed live to the UI so you can monitor finds and sends in real time.</p>
+              
+              <!-- Stats Row -->
+              <div class="row mt-4 mb-4">
+                <div class="col-md-4">
+                  <div class="card bg-light">
+                    <div class="card-body text-center">
+                      <div class="mb-2"><i class="bi bi-send-check text-success fs-3"></i></div>
+                      <h3 class="mb-0">{{ stats.sent }}</h3>
+                      <div class="text-muted small">Emails Sent</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card bg-light">
+                    <div class="card-body text-center">
+                      <div class="mb-2"><i class="bi bi-skip-forward text-warning fs-3"></i></div>
+                      <h3 class="mb-0">{{ stats.skipped }}</h3>
+                      <div class="text-muted small">Duplicates Skipped</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card bg-light">
+                    <div class="card-body text-center">
+                      <div class="mb-2"><i class="bi bi-envelope-exclamation text-danger fs-3"></i></div>
+                      <h3 class="mb-0">{{ stats.failed }}</h3>
+                      <div class="text-muted small">Failed Sends</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <a class="btn btn-primary me-2" href="/send"><i class="bi bi-envelope-fill me-1"></i> Go to Email Sender</a>
+                <a class="btn btn-outline-secondary me-2" href="/jobs"><i class="bi bi-briefcase-fill me-1"></i> View Job Posts</a>
+                <a class="btn btn-outline-info" href="/sent_emails"><i class="bi bi-clock-history me-1"></i> View Sent History</a>
+              </div>
+              <p class="small text-muted mt-3">Tip: Use the Email Sender to upload your resume and start automation. Check Job Posts to review saved posts with extracted emails. View Sent History to track all sent emails and avoid duplicates.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

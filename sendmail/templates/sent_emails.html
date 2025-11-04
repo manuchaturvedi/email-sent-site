@@ -1,0 +1,272 @@
+{% extends "layout.html" %}
+
+{% block title %}Sent Emails{% endblock %}
+
+{% block additional_styles %}
+<style>
+.badge-status.sent { background: #28a745; }
+.badge-status.failed { background: #dc3545; }
+.badge-status.skipped { background: #6c757d; }
+
+.run-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.run-header {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.run-body {
+  padding: 15px;
+}
+
+.stats-card {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.stats-number {
+  font-size: 24px;
+  font-weight: bold;
+  color: #00c6ff;
+}
+
+.run-header {
+  transition: background-color 0.3s;
+}
+
+.run-header:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.run-header[aria-expanded="true"] .toggle-icon {
+  transform: rotate(180deg);
+}
+
+.collapse {
+  transition: all 0.3s ease;
+}
+
+.run-card {
+  transition: transform 0.2s;
+}
+
+.run-card:hover {
+  transform: translateX(5px);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row mb-4">
+    <div class="col">
+      <h4><i class="bi bi-envelope-paper-fill me-2"></i>Automation Runs & Sent Emails</h4>
+      <p class="text-muted">History of automation runs and emails sent</p>
+    </div>
+  </div>
+
+  <!-- Overall Stats -->
+  <div class="stats-card mb-4">
+    <div class="row text-center">
+      <div class="col-md">
+        <div class="stats-number">{{ total_stats.total_runs }}</div>
+        <div class="text-muted">Total Runs</div>
+      </div>
+      <div class="col-md">
+        <div class="stats-number">{{ total_stats.total_emails }}</div>
+        <div class="text-muted">Total Emails</div>
+      </div>
+      <div class="col-md">
+        <div class="stats-number text-success">{{ total_stats.total_sent }}</div>
+        <div class="text-muted">Successfully Sent</div>
+      </div>
+      <div class="col-md">
+        <div class="stats-number text-danger">{{ total_stats.total_failed }}</div>
+        <div class="text-muted">Failed</div>
+      </div>
+      <div class="col-md">
+        <div class="stats-number text-secondary">{{ total_stats.total_skipped }}</div>
+        <div class="text-muted">Skipped</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Box -->
+  <div class="card p-3 mb-4">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-4">
+        <input id="q" class="form-control" placeholder="Search email, subject, status..." />
+      </div>
+      <div class="col-md-3">
+        <input id="from" class="form-control" type="date" />
+      </div>
+      <div class="col-md-3">
+        <input id="to" class="form-control" type="date" />
+      </div>
+      <div class="col-md-2 text-end">
+        <button id="reset" class="btn btn-sm btn-outline-secondary">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Runs List -->
+  {% for run in runs %}
+  <div class="run-card">
+    <div class="run-header" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#run_{{ run.run_id }}" aria-expanded="false">
+      <div class="row align-items-center">
+        <div class="col">
+          <h5 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-clock-history me-2"></i>
+            <span>Run #{{ loop.revindex }}</span>
+            <small class="text-muted ms-2">{{ run.run_time }}</small>
+            <i class="bi bi-chevron-down ms-2 toggle-icon" style="transition: transform 0.3s"></i>
+          </h5>
+        </div>
+        <div class="col-auto">
+          <span class="badge bg-success me-1">{{ run.stats.sent }} Sent</span>
+          <span class="badge bg-danger me-1">{{ run.stats.failed }} Failed</span>
+          <span class="badge bg-secondary">{{ run.stats.skipped }} Skipped</span>
+        </div>
+      </div>
+    </div>
+    <div id="run_{{ run.run_id }}" class="collapse">
+      <div class="run-body">
+        <div class="table-responsive">
+          <table class="table table-dark table-hover" id="runTable_{{ run.run_id }}">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Subject</th>
+              <th>CC</th>
+              <th>Sent At</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for email in run.emails %}
+            <tr>
+              <td>{{ email.email }}</td>
+              <td style="max-width:320px; white-space:normal;">{{ email.subject }}</td>
+              <td>{{ email.cc or '-' }}</td>
+              <td>{{ email.sent_at }}</td>
+              <td>
+                {% if email.status == 'sent' %}
+                  <span class="badge badge-status sent">Sent</span>
+                {% elif email.status == 'failed' %}
+                  <span class="badge badge-status failed">Failed</span>
+                {% elif email.status == 'skipped' %}
+                  <span class="badge badge-status skipped">Skipped</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ email.status }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+  (function(){
+    const q = document.getElementById('q');
+    const from = document.getElementById('from');
+    const to = document.getElementById('to');
+    const reset = document.getElementById('reset');
+    const tables = document.querySelectorAll('[id^="runTable_"]');
+    let totalRows = 0;
+    let visibleRows = 0;
+
+    function parseDate(s){ if(!s) return null; try { return new Date(s); } catch(e){ return null; } }
+
+    function matches(row){
+      const term = q.value.trim().toLowerCase();
+      const email = row.cells[0].textContent.trim().toLowerCase();
+      const subj = row.cells[1].textContent.trim().toLowerCase();
+      const status = row.cells[4].textContent.trim().toLowerCase();
+      const sentAt = row.cells[3].textContent.trim();
+
+      if (term){ if (!(email.includes(term) || subj.includes(term) || status.includes(term))) return false; }
+      if (from.value){ const d = parseDate(sentAt); const f = parseDate(from.value); if (d && f && d < f) return false; }
+      if (to.value){ const d = parseDate(sentAt); const t = parseDate(to.value); if (d && t && d > t) return false; }
+      return true;
+    }
+
+    function apply(){
+      visibleRows = 0;
+      tables.forEach(table => {
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        let hasVisibleRows = false;
+        rows.forEach(r => {
+          if(matches(r)){
+            r.style.display = '';
+            visibleRows++;
+            hasVisibleRows = true;
+          } else {
+            r.style.display = 'none';
+          }
+        });
+        // Show/hide the entire run card based on whether it has any visible rows
+        const runCard = table.closest('.run-card');
+        if (runCard) {
+          runCard.style.display = hasVisibleRows ? '' : 'none';
+        }
+      });
+    }
+
+    [q, from, to].forEach(el => el && el.addEventListener('input', apply));
+    reset.addEventListener('click', (e) => {
+      e.preventDefault();
+      q.value = '';
+      from.value = '';
+      to.value = '';
+      apply();
+    });
+
+    // Initial count
+    tables.forEach(table => {
+      totalRows += table.querySelectorAll('tbody tr').length;
+    });
+    visibleRows = totalRows;
+
+    // Initial apply
+    apply();
+
+    // Handle collapse animations
+    document.querySelectorAll('.run-header').forEach(header => {
+      header.addEventListener('click', (e) => {
+        // Don't toggle if clicking on badges
+        if (e.target.classList.contains('badge')) {
+          e.stopPropagation();
+          return;
+        }
+        
+        const isExpanded = header.getAttribute('aria-expanded') === 'true';
+        header.setAttribute('aria-expanded', !isExpanded);
+      });
+    });
+
+    // Expand the first run by default
+    const firstRun = document.querySelector('.run-header');
+    if (firstRun) {
+      firstRun.setAttribute('aria-expanded', 'true');
+      const firstRunId = firstRun.getAttribute('data-bs-target');
+      const firstRunContent = document.querySelector(firstRunId);
+      if (firstRunContent) {
+        firstRunContent.classList.add('show');
+      }
+    }
+  })();
+</script>
+{% endblock %}

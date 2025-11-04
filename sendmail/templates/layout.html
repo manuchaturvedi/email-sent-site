@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}LinkedIn Automation{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+  
+  <style>
+    body { 
+      background: linear-gradient(135deg,#95b4d2 0%,#eef1f1 100%); 
+      font-family: Poppins, sans-serif;
+      min-height: 100vh;
+    }
+
+    .navbar {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    }
+
+    .navbar-brand {
+      color: #0072ff !important;
+      font-weight: 600;
+    }
+
+    .nav-link {
+      color: #444 !important;
+      font-weight: 500;
+      position: relative;
+      padding: 0.8rem 1rem !important;
+    }
+
+    .nav-link.active {
+      color: #0072ff !important;
+    }
+
+    .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0.5rem;
+      right: 0.5rem;
+      height: 3px;
+      background: #0072ff;
+      border-radius: 3px 3px 0 0;
+    }
+
+    .nav-link:hover {
+      color: #0072ff !important;
+    }
+
+    .nav-link i {
+      margin-right: 0.4rem;
+    }
+
+    .main-content {
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Common card styles */
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    /* Additional styles for specific pages can be added in blocks */
+    {% block additional_styles %}{% endblock %}
+  </style>
+</head>
+<body>
+  <!-- Top Navigation -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <i class="bi bi-linkedin me-2"></i>LinkedIn Automation
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarMain">
+        <ul class="navbar-nav mx-auto">
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="/">
+              <i class="bi bi-house-fill"></i>Home
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'send_page' %}active{% endif %}" href="/send">
+              <i class="bi bi-envelope-fill"></i>Email Sender
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'job_posts' %}active{% endif %}" href="/jobs">
+              <i class="bi bi-briefcase-fill"></i>Job Posts
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'sent_emails_page' %}active{% endif %}" href="/sent_emails">
+              <i class="bi bi-clock-history"></i>Sent Emails
+            </a>
+          </li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}" href="/profile">
+              <i class="bi bi-person-gear"></i>Profile
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/logout"><i class="bi bi-box-arrow-right"></i>Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container main-content">
+    {% block content %}{% endblock %}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

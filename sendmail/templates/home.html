@@ -20,7 +20,7 @@
                   <div class="card bg-light">
                     <div class="card-body text-center">
                       <div class="mb-2"><i class="bi bi-send-check text-success fs-3"></i></div>
-                      <h3 class="mb-0">{{ stats.sent }}</h3>
+                      <h3 id="stat-sent" class="mb-0">{{ stats.sent }}</h3>
                       <div class="text-muted small">Emails Sent</div>
                     </div>
                   </div>
@@ -29,7 +29,7 @@
                   <div class="card bg-light">
                     <div class="card-body text-center">
                       <div class="mb-2"><i class="bi bi-skip-forward text-warning fs-3"></i></div>
-                      <h3 class="mb-0">{{ stats.skipped }}</h3>
+                      <h3 id="stat-skipped" class="mb-0">{{ stats.skipped }}</h3>
                       <div class="text-muted small">Duplicates Skipped</div>
                     </div>
                   </div>
@@ -38,7 +38,7 @@
                   <div class="card bg-light">
                     <div class="card-body text-center">
                       <div class="mb-2"><i class="bi bi-envelope-exclamation text-danger fs-3"></i></div>
-                      <h3 class="mb-0">{{ stats.failed }}</h3>
+                      <h3 id="stat-failed" class="mb-0">{{ stats.failed }}</h3>
                       <div class="text-muted small">Failed Sends</div>
                     </div>
                   </div>
@@ -58,3 +58,37 @@
     </div>
   </div>
 {% endblock %}
+
+  {% block scripts %}
+  <script>
+    // Listen for server-sent events and refresh the home stats when new emails arrive
+    (function(){
+      try{
+        const evt = new EventSource('/progress');
+        evt.onmessage = async function(e){
+          const d = e.data || '';
+          if(d.startsWith('NEW_EMAIL') || d.startsWith('SENT_EMAIL')){
+            try{
+              const resp = await fetch('/api/sent_emails');
+              if(!resp.ok) return;
+              const emails = await resp.json();
+              // compute stats
+              const stats = { sent:0, skipped:0, failed:0 };
+              for(const em of emails){
+                if(em.status === 'sent') stats.sent += 1;
+                else if(em.status === 'skipped') stats.skipped += 1;
+                else if(em.status === 'failed') stats.failed += 1;
+              }
+              const elSent = document.getElementById('stat-sent');
+              const elSkipped = document.getElementById('stat-skipped');
+              const elFailed = document.getElementById('stat-failed');
+              if(elSent) elSent.textContent = stats.sent;
+              if(elSkipped) elSkipped.textContent = stats.skipped;
+              if(elFailed) elFailed.textContent = stats.failed;
+            }catch(err){ console.warn('Failed updating stats', err); }
+          }
+        };
+      }catch(e){ console.warn('SSE not available', e); }
+    })();
+  </script>
+  {% endblock %}

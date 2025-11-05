@@ -194,6 +194,46 @@
           </div>
         </div>
 
+        <!-- Search Role/Skills -->
+        <div class="mb-4">
+          <label class="form-label" for="searchRole">
+            <i class="bi bi-search me-2"></i>Job Search Role/Skills
+            <span class="text-muted small ms-1">(What roles are you looking for?)</span>
+          </label>
+          <div class="input-group input-group-lg">
+            <input 
+              type="text" 
+              id="searchRole" 
+              name="searchRole" 
+              class="form-control" 
+              placeholder="e.g., devops, cloud engineer, site reliability" 
+              required 
+            />
+          </div>
+          <div class="form-text">Separate multiple roles/skills with commas</div>
+        </div>
+
+        <!-- Search Time Period -->
+        <div class="mb-4">
+          <label class="form-label" for="searchTimePeriod">
+            <i class="bi bi-clock-history me-2"></i>Search Time Period
+            <span class="text-muted small ms-1">(How recent should the job posts be?)</span>
+          </label>
+          <div class="input-group input-group-lg">
+            <select 
+              id="searchTimePeriod" 
+              name="searchTimePeriod" 
+              class="form-control"
+              required
+            >
+              <option value="past-24h">Last 24 Hours</option>
+              <option value="past-week" selected>Past Week</option>
+              <option value="past-month">Past Month</option>
+            </select>
+          </div>
+          <div class="form-text">More recent posts may have higher response rates</div>
+        </div>
+
         <!-- Email Subject -->
         <div class="mb-4">
           <label class="form-label" for="emailSubject">
@@ -649,6 +689,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (profile.emailContent) {
         document.getElementById('emailContent').value = profile.emailContent;
+      }
+      if (profile.searchRole) {
+        document.getElementById('searchRole').value = profile.searchRole;
+      }
+      if (profile.searchTimePeriod) {
+        document.getElementById('searchTimePeriod').value = profile.searchTimePeriod;
       }
       if (profile.resumeFilename) {
         // Show the saved resume option

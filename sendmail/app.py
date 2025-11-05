@@ -58,23 +58,139 @@ def log(message: str):
 JOB_POSTS_FILE = 'job_posts.json'
 SENT_EMAILS_FILE = 'sent_emails.json'
 
+def is_duplicate_job_post(post, existing_posts=None):
+    """Check if a job post is a duplicate based on email, title, and company."""
+    try:
+        if firestore is not None:
+            db = firestore.client()
+            # Query Firestore for potential duplicates
+            query = (db.collection(FIRESTORE_COLLECTIONS['job_posts'])
+                    .where('email', '==', post.get('email', ''))
+                    .where('company', '==', post.get('company', '')))
+            
+            docs = list(query.stream())
+            for doc in docs:
+                existing = doc.to_dict()
+                # Consider it a duplicate if title is similar (to handle minor variations)
+                if (existing.get('email') == post.get('email') and
+                    existing.get('company') == post.get('company') and
+                    existing.get('title', '').lower().strip() == post.get('title', '').lower().strip()):
+                    return True
+            return False
+        
+        # Fallback to local storage check
+        if existing_posts is None:
+            existing_posts = load_job_posts()
+        
+        for existing in existing_posts:
+            if (existing.get('email') == post.get('email') and
+                existing.get('company') == post.get('company') and
+                existing.get('title', '').lower().strip() == post.get('title', '').lower().strip()):
+                return True
+        return False
+        
+    except Exception as e:
+        print(f"❌ Error checking for duplicate job post: {str(e)}")
+        # If we can't check duplicates, assume it's not a duplicate
+        return False
+
 def load_job_posts():
+    """Load job posts from Firestore or fall back to local JSON storage."""
+    try:
+        if firestore is not None:
+            db = firestore.client()
+            docs = list(db.collection(FIRESTORE_COLLECTIONS['job_posts']).stream())
+            
+            posts = []
+            for doc in docs:
+                post_data = doc.to_dict()
+                post_data['id'] = doc.id
+                posts.append(post_data)
+                
+            # Sort by posted_date descending
+            posts.sort(key=lambda x: x.get('posted_date', ''), reverse=True)
+            print(f"✅ Loaded {len(posts)} job posts from Firestore")
+            return posts
+            
+    except Exception as e:
+        print(f"❌ Error loading from Firestore: {str(e)}")
+        # Continue to try local storage
+    
     try:
         with open(JOB_POSTS_FILE, 'r') as f:
-            return json.load(f)
+            posts = json.load(f)
+            print(f"✅ Loaded {len(posts)} job posts from local storage")
+            return posts
     except FileNotFoundError:
         return []
 
 def save_job_post(post):
-    posts = load_job_posts()
-    posts.append(post)
-    with open(JOB_POSTS_FILE, 'w') as f:
-        json.dump(posts, f)
-    # Notify connected clients that a new job post was saved
+    """Save a job post to Firestore and local storage, avoiding duplicates."""
     try:
-        send_event(f"NEW_JOB: {post.get('title')} | {post.get('company')} | {post.get('email')}")
-    except Exception:
-        pass
+        # First check if this is a duplicate
+        if is_duplicate_job_post(post):
+            print(f"⚠️ Duplicate job post found for {post.get('company')} - {post.get('title')}")
+            return False
+            
+        # Try Firestore first
+        if firestore is not None:
+            db = firestore.client()
+            try:
+                # Add timestamp and clean up post data
+                post_to_save = post.copy()
+                post_to_save.update({
+                    'created_at': firestore.SERVER_TIMESTAMP,
+                    'updated_at': firestore.SERVER_TIMESTAMP,
+                    'posted_date': post.get('posted_date') or datetime.now().strftime("%Y-%m-%d"),
+                    'status': 'active'
+                })
+                
+                # Save to Firestore
+                doc_ref = db.collection(FIRESTORE_COLLECTIONS['job_posts']).document()
+                doc_ref.set(post_to_save)
+                
+                # Verify the save
+                saved_doc = doc_ref.get()
+                if saved_doc.exists:
+                    print(f"✅ Job post saved to Firestore with ID: {doc_ref.id}")
+                    
+                    # Notify connected clients
+                    try:
+                        send_event(f"NEW_JOB: {post.get('title')} | {post.get('company')} | {post.get('email')}")
+                    except Exception:
+                        pass
+                    
+                    return True
+                else:
+                    print("⚠️ Warning: Job post save to Firestore could not be verified")
+                    
+            except Exception as e:
+                print(f"❌ Error saving to Firestore: {str(e)}")
+                # Continue to local storage as fallback
+        
+        # Fallback to local storage
+        try:
+            posts = load_job_posts()
+            posts.append(post)
+            with open(JOB_POSTS_FILE, 'w') as f:
+                json.dump(posts, f, indent=2)
+                
+            # Notify connected clients
+            try:
+                send_event(f"NEW_JOB: {post.get('title')} | {post.get('company')} | {post.get('email')}")
+            except Exception:
+                pass
+                
+            print(f"✅ Job post saved to local storage")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error saving to local storage: {str(e)}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Error in save_job_post: {str(e)}")
+        return False
 
 
 def load_sent_emails(user_email=None):
@@ -470,7 +586,8 @@ FIRESTORE_COLLECTIONS = {
     'user_profiles': 'user_profiles',      # Stores user profile data
     'user_preferences': 'user_preferences', # Stores user preferences
     'sent_emails': 'sent_emails',          # Stores email history
-    'automation_runs': 'automation_runs'    # Stores automation run data
+    'automation_runs': 'automation_runs',   # Stores automation run data
+    'job_posts': 'job_posts'               # Stores unique job posts
 }
 
 def get_user_preferences(user_email):
@@ -557,6 +674,8 @@ def save_profile():
     # Get form data
     email_subject = request.form.get("emailSubject")
     email_content = request.form.get("emailContent")
+    search_role = request.form.get("searchRole", "devops, cloud, site reliability")
+    search_time_period = request.form.get("searchTimePeriod", "past-week")
     
     # Handle resume file
     resume_filename = None
@@ -575,6 +694,8 @@ def save_profile():
             "emailSubject": email_subject,
             "emailContent": email_content,
             "resumeFilename": resume_filename,
+            "searchRole": search_role,
+            "searchTimePeriod": search_time_period,
             "updatedAt": datetime.now()
         }
         
@@ -799,7 +920,7 @@ def progress_stream():
 
 
 # --- AUTOMATION FUNCTION ---
-def run_automation(subject, email_content, attachment_path, cc_email, run_id=None, user_email=None):
+def run_automation(subject, email_content, attachment_path, cc_email, run_id=None, user_email=None, search_role=None, search_time=None):
     log("🚀 Starting automation...")
     log(f"📝 Run ID: {run_id}")
     if user_email:
@@ -852,11 +973,36 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         raise
 
     try:
-        search_urls = [
-            "https://www.linkedin.com/search/results/content/?datePosted=%22past-week%22&keywords=devops%20hiring%20OR%20cloud%20hiring%20OR%20site-reliability%20hiring",
-           
-        ]
-
+        # Get search parameters from form input, fallback to profile preferences
+        db = firestore.client()
+        profile_doc = db.collection('user_profiles').document(user_email).get()
+        profile_data = profile_doc.to_dict() if profile_doc.exists else {}
+        
+        # Get form input first, fallback to profile preferences if empty
+        form_search_role = request.form.get('searchRole', '').strip()
+        form_search_time = request.form.get('searchTimePeriod', '').strip()
+        
+        # Use form input if provided, otherwise use profile preferences
+        search_role = form_search_role if form_search_role else profile_data.get('searchRole', 'devops, cloud, site reliability')
+        search_time = form_search_time if form_search_time else profile_data.get('searchTimePeriod', 'past-week')
+        
+        # Convert roles to LinkedIn search format
+        roles = [role.strip() for role in search_role.split(',')]
+        search_keywords = ' OR '.join(f'{role.strip()} hiring' for role in roles)
+        
+        # Build LinkedIn search URL
+        base_url = "https://www.linkedin.com/search/results/content/?"
+        params = {
+            'datePosted': f'"{search_time}"',
+            'keywords': search_keywords
+        }
+        
+        # URL encode parameters
+        from urllib.parse import urlencode
+        search_url = base_url + urlencode(params)
+        log(f"🔍 Using search URL: {search_url}")
+        
+        search_urls = [search_url]
         all_emails = set()
 
         for url in search_urls:
@@ -866,7 +1012,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
             # Scroll with dynamic wait
             last_height = driver.execute_script("return document.body.scrollHeight")
             scroll_attempts = 0
-            max_attempts = 16
+            max_attempts = 18
             
             while scroll_attempts < max_attempts:
                 # Scroll down
@@ -986,24 +1132,57 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
 
         log(f"📧 Found {len(all_emails)} email(s).")
 
-        # Load already-sent emails to avoid duplicates
-        sent_records = load_sent_emails()
-        sent_emails_set = set((r.get('email'), r.get('subject')) for r in sent_records)
+        # Function to check if email was already sent (directly in Firestore if available)
+        def is_duplicate_email(email, subject):
+            try:
+                if firestore is not None:
+                    db = firestore.client()
+                    # Query Firestore directly for this email+subject combination
+                    query = (db.collection(FIRESTORE_COLLECTIONS['sent_emails'])
+                            .where('email', '==', email)
+                            .where('subject', '==', subject)
+                            .where('status', 'in', ['sent', 'skipped'])
+                            .limit(1))
+                    
+                    docs = list(query.stream())
+                    if docs:
+                        # Found a match in Firestore
+                        return True, docs[0].to_dict().get('sent_at', '')
+                
+                # If no match in Firestore or Firestore not available, check local storage
+                sent_records = load_sent_emails()
+                for record in sent_records:
+                    if (record.get('email') == email and 
+                        record.get('subject') == subject and
+                        record.get('status') in ['sent', 'skipped']):
+                        return True, record.get('sent_at', '')
+                
+                return False, None
+                
+            except Exception as e:
+                print(f"❌ Error checking for duplicate email: {str(e)}")
+                # If we can't check reliably, assume it might be a duplicate
+                return True, None
 
-        # Send emails
+        # Send emails with enhanced duplicate checking
         for receiver_email in all_emails:
             try:
-                # Skip if this email+subject combo was already sent
-                key = (receiver_email, subject if subject else "")
-                if key in sent_emails_set:
-                    log(f"⚠️ Already sent to {receiver_email} with same subject — skipping.")
-                    # Record skipped event (optional)
+                # Check if this exact email+subject was already sent
+                is_duplicate, last_sent = is_duplicate_email(receiver_email, subject)
+                
+                if is_duplicate:
+                    when = f" (last sent: {last_sent})" if last_sent else ""
+                    log(f"⚠️ Already sent to {receiver_email} with subject '{subject}'{when} — skipping.")
+                    
+                    # Record skip with detailed reason
                     save_sent_email({
                         "email": receiver_email,
                         "subject": subject if subject else "",
                         "cc": cc_email,
                         "sent_at": datetime.now().isoformat(),
                         "status": "skipped",
+                        "reason": "duplicate",
+                        "last_sent": last_sent,
                         "source_url": ",".join(search_urls)
                     })
                     continue
@@ -1102,9 +1281,24 @@ def send_email():
     user_email = session.get("user")
     print(f"👤 User email: {user_email}")
     
+    # Get form data
     subject = request.form.get("subject", "Application")
     email_content = request.form.get("content", "").strip()
+    search_role = request.form.get("searchRole", "").strip()
+    search_time_period = request.form.get("searchTimePeriod", "past-week")
     use_saved_resume = request.form.get("useSavedResume") == "true"
+    
+    # Save search preferences to user profile
+    try:
+        if firestore is not None:
+            db = firestore.client()
+            db.collection('user_profiles').document(user_email).update({
+                'searchRole': search_role,
+                'searchTimePeriod': search_time_period,
+                'lastSearchAt': datetime.now()
+            })
+    except Exception as e:
+        print(f"⚠️ Could not save search preferences: {e}")
     print(f"📧 Subject: {subject}")
     print(f"📝 Content length: {len(email_content)} characters")
     print(f"📎 Using saved resume: {use_saved_resume}")

@@ -70,6 +70,23 @@
         
         <form id="profileForm" enctype="multipart/form-data">
           <div class="mb-4">
+            <label class="form-label">Job Search Role/Skills</label>
+            <input type="text" id="searchRole" name="searchRole" class="form-control" placeholder="e.g., devops, cloud engineer, site reliability">
+            <div class="form-text text-light-50">
+              Separate multiple roles/skills with commas
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Search Time Period</label>
+            <select id="searchTimePeriod" name="searchTimePeriod" class="form-control">
+              <option value="past-24h">Last 24 Hours</option>
+              <option value="past-week" selected>Past Week</option>
+              <option value="past-month">Past Month</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
             <label class="form-label">Default Email Subject Template</label>
             <input type="text" id="emailSubject" name="emailSubject" class="form-control" placeholder="e.g., Application for DevOps Engineer Role">
           </div>
@@ -179,6 +196,8 @@ async function loadProfile() {
     document.getElementById('emailSubject').value = profile.emailSubject || '';
     document.getElementById('emailContent').value = profile.emailContent || '';
     document.getElementById('currentResume').textContent = profile.resumeFilename || 'None';
+    document.getElementById('searchRole').value = profile.searchRole || 'devops, cloud, site reliability';
+    document.getElementById('searchTimePeriod').value = profile.searchTimePeriod || 'past-week';
     
   } catch (error) {
     console.error('Error loading profile:', error);

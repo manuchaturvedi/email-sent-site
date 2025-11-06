@@ -1,0 +1,50 @@
+@app.route('/admin/reanalyze', methods=['POST'])
+@login_required
+def reanalyze_job_posts():
+    """Reanalyze all job posts to extract company, location and skills information."""
+    analyzer = JobPostAnalyzer()
+    posts = load_job_posts()
+    updated_posts = []
+
+    for post in posts:
+        # Skip if already analyzed recently
+        if post.get('analyzed_at'):
+            # Keep existing analysis but ensure we have all fields
+            enhanced = post.copy()
+            if 'company' not in enhanced:
+                enhanced['company'] = None
+            if 'location' not in enhanced:
+                enhanced['location'] = None
+            if 'skills' not in enhanced:
+                enhanced['skills'] = {}
+            updated_posts.append(enhanced)
+            continue
+
+        # Analyze post with new analyzer
+        enhanced = analyzer.analyze_job_post(post)
+        updated_posts.append(enhanced)
+
+    # Save updated posts back to storage
+    if firestore is not None:
+        db = firestore.client()
+        batch = db.batch()
+        
+        # Update or create each post
+        for post in updated_posts:
+            doc_ref = db.collection(FIRESTORE_COLLECTIONS['job_posts']).document()
+            batch.set(doc_ref, post)
+        
+        # Commit the batch
+        batch.commit()
+        print(f"✅ Updated {len(updated_posts)} posts in Firestore")
+    
+    # Also update local storage
+    with open(JOB_POSTS_FILE, 'w') as f:
+        json.dump(updated_posts, f, indent=2)
+        print(f"✅ Updated {len(updated_posts)} posts in local storage")
+
+    return jsonify({
+        "status": "success",
+        "message": f"Reanalyzed {len(updated_posts)} job posts",
+        "updated": len([p for p in updated_posts if p.get('analyzed_at')])
+    })

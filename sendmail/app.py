@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 from functools import wraps
 import firebase_admin
 from firebase_admin import credentials, auth
+from job_analyzer import JobAnalyzer
 # Firestore is optional; we'll import if available at runtime
 try:
     from firebase_admin import firestore
@@ -96,29 +97,35 @@ def is_duplicate_job_post(post, existing_posts=None):
 
 def load_job_posts():
     """Load job posts from Firestore or fall back to local JSON storage."""
+    # Initialize job analyzer
+    analyzer = JobAnalyzer()
+
     try:
         if firestore is not None:
             db = firestore.client()
             docs = list(db.collection(FIRESTORE_COLLECTIONS['job_posts']).stream())
-            
+
             posts = []
             for doc in docs:
                 post_data = doc.to_dict()
                 post_data['id'] = doc.id
-                posts.append(post_data)
-                
+                # Analyze post to extract company, location, and skills
+                posts.append(analyzer.analyze_post(post_data))
+
             # Sort by posted_date descending
             posts.sort(key=lambda x: x.get('posted_date', ''), reverse=True)
             print(f"✅ Loaded {len(posts)} job posts from Firestore")
             return posts
-            
+
     except Exception as e:
         print(f"❌ Error loading from Firestore: {str(e)}")
         # Continue to try local storage
-    
+
     try:
         with open(JOB_POSTS_FILE, 'r') as f:
             posts = json.load(f)
+            # Analyze each post from local storage
+            posts = [analyzer.analyze_post(post) for post in posts]
             print(f"✅ Loaded {len(posts)} job posts from local storage")
             return posts
     except FileNotFoundError:
@@ -925,7 +932,10 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
     log(f"📝 Run ID: {run_id}")
     if user_email:
         log(f"👤 User: {user_email}")
-    
+    # Initialize resources referenced in finally/cleanup
+    driver = None
+    all_emails = set()
+
     try:
         # Log initial state
         log("⚙️ Initializing automation process...")
@@ -973,18 +983,16 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         raise
 
     try:
-        # Get search parameters from form input, fallback to profile preferences
+        # Get search parameters from function args or fallback to profile preferences
         db = firestore.client()
         profile_doc = db.collection('user_profiles').document(user_email).get()
         profile_data = profile_doc.to_dict() if profile_doc.exists else {}
-        
-        # Get form input first, fallback to profile preferences if empty
-        form_search_role = request.form.get('searchRole', '').strip()
-        form_search_time = request.form.get('searchTimePeriod', '').strip()
-        
-        # Use form input if provided, otherwise use profile preferences
-        search_role = form_search_role if form_search_role else profile_data.get('searchRole', 'devops, cloud, site reliability')
-        search_time = form_search_time if form_search_time else profile_data.get('searchTimePeriod', 'past-week')
+
+        # Use passed-in search parameters if provided, otherwise fall back to profile preferences
+        if not search_role:
+            search_role = profile_data.get('searchRole', 'devops, cloud, site reliability')
+        if not search_time:
+            search_time = profile_data.get('searchTimePeriod', 'past-week')
         
         # Convert roles to LinkedIn search format
         roles = [role.strip() for role in search_role.split(',')]
@@ -1363,7 +1371,7 @@ def send_email():
     # Start automation in background thread
     threading.Thread(
         target=run_automation,
-        args=(subject, email_content, resume_path, user_email, run_id, user_email),
+        args=(subject, email_content, resume_path, user_email, run_id, user_email, search_role, search_time_period),
         daemon=True
     ).start()
 

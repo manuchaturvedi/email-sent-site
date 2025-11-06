@@ -106,6 +106,8 @@
                         <thead class="table-light">
                             <tr>
                                 <th scope="col">Description</th>
+                                <th scope="col">Company</th>
+                                <!-- Location column hidden for now -->
                                 <th scope="col">Email</th>
                                 <th scope="col">Posted</th>
                                 <th scope="col">Link</th>
@@ -114,7 +116,20 @@
                         <tbody>
                             {% for post in job_posts %}
                             <tr>
-                                <td class="desc-cell" style="max-width:560px; white-space:normal;">{{ post.description }}</td>
+                                <td class="desc-cell" style="max-width:460px; white-space:normal;">
+                                    {{ post.description }}
+                                    {% if post.skills %}
+                                        <div class="mt-2">
+                                            {% for category, skills in post.skills.items() %}
+                                                {% for skill in skills %}
+                                                    <span class="badge bg-info me-1">{{ skill }}</span>
+                                                {% endfor %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="company-cell">{{ post.company if post.company else '-' }}</td>
+                                <!-- location removed intentionally -->
                                 <td class="email-cell" style="white-space:nowrap;">{% if post.email %}<a href="mailto:{{ post.email }}">{{ post.email }}</a>{% else %}-{% endif %}</td>
                                 <td class="date-cell" style="white-space:nowrap;">{{ post.posted_date }}</td>
                                 <td class="link-cell">{% if post.url %}<a href="{{ post.url }}" target="_blank">Open</a>{% else %}-{% endif %}</td>
@@ -141,7 +156,7 @@
             if (!table) return;
 
             const rows = Array.from(table.querySelectorAll('tr'));
-            totalCount.textContent = rows.length;
+                totalCount.textContent = rows.length;
             visibleCount.textContent = rows.length;
 
             function parseDate(s){
@@ -154,11 +169,12 @@
                 const q = filterText.value.trim().toLowerCase();
                 const desc = row.querySelector('.desc-cell')?.textContent.trim().toLowerCase() || '';
                 const email = row.querySelector('.email-cell')?.textContent.trim().toLowerCase() || '';
+                const company = row.querySelector('.company-cell')?.textContent.trim().toLowerCase() || '';
                 const dateStr = row.querySelector('.date-cell')?.textContent.trim() || '';
 
-                // Text filter (search in description or email)
+                // Text filter (search in description, email, or company)
                 if (q){
-                    if (!(desc.includes(q) || email.includes(q))) return false;
+                    if (!(desc.includes(q) || email.includes(q) || company.includes(q))) return false;
                 }
 
                 // Date range filter

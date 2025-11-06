@@ -1,0 +1,3 @@
+from job_post_analyzer_new import JobPostAnalyzer
+
+# Add this at the start of app.py where other imports are

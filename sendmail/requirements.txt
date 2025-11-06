@@ -1,3 +1,4 @@
 Flask==2.3.2
 python-dotenv==1.0.0
 selenium>=4.15.0
+geonamescache>=2023.1.1

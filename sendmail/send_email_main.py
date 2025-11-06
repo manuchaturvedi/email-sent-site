@@ -106,11 +106,11 @@ def scrape_emails_from_linkedin(driver, search_url):
 
 # Main function
 def main():
-    # Hard-coded SMTP configuration
-    smtp_server = 'smtp.gmail.com'
-    smtp_port = 587
+    # Configuration for the email
+    smtp_server = 'smtp.gmail.com'  # Example: Gmail SMTP server
+    smtp_port = 587  # Standard port for TLS
     sender_email = 'manudrive06@gmail.com'
-    sender_password = 'ozds nrqo gduy mnwd'
+    sender_password = 'ozds nrqo gduy mnwd'  # Use app password if using Gmail 
     content_file = 'C:/Users/28man/Downloads/project_and_test/flipkart/email_linkedln/email_context.txt'  # File containing the email body
     subject = 'Application for DevOps Cloud Engineer Role – Manu Chaturvedi'  # Email subject
     attachment_path = 'C:/Users/28man/Downloads/project_and_test/flipkart/Manu_DEVOPS_Cloud.pdf'  # Path to the file you want to attach

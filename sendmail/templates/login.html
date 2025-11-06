@@ -2,200 +2,363 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Login / Register - LinkedIn Automation</title>
+  <title>Log in - QuickMail</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- ✅ Load Firebase SDK first (compat ensures firebase.* works) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
 
   <style>
-    body {
-      background: linear-gradient(135deg, #0072ff, #00c6ff);
-      height: 100vh;
+    :root{
+      --primary:#14233c; /* deep navy */
+      --accent:#3b82f6; /* bright blue */
+      --muted:#6b7280;
+      --card-bg:#ffffff;
+      --vertical-gap: clamp(16px, 3vh, 48px);
+    }
+  html,body{height:100%;}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+
+    .split {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: "Poppins", sans-serif;
-      margin: 0;
+      min-height: 100vh;
+      align-items: stretch;
+      background: linear-gradient(180deg,var(--primary) 0%, #0f1b33 100%);
     }
-    .card {
-      background: rgba(255, 255, 255, 0.12);
-      padding: 40px;
-      border-radius: 20px;
+    /* Left panel with branding */
+    .left {
+      flex: 1 1 48%;
       color: #fff;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-      width: 400px;
-      text-align: center;
-      backdrop-filter: blur(15px);
-    }
-    input {
-      margin: 10px 0;
-      border: none;
-      padding: 12px;
-      border-radius: 10px;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.15);
-      color: #fff;
-    }
-    input:focus {
-      outline: 2px solid #00c6ff;
-    }
-    button {
-      background: linear-gradient(90deg, #0072ff, #00c6ff);
-      border: none;
-      padding: 12px;
-      width: 100%;
-      border-radius: 10px;
-      color: white;
-      font-weight: 600;
-      margin-top: 10px;
-      transition: 0.3s;
-    }
-    button:hover {
-      transform: scale(1.02);
-    }
-    .tab-buttons {
+      padding: 32px;
       display: flex;
+      flex-direction: column;
       justify-content: center;
-      margin-bottom: 20px;
+      min-width: 240px;
+      box-sizing: border-box;
+      max-width: 720px;
     }
-    .tab-buttons button {
-      background: transparent;
-      border: none;
-      color: white;
-      font-weight: 500;
-      padding: 10px 20px;
-      cursor: pointer;
-      transition: 0.2s;
+    .left .logo {
+      font-weight: 700;
+      color: #cfe8ff;
+      margin-bottom: 24px;
+      font-size: 20px;
     }
-    .tab-buttons .active {
-      border-bottom: 2px solid #fff;
+    .left h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      margin: 0 0 16px;
+      line-height: 1.2;
     }
-    .alert-msg {
-      color: #ffc107;
-      margin-top: 10px;
-      font-size: 0.9rem;
-      min-height: 22px;
+    .left p {
+      color: rgba(255,255,255,0.85);
+      max-width: 540px;
+      font-size: clamp(16px, 1.8vw, 18px);
+      line-height: 1.5;
     }
-    .forgot {
-      text-align: right;
-      font-size: 0.85rem;
-      margin-top: 5px;
-      cursor: pointer;
-      color: #bce0ff;
+  .left .hero-image{max-width:520px;width:100%;border-radius:8px;display:block;margin-top:24px}
+
+  /* Right column with auth card */
+  .right {
+    flex: 1 1 52%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+    min-height: 100vh;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 440px;
+    margin: auto;
+  }
+  .auth-card .card {
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(16,24,40,0.12);
+    background: #fff;
+  }
+  .card-body {
+    padding: 24px;
+  }
+
+  /* Fluid sizing for interactive elements */
+  .social-btn{display:flex;align-items:center;gap:12px;border-radius:10px;padding:clamp(8px,1.2vw,14px) clamp(10px,1.6vw,18px);border:1px solid #eef2ff;background:#fff;cursor:pointer}
+  .social-icon{width:clamp(16px,2.2vw,24px);height:clamp(16px,2.2vw,24px)}
+  .social-btn:hover{background:#f8fafc}
+
+  /* disabled social buttons appearance */
+  .social-btn.disabled{opacity:0.6;cursor:not-allowed;border-color:#e6e6e6;background:#fafafa}
+  .social-btn.disabled:hover{background:#fafafa}
+
+  .primary-btn{background:linear-gradient(90deg,var(--accent),#2563eb);color:#fff;border:none;padding:clamp(10px,1.6vw,14px);border-radius:10px;width:100%;font-weight:600;font-size:clamp(15px,1.8vw,18px)}
+    .muted{color:var(--muted);font-size:14px}
+
+  /* Tabs and form elements */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .tabs button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .tabs button.active {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+  }
+  .or-sep {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .or-sep hr {
+    flex: 1;
+    border: none;
+    border-top: 1px solid #e5e7eb;
+  }
+  /* Form inputs */
+  .form-control {
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    width: 100%;
+    font-size: 15px;
+  }
+  .form-control:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+  }
+
+  .brand-image{
+      width:100%;
+      height:clamp(120px,18vh,220px);
+      object-fit:cover;
+      border-radius:8px;
+      margin-bottom:16px;
+      transition:opacity 0.2s ease-out
     }
-    .forgot:hover {
-      text-decoration: underline;
+
+    /* Hide brand image on low-height screens */
+    /* Responsive adjustments */
+    @media (max-width: 1024px) {
+      .split {
+        flex-direction: column;
+      }
+      .left {
+        padding: 48px 24px;
+        text-align: center;
+        min-height: auto;
+      }
+      .left p {
+        margin: 0 auto;
+      }
+      .right {
+        min-height: auto;
+        padding: 24px 16px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .left {
+        padding: 32px 20px;
+      }
+      .card-body {
+        padding: 20px;
+      }
+    }
+
+    /* Compact view for small heights */
+    @media (max-height: 700px) {
+      /* Stack the left hero panel above the auth card (better for narrow viewports) */
+      .split{flex-direction:column}
+  .left{display:block;padding:12px;text-align:center}
+      .left h1{font-size:28px}
+      .left p{font-size:15px;max-width:100%}
+  .right{padding:16px}
+  .auth-card{width:100%;max-width:520px;margin:12px auto}
+      .card-body{padding:18px}
+      .brand-image{height:160px}
+      .tabs button{padding:8px;font-size:14px}
+      .primary-btn{padding:10px;font-size:15px}
+      /* Make tabs full-width on narrow phones */
+      .tabs button{flex-basis:48%}
+      @media(max-width:420px){
+        .tabs button{flex-basis:100%}
+      }
+      /* Compact social buttons and icons on small screens */
+      .social-btn{padding:10px}
+      .social-icon{width:18px;height:18px}
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="tab-buttons">
-      <button id="loginTab" class="active" onclick="showTab('login')">Login</button>
-      <button id="signupTab" onclick="showTab('signup')">Register</button>
+  <div class="split">
+    <div class="left">
+      <div class="logo">QuickMail</div>
+      <h1>Log in to QuickMail</h1>
+      <p>Whether it's for Outbound, Inbound, a trial account or an existing customer—QuickMail keeps your outreach personal on autopilot.</p>
+    <!-- hero image removed to keep the login card visible on smaller screens -->
+    <!--<img class="hero-image" src="{{ url_for('static', filename='images/brand-hero.jpg') }}" alt="hero" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=3d7f8e7f6a3a4a2f9b0f6f6a1f5e7b6a'">-->
     </div>
 
-    <!-- Login Form -->
-    <div id="loginForm">
-      <h4>🔐 Login</h4>
-      <input id="loginEmail" type="email" placeholder="Email" required />
-      <input id="loginPassword" type="password" placeholder="Password" required />
-      <div class="forgot" onclick="forgotPassword()">Forgot Password?</div>
-      <button onclick="login()">Login</button>
-      <div id="loginMsg" class="alert-msg"></div>
-    </div>
+    <div class="right">
+      <div class="auth-card">
+        <div class="card">
+          <div class="card-body">
+            <h3 id="authHeading" style="margin:0 0 16px">Log in</h3>
+            <div class="muted" style="margin-bottom:20px">Need a QuickMail account? <a href="#" onclick="showTab('signup')">Register</a></div>
 
-    <!-- Signup Form -->
-    <div id="signupForm" style="display:none;">
-      <h4>🆕 Register</h4>
-      <input id="signupEmail" type="email" placeholder="Email" required />
-      <input id="signupPassword" type="password" placeholder="Password (min 6 chars)" required />
-      <button onclick="signup()">Create Account</button>
-      <div id="signupMsg" class="alert-msg"></div>
+            <div class="tabs" role="tablist">
+              <button id="tab-login" class="active" onclick="showTab('login')">Sign in</button>
+              <button id="tab-signup" onclick="showTab('signup')">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm">
+              <div class="mb-2">
+                <input id="loginEmail" type="email" class="form-control" placeholder="Email" required />
+              </div>
+              <div class="mb-2">
+                <input id="loginPassword" type="password" class="form-control" placeholder="Password" required />
+              </div>
+              <div style="text-align:right;margin-bottom:12px"><a href="#" onclick="forgotPassword()" class="muted">Forgot Password?</a></div>
+              <button class="primary-btn" onclick="login()">Sign in</button>
+              <div id="loginMsg" class="muted" style="margin-top:10px;min-height:20px"></div>
+            </div>
+
+            <!-- Signup Form (in-card) -->
+            <div id="signupForm" style="display:none;">
+              <div class="mb-2">
+                <input id="signupName" type="text" class="form-control" placeholder="Full name (optional)" />
+              </div>
+              <div class="mb-2">
+                <input id="signupEmail" type="email" class="form-control" placeholder="Email" required />
+              </div>
+              <div class="mb-2">
+                <input id="signupPassword" type="password" class="form-control" placeholder="Password (min 6 chars)" required />
+              </div>
+              <div class="mb-2">
+                <input id="signupPassword2" type="password" class="form-control" placeholder="Confirm password" required />
+              </div>
+              <button class="primary-btn" onclick="signup()">Create account</button>
+              <div id="signupMsg" class="muted" style="margin-top:10px;min-height:20px"></div>
+            </div>
+
+            <div class="or-sep">
+              <hr><div class="muted">Or continue with</div><hr>
+            </div>
+
+            <!-- Social / provider buttons (non-functional placeholders except styling) -->
+            <div style="display:flex;flex-direction:column;gap:12px">
+                <div class="social-btn disabled" id="microsoft-login" title="Coming soon">
+                  <img class="social-icon" src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="microsoft">
+                  <div style="flex:1;text-align:center">Continue with Microsoft</div>
+                </div>
+                <div class="social-btn disabled" id="linkedin-login" title="Coming soon">
+                  <img class="social-icon" src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="linkedin">
+                  <div style="flex:1;text-align:center">Continue with LinkedIn</div>
+                </div>
+            </div>
+
+            <div style="margin-top:18px;font-size:13px;color:#6b7280">By continuing you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ✅ Initialize Firebase and Authentication -->
   <script>
-    // Your Firebase config
+    // Firebase config (unchanged)
     const firebaseConfig = {
       apiKey: "AIzaSyDHm2fmm4q_Q6srw3BzCloiPbJCXs0Caqw",
-      authDomain: "linkedin.firebaseapp.com",
+      authDomain: "linkedin-7c251.firebaseapp.com",
       projectId: "linkedin-7c251",
     };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 
-    // Initialize Firebase
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+    function showTab(tab){
+      // Toggle between login and signup panels inside the card
+      const login = document.getElementById('loginForm');
+      const signup = document.getElementById('signupForm');
+      const tabLogin = document.getElementById('tab-login');
+      const tabSignup = document.getElementById('tab-signup');
+      const heading = document.getElementById('authHeading');
+      if(tab === 'signup'){
+        login.style.display = 'none'; signup.style.display = 'block';
+        tabLogin.classList.remove('active'); tabSignup.classList.add('active');
+        if(heading) heading.textContent = 'Register';
+        // focus first signup input for better UX
+        const s = document.getElementById('signupName'); if(s) s.focus();
+      } else {
+        login.style.display = 'block'; signup.style.display = 'none';
+        tabLogin.classList.add('active'); tabSignup.classList.remove('active');
+        if(heading) heading.textContent = 'Log in';
+        // focus email input
+        const e = document.getElementById('loginEmail'); if(e) e.focus();
+      }
     }
 
-    // Tab switching
-    function showTab(tab) {
-      document.getElementById("loginForm").style.display = tab === "login" ? "block" : "none";
-      document.getElementById("signupForm").style.display = tab === "signup" ? "block" : "none";
-      document.getElementById("loginTab").classList.toggle("active", tab === "login");
-      document.getElementById("signupTab").classList.toggle("active", tab === "signup");
-    }
+    // Ensure heading/tab state is correct on initial load
+    document.addEventListener('DOMContentLoaded', function(){
+      // If the signup tab is active by server-side markup, show it
+      const tabSignup = document.getElementById('tab-signup');
+      if(tabSignup && tabSignup.classList.contains('active')) showTab('signup');
+      else showTab('login');
+    });
 
-    // Login Function
-    async function login() {
-      const email = document.getElementById("loginEmail").value;
-      const password = document.getElementById("loginPassword").value;
-      const msg = document.getElementById("loginMsg");
-
-      try {
+    async function login(){
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const msg = document.getElementById('loginMsg');
+      try{
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         const idToken = await userCredential.user.getIdToken();
-        const res = await fetch("/sessionLogin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ idToken }),
-        });
-        if (res.ok) {
-          msg.textContent = "✅ Login successful! Redirecting...";
-          setTimeout(() => (window.location.href = "/"), 800);
-        } else {
-          msg.textContent = "Invalid credentials.";
-        }
-      } catch (error) {
-        msg.textContent = error.message;
-      }
+        const res = await fetch('/sessionLogin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken})});
+        if(res.ok){ msg.textContent = '✅ Login successful! Redirecting...'; setTimeout(()=>window.location.href='/',800); }
+        else msg.textContent = 'Invalid credentials.';
+      }catch(e){ msg.textContent = e.message; }
     }
 
-    // Signup Function
-    async function signup() {
-      const email = document.getElementById("signupEmail").value;
-      const password = document.getElementById("signupPassword").value;
-      const msg = document.getElementById("signupMsg");
-
-      try {
-        await firebase.auth().createUserWithEmailAndPassword(email, password);
-        msg.textContent = "✅ Account created successfully! You can log in now.";
-        setTimeout(() => showTab("login"), 1500);
-      } catch (error) {
-        msg.textContent = error.message;
-      }
+    async function forgotPassword(){
+      const email = document.getElementById('loginEmail').value; const msg = document.getElementById('loginMsg');
+      if(!email){ msg.textContent = '⚠️ Enter your email to reset password.'; return; }
+      try{ await firebase.auth().sendPasswordResetEmail(email); msg.textContent='📩 Password reset email sent!'; }catch(e){ msg.textContent = e.message }
     }
 
-    // Forgot Password Function
-    async function forgotPassword() {
-      const email = document.getElementById("loginEmail").value;
-      const msg = document.getElementById("loginMsg");
+    // Signup handler (in-card)
+    async function signup(){
+      const name = document.getElementById('signupName').value || '';
+      const email = document.getElementById('signupEmail').value;
+      const p1 = document.getElementById('signupPassword').value;
+      const p2 = document.getElementById('signupPassword2').value;
+      const msg = document.getElementById('signupMsg');
+      if(!email || !p1){ msg.textContent = 'Enter email and password.'; return; }
+      if(p1.length < 6){ msg.textContent = 'Password should be at least 6 characters.'; return; }
+      if(p1 !== p2){ msg.textContent = 'Passwords do not match.'; return; }
+      try{
+        await firebase.auth().createUserWithEmailAndPassword(email, p1);
+        msg.textContent = '✅ Account created! You may sign in now.';
+        setTimeout(()=>{ showTab('login'); }, 1200);
+      }catch(e){ msg.textContent = e.message; }
+    }
 
-      if (!email) {
-        msg.textContent = "⚠️ Enter your email to reset password.";
-        return;
-      }
-
-      try {
-        await firebase.auth().sendPasswordResetEmail(email);
-        msg.textContent = "📩 Password reset email sent!";
-      } catch (error) {
-        msg.textContent = error.message;
-      }
+    function social(provider){
+      // Placeholder: keep core functionality unchanged. If you later add OAuth, wire here.
+      alert('Social login ('+provider+') is not configured in this build.');
     }
   </script>
 </body>

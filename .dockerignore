@@ -1,0 +1,58 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.log
+*.bak
+*.tmp
+
+# Sensitive data
+*.json.bak*
+firebase-adminsdk-*.json
+
+# Uploads
+uploads/*/
+!uploads/.gitkeep
+
+# Chrome profile (too large for git)
+chrome-profile/
+Profile/
+
+# Docker
+.dockerignore

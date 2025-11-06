@@ -2,93 +2,355 @@
 
 {% block title %}Home - LinkedIn Automation{% endblock %}
 
-{% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="card p-4">
-      <div class="d-flex align-items-start">
-        <div class="me-3">
-          <i class="bi bi-robot fs-1 text-info"></i>
-        </div>
-            <div>
-              <h3 class="mb-2">Welcome, {{ user }}!</h3>
-              <p class="text-muted">This tool automates sending application emails found on LinkedIn posts. It uses a headless Chrome profile to search recent posts, extracts contact emails, and sends your attached resume with a message. Progress is streamed live to the UI so you can monitor finds and sends in real time.</p>
-              
-              <!-- Stats Row -->
-              <div class="row mt-4 mb-4">
-                <div class="col-md-4">
-                  <div class="card bg-light">
-                    <div class="card-body text-center">
-                      <div class="mb-2"><i class="bi bi-send-check text-success fs-3"></i></div>
-                      <h3 id="stat-sent" class="mb-0">{{ stats.sent }}</h3>
-                      <div class="text-muted small">Emails Sent</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="card bg-light">
-                    <div class="card-body text-center">
-                      <div class="mb-2"><i class="bi bi-skip-forward text-warning fs-3"></i></div>
-                      <h3 id="stat-skipped" class="mb-0">{{ stats.skipped }}</h3>
-                      <div class="text-muted small">Duplicates Skipped</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="card bg-light">
-                    <div class="card-body text-center">
-                      <div class="mb-2"><i class="bi bi-envelope-exclamation text-danger fs-3"></i></div>
-                      <h3 id="stat-failed" class="mb-0">{{ stats.failed }}</h3>
-                      <div class="text-muted small">Failed Sends</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+{% block additional_styles %}
+<style>
+  /* Welcome card */
+  .welcome-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
+    border: none;
+    box-shadow: 0 8px 32px rgba(99,102,241,0.1);
+  }
 
-              <div class="mt-3">
-                <a class="btn btn-primary me-2" href="/send"><i class="bi bi-envelope-fill me-1"></i> Go to Email Sender</a>
-                <a class="btn btn-outline-secondary me-2" href="/jobs"><i class="bi bi-briefcase-fill me-1"></i> View Job Posts</a>
-                <a class="btn btn-outline-info" href="/sent_emails"><i class="bi bi-clock-history me-1"></i> View Sent History</a>
+  /* Stats cards */
+  .stats-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
+    border: none;
+    overflow: hidden;
+  }
+
+  .stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(99,102,241,0.12);
+  }
+
+  /* Action cards */
+  .action-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
+    border: none;
+  }
+
+  .action-link {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(99,102,241,0.1);
+  }
+
+  .action-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(99,102,241,0.15);
+    border-color: rgba(99,102,241,0.3);
+    color: inherit;
+  }
+
+  /* Icon styles */
+  .icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin: 0 auto;
+  }
+
+  .icon-circle-lg {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(99,102,241,0.2));
+    margin: 0 auto;
+  }
+
+  .icon-circle-lg i {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Campaign button */
+  .campaign-button {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    border: none;
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .campaign-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(99,102,241,0.3);
+  }
+
+  /* Feature section */
+  .feature-section {
+    background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(129,140,248,0.05));
+    border-radius: 16px;
+    padding: 3rem 0;
+  }
+
+  .feature-card {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(99,102,241,0.15);
+  }
+
+  .feature-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Welcome Section -->
+  <div class="row justify-content-center mb-4">
+    <div class="col-lg-10">
+      <div class="card welcome-card">
+        <div class="card-body p-4">
+          <div class="text-center">
+            <div class="icon-circle-lg mb-3">
+              <i class="bi bi-robot display-5"></i>
+            </div>
+            <h1 class="display-5 fw-bold mb-2">Welcome, {{ user }}! 👋</h1>
+            <p class="lead text-muted mb-4">
+              Automate your job search outreach with AI-powered email campaigns
+            </p>
+            <a href="/send" class="btn btn-primary campaign-button" style="--gradient-start: #6366f1; --gradient-end: #818cf8">
+              <i class="bi bi-rocket-takeoff me-2"></i>
+              Start New Campaign
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+              
+  <!-- Stats Section -->
+  <div class="row justify-content-center mb-4">
+    <div class="col-lg-10">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card stats-card h-100">
+            <div class="card-body p-4 text-center">
+              <div class="icon-circle mb-3" style="background: rgba(99,102,241,0.1);">
+                <i class="bi bi-send-check-fill text-primary"></i>
               </div>
-              <p class="small text-muted mt-3">Tip: Use the Email Sender to upload your resume and start automation. Check Job Posts to review saved posts with extracted emails. View Sent History to track all sent emails and avoid duplicates.</p>
+              <h3 class="display-6 fw-bold mb-1" id="stat-sent">{{ stats.sent }}</h3>
+              <p class="text-muted mb-0">Emails Sent</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card stats-card h-100">
+            <div class="card-body p-4 text-center">
+              <div class="icon-circle mb-3" style="background: rgba(99,102,241,0.1);">
+                <i class="bi bi-skip-forward-fill text-primary"></i>
+              </div>
+              <h3 class="display-6 fw-bold mb-1" id="stat-skipped">{{ stats.skipped }}</h3>
+              <p class="text-muted mb-0">Duplicates Skipped</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card stats-card h-100">
+            <div class="card-body p-4 text-center">
+              <div class="icon-circle mb-3" style="background: rgba(99,102,241,0.1);">
+                <i class="bi bi-exclamation-circle-fill text-primary"></i>
+              </div>
+              <h3 class="display-6 fw-bold mb-1" id="stat-failed">{{ stats.failed }}</h3>
+              <p class="text-muted mb-0">Failed Sends</p>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+              
+  <!-- Action Section -->
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card action-card">
+        <div class="card-body p-4">
+          <!-- Quick Actions -->
+          <div class="row g-4">
+            <div class="col-md-6">
+              <a href="/jobs" class="card action-link h-100">
+                <div class="card-body p-4">
+                  <div class="d-flex align-items-center">
+                    <div class="icon-circle me-3" style="background: rgba(99,102,241,0.1);">
+                      <i class="bi bi-briefcase-fill text-primary"></i>
+                    </div>
+                    <div>
+                      <h5 class="mb-1">View Job Posts</h5>
+                      <p class="text-muted small mb-0">Review saved job posts and extracted emails</p>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto text-muted"></i>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="col-md-6">
+              <a href="/sent_emails" class="card action-link h-100">
+                <div class="card-body p-4">
+                  <div class="d-flex align-items-center">
+                    <div class="icon-circle me-3" style="background: rgba(99,102,241,0.1);">
+                      <i class="bi bi-clock-history text-primary"></i>
+                    </div>
+                    <div>
+                      <h5 class="mb-1">Email History</h5>
+                      <p class="text-muted small mb-0">Track sent emails and campaign results</p>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto text-muted"></i>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <div class="row justify-content-center my-5">
+    <div class="col-lg-10">
+      <div class="feature-section">
+        <div class="container">
+          <div class="text-center mb-5">
+            <h2 class="display-6 fw-bold mb-3">How It Works</h2>
+            <p class="lead text-muted">Streamline your job search with intelligent automation</p>
+          </div>
+          
+          <div class="row g-4">
+            <div class="col-md-4">
+              <div class="card feature-card h-100">
+                <div class="card-body p-4 text-center">
+                  <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(99,102,241,0.2));">
+                    <i class="bi bi-search text-primary"></i>
+                  </div>
+                  <h4 class="mb-3">Smart Discovery</h4>
+                  <p class="text-muted mb-0">Automatically scan LinkedIn for job postings that match your target roles and extract contact information from hiring managers.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-4">
+              <div class="card feature-card h-100">
+                <div class="card-body p-4 text-center">
+                  <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(99,102,241,0.2));">
+                    <i class="bi bi-pencil-square text-primary"></i>
+                  </div>
+                  <h4 class="mb-3">AI-Powered Outreach</h4>
+                  <p class="text-muted mb-0">Craft personalized emails using AI that understands job context and your professional background for authentic communication.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-4">
+              <div class="card feature-card h-100">
+                <div class="card-body p-4 text-center">
+                  <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(99,102,241,0.2));">
+                    <i class="bi bi-graph-up text-primary"></i>
+                  </div>
+                  <h4 class="mb-3">Track & Optimize</h4>
+                  <p class="text-muted mb-0">Monitor campaign performance with real-time analytics. Prevent duplicates and optimize your outreach strategy with actionable insights.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-4 mt-4">
+            <div class="col-md-6">
+              <div class="card feature-card h-100">
+                <div class="card-body p-4">
+                  <div class="d-flex align-items-start">
+                    <div class="feature-icon me-3" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.2)); width: 48px; height: 48px; font-size: 1.5rem;">
+                      <i class="bi bi-shield-check text-success"></i>
+                    </div>
+                    <div>
+                      <h5 class="mb-2">Duplicate Prevention</h5>
+                      <p class="text-muted small mb-0">Intelligent tracking ensures you never email the same contact twice, maintaining your professional reputation.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="card feature-card h-100">
+                <div class="card-body p-4">
+                  <div class="d-flex align-items-start">
+                    <div class="feature-icon me-3" style="background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(245,158,11,0.2)); width: 48px; height: 48px; font-size: 1.5rem;">
+                      <i class="bi bi-lightning-charge text-warning"></i>
+                    </div>
+                    <div>
+                      <h5 class="mb-2">Bulk Automation</h5>
+                      <p class="text-muted small mb-0">Send personalized emails to multiple opportunities in minutes, not hours, while maintaining quality.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
-  {% block scripts %}
-  <script>
-    // Listen for server-sent events and refresh the home stats when new emails arrive
-    (function(){
-      try{
-        const evt = new EventSource('/progress');
-        evt.onmessage = async function(e){
-          const d = e.data || '';
-          if(d.startsWith('NEW_EMAIL') || d.startsWith('SENT_EMAIL')){
-            try{
-              const resp = await fetch('/api/sent_emails');
-              if(!resp.ok) return;
-              const emails = await resp.json();
-              // compute stats
-              const stats = { sent:0, skipped:0, failed:0 };
-              for(const em of emails){
-                if(em.status === 'sent') stats.sent += 1;
-                else if(em.status === 'skipped') stats.skipped += 1;
-                else if(em.status === 'failed') stats.failed += 1;
-              }
-              const elSent = document.getElementById('stat-sent');
-              const elSkipped = document.getElementById('stat-skipped');
-              const elFailed = document.getElementById('stat-failed');
-              if(elSent) elSent.textContent = stats.sent;
-              if(elSkipped) elSkipped.textContent = stats.skipped;
-              if(elFailed) elFailed.textContent = stats.failed;
-            }catch(err){ console.warn('Failed updating stats', err); }
-          }
-        };
-      }catch(e){ console.warn('SSE not available', e); }
-    })();
-  </script>
-  {% endblock %}
+{% block scripts %}
+<script>
+  // Listen for server-sent events and refresh the home stats when new emails arrive
+  (function(){
+    try{
+      const evt = new EventSource('/progress');
+      evt.onmessage = async function(e){
+        const d = e.data || '';
+        if(d.startsWith('NEW_EMAIL') || d.startsWith('SENT_EMAIL')){
+          try{
+            const resp = await fetch('/api/sent_emails');
+            if(!resp.ok) return;
+            const emails = await resp.json();
+            // compute stats
+            const stats = { sent:0, skipped:0, failed:0 };
+            for(const em of emails){
+              if(em.status === 'sent') stats.sent += 1;
+              else if(em.status === 'skipped') stats.skipped += 1;
+              else if(em.status === 'failed') stats.failed += 1;
+            }
+            const elSent = document.getElementById('stat-sent');
+            const elSkipped = document.getElementById('stat-skipped');
+            const elFailed = document.getElementById('stat-failed');
+            if(elSent) elSent.textContent = stats.sent;
+            if(elSkipped) elSkipped.textContent = stats.skipped;
+            if(elFailed) elFailed.textContent = stats.failed;
+          }catch(err){ console.warn('Failed updating stats', err); }
+        }
+      };
+    }catch(e){ console.warn('SSE not available', e); }
+  })();
+</script>
+{% endblock %}

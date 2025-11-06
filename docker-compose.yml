@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  linkedin-automation:
+    build: .
+    container_name: linkedin-automation
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=sendmail/app.py
+      - FLASK_ENV=production
+      - CHROME_PROFILE_DIR=/app/chrome-profile
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Mount Chrome profile directory (persistent)
+      - ./chrome-profile:/app/chrome-profile
+      # Mount uploads directory (persistent)
+      - ./uploads:/app/uploads
+      - ./sendmail/uploads:/app/sendmail/uploads
+      # Mount data files (persistent)
+      - ./job_posts.json:/app/job_posts.json
+      - ./sent_emails.json:/app/sent_emails.json
+      # Mount Firebase credentials
+      - ./sendmail/linkedin-7c251-firebase-adminsdk-fbsvc-c9b46f2c3d.json:/app/sendmail/linkedin-7c251-firebase-adminsdk-fbsvc-c9b46f2c3d.json
+    restart: unless-stopped
+    shm_size: '2gb'  # Increase shared memory for Chrome
+    networks:
+      - linkedin-net
+
+networks:
+  linkedin-net:
+    driver: bridge

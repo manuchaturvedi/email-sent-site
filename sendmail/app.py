@@ -15,6 +15,8 @@ from queue import Queue, Empty
 import os
 import smtplib
 import time
+import tempfile
+import shutil
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
@@ -58,6 +60,16 @@ def log(message: str):
 # Initialize job posts storage
 JOB_POSTS_FILE = 'job_posts.json'
 SENT_EMAILS_FILE = 'sent_emails.json'
+
+# Optional persistent Chrome profile directory helps preserve LinkedIn login state.
+_env_profile = os.getenv("CHROME_PROFILE_DIR")
+_default_profile = r"D:\Profile"
+if _env_profile:
+    CHROME_PROFILE_DIR = _env_profile
+elif os.path.exists(_default_profile):
+    CHROME_PROFILE_DIR = _default_profile
+else:
+    CHROME_PROFILE_DIR = None
 
 def is_duplicate_job_post(post, existing_posts=None):
     """Check if a job post is a duplicate based on email, title, and company."""
@@ -935,6 +947,8 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
     # Initialize resources referenced in finally/cleanup
     driver = None
     all_emails = set()
+    profile_dir = None
+    profile_is_temp = False
 
     try:
         # Log initial state
@@ -957,7 +971,15 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         options.add_argument("--disable-extensions")
         options.add_argument("--dns-prefetch-disable")
         options.add_argument("--disable-features=VizDisplayCompositor")
-        options.add_argument("--user-data-dir=D:\\Profile")
+        if CHROME_PROFILE_DIR:
+            profile_dir = CHROME_PROFILE_DIR
+            options.add_argument(f"--user-data-dir={profile_dir}")
+            log(f"🗂 Using persistent Chrome profile folder: {profile_dir}")
+        else:
+            profile_dir = tempfile.mkdtemp(prefix="chrome-profile-")
+            profile_is_temp = True
+            options.add_argument(f"--user-data-dir={profile_dir}")
+            log(f"🗂 Using temp Chrome profile folder: {profile_dir}")
         options.page_load_strategy = 'normal'
         log("✅ Chrome options configured")
     except Exception as e:
@@ -1256,8 +1278,11 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
     finally:
         try:
             # Force close any remaining Chrome instances
-            driver.quit()
+            if driver:
+                driver.quit()
             os.system('taskkill /f /im chrome.exe')
+            if profile_is_temp and profile_dir and os.path.exists(profile_dir):
+                shutil.rmtree(profile_dir, ignore_errors=True)
             log("🧹 Browser and Chrome instances closed.")
 
             # Send completion status back to the frontend

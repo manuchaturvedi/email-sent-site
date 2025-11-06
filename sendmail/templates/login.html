@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Log in - QuickMail</title>
+  <title>Login - LinkedIn Automation</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Firebase SDK -->
@@ -13,22 +14,37 @@
 
   <style>
     :root{
-      --primary:#14233c; /* deep navy */
-      --accent:#3b82f6; /* bright blue */
+      --primary:#6366f1;
+      --accent:#4f46e5;
       --muted:#6b7280;
       --card-bg:#ffffff;
       --vertical-gap: clamp(16px, 3vh, 48px);
+      --gradient-start: #818cf8;
+      --gradient-end: #6366f1;
     }
-  html,body{height:100%;}
+
+    html,body{height:100%;}
     body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
 
     .split {
       display: flex;
       min-height: 100vh;
       align-items: stretch;
-      background: linear-gradient(180deg,var(--primary) 0%, #0f1b33 100%);
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      position: relative;
+      overflow: hidden;
     }
-    /* Left panel with branding */
+
+    .split::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
     .left {
       flex: 1 1 48%;
       color: #fff;
@@ -40,194 +56,332 @@
       box-sizing: border-box;
       max-width: 720px;
     }
+
     .left .logo {
-      font-weight: 700;
-      color: #cfe8ff;
+      font-weight: 800;
+      color: #ffffff;
       margin-bottom: 24px;
-      font-size: 20px;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
+
+    .feature-slider {
+      margin-top: 36px;
+      position: relative;
+      max-width: 560px;
+      padding: 12px 12px 40px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 18px 36px rgba(15,23,42,0.22);
+      overflow: hidden;
+    }
+
+    .feature-slide {
+      display: none;
+      align-items: flex-start;
+      gap: 16px;
+      color: #ffffff;
+      font-size: 17px;
+      line-height: 1.5;
+      padding: 18px 20px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      animation: slideFade 0.7s ease forwards;
+    }
+
+    .feature-slide.active { display: flex; }
+
+    .feature-slide .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(129,140,248,0.32);
+      color: #ffffff;
+      font-size: 22px;
+    }
+
+    .feature-slide-content { flex: 1; }
+
+    .feature-slide h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .feature-slide p {
+      margin: 0;
+      color: rgba(255,255,255,0.78);
+      font-size: 15px;
+    }
+
+    .feature-slider-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .feature-slider-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.4);
+      border: none;
+      padding: 0;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .feature-slider-dot.active {
+      width: 36px;
+      background: #ffffff;
+    }
+
+    .feature-slider-dot:focus-visible {
+      outline: 2px solid rgba(255,255,255,0.8);
+      outline-offset: 3px;
+    }
+
+    @keyframes slideFade {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     .left h1 {
       font-size: clamp(32px, 5vw, 48px);
       margin: 0 0 16px;
       line-height: 1.2;
     }
+
     .left p {
       color: rgba(255,255,255,0.85);
       max-width: 540px;
       font-size: clamp(16px, 1.8vw, 18px);
       line-height: 1.5;
     }
-  .left .hero-image{max-width:520px;width:100%;border-radius:8px;display:block;margin-top:24px}
 
-  /* Right column with auth card */
-  .right {
-    flex: 1 1 52%;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    box-sizing: border-box;
-    min-height: 100vh;
-  }
-  .auth-card {
-    width: 100%;
-    max-width: 440px;
-    margin: auto;
-  }
-  .auth-card .card {
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(16,24,40,0.12);
-    background: #fff;
-  }
-  .card-body {
-    padding: 24px;
-  }
-
-  /* Fluid sizing for interactive elements */
-  .social-btn{display:flex;align-items:center;gap:12px;border-radius:10px;padding:clamp(8px,1.2vw,14px) clamp(10px,1.6vw,18px);border:1px solid #eef2ff;background:#fff;cursor:pointer}
-  .social-icon{width:clamp(16px,2.2vw,24px);height:clamp(16px,2.2vw,24px)}
-  .social-btn:hover{background:#f8fafc}
-
-  /* disabled social buttons appearance */
-  .social-btn.disabled{opacity:0.6;cursor:not-allowed;border-color:#e6e6e6;background:#fafafa}
-  .social-btn.disabled:hover{background:#fafafa}
-
-  .primary-btn{background:linear-gradient(90deg,var(--accent),#2563eb);color:#fff;border:none;padding:clamp(10px,1.6vw,14px);border-radius:10px;width:100%;font-weight:600;font-size:clamp(15px,1.8vw,18px)}
-    .muted{color:var(--muted);font-size:14px}
-
-  /* Tabs and form elements */
-  .tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-  .tabs button {
-    flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 15px;
-    color: var(--muted);
-  }
-  .tabs button.active {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-  }
-  .or-sep {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 20px 0;
-  }
-  .or-sep hr {
-    flex: 1;
-    border: none;
-    border-top: 1px solid #e5e7eb;
-  }
-  /* Form inputs */
-  .form-control {
-    padding: 12px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    width: 100%;
-    font-size: 15px;
-  }
-  .form-control:focus {
-    border-color: var(--accent);
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
-  }
-
-  .brand-image{
+    .left .hero-image {
+      max-width:520px;
       width:100%;
-      height:clamp(120px,18vh,220px);
-      object-fit:cover;
       border-radius:8px;
-      margin-bottom:16px;
-      transition:opacity 0.2s ease-out
+      display:block;
+      margin-top:24px;
     }
 
-    /* Hide brand image on low-height screens */
-    /* Responsive adjustments */
+    .right {
+      flex: 1 1 52%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      box-sizing: border-box;
+      min-height: 100vh;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      margin: auto;
+    }
+
+    .auth-card .card {
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .card-body {
+      padding: 24px;
+    }
+
+    .social-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: 10px;
+      padding: 12px 16px;
+      border: 1px solid #eef2ff;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .social-icon {
+      width: 22px;
+      height: 22px;
+    }
+
+    .social-btn:hover { background: #f8fafc; }
+    .social-btn.disabled { opacity: 0.6; cursor: not-allowed; border-color: #e6e6e6; background: #fafafa; }
+
+    /* ✅ Fixed visible button */
+    .primary-btn {
+      background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+      color: #ffffff !important;
+      border: none !important;
+      padding: 16px !important;
+      border-radius: 12px !important;
+      width: 100% !important;
+      font-weight: 600 !important;
+      font-size: 16px !important;
+      transition: all 0.3s ease !important;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+      display: inline-block !important;
+      text-align: center !important;
+    }
+
+    .primary-btn:hover,
+    .primary-btn:focus,
+    .primary-btn:active {
+      background: linear-gradient(135deg, #4f46e5, #4338ca) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4) !important;
+      color: #ffffff !important;
+    }
+
+    .muted { color: var(--muted); font-size: 14px; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .tabs button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    .tabs button.active {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+    }
+
+    .or-sep {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .or-sep hr {
+      flex: 1;
+      border: none;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .form-control {
+      padding: 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      width: 100%;
+      font-size: 15px;
+      transition: all 0.2s ease;
+      background: rgba(255,255,255,0.9);
+    }
+
+    .form-control:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+      background: #ffffff;
+    }
+
+    .form-control::placeholder { color: #9ca3af; }
+
     @media (max-width: 1024px) {
-      .split {
-        flex-direction: column;
-      }
-      .left {
-        padding: 48px 24px;
-        text-align: center;
-        min-height: auto;
-      }
-      .left p {
-        margin: 0 auto;
-      }
-      .right {
-        min-height: auto;
-        padding: 24px 16px;
-      }
+      .split { flex-direction: column; }
+      .left { padding: 48px 24px; text-align: center; }
+      .left p { margin: 0 auto; }
+      .right { padding: 24px 16px; }
     }
 
     @media (max-width: 640px) {
-      .left {
-        padding: 32px 20px;
-      }
-      .card-body {
-        padding: 20px;
-      }
-    }
-
-    /* Compact view for small heights */
-    @media (max-height: 700px) {
-      /* Stack the left hero panel above the auth card (better for narrow viewports) */
-      .split{flex-direction:column}
-  .left{display:block;padding:12px;text-align:center}
-      .left h1{font-size:28px}
-      .left p{font-size:15px;max-width:100%}
-  .right{padding:16px}
-  .auth-card{width:100%;max-width:520px;margin:12px auto}
-      .card-body{padding:18px}
-      .brand-image{height:160px}
-      .tabs button{padding:8px;font-size:14px}
-      .primary-btn{padding:10px;font-size:15px}
-      /* Make tabs full-width on narrow phones */
-      .tabs button{flex-basis:48%}
-      @media(max-width:420px){
-        .tabs button{flex-basis:100%}
-      }
-      /* Compact social buttons and icons on small screens */
-      .social-btn{padding:10px}
-      .social-icon{width:18px;height:18px}
+      .left { padding: 32px 20px; }
+      .card-body { padding: 20px; }
     }
   </style>
 </head>
+
 <body>
   <div class="split">
     <div class="left">
-      <div class="logo">QuickMail</div>
-      <h1>Log in to QuickMail</h1>
-      <p>Whether it's for Outbound, Inbound, a trial account or an existing customer—QuickMail keeps your outreach personal on autopilot.</p>
-    <!-- hero image removed to keep the login card visible on smaller screens -->
-    <!--<img class="hero-image" src="{{ url_for('static', filename='images/brand-hero.jpg') }}" alt="hero" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=3d7f8e7f6a3a4a2f9b0f6f6a1f5e7b6a'">-->
+      <div class="logo">
+        <i class="bi bi-linkedin"></i>
+        LinkedIn Automation
+      </div>
+      <h1>Smart Email Automation for Your Job Search</h1>
+      <p>Automate your LinkedIn job search outreach with intelligent email campaigns. Save time while maintaining personalized communication with hiring managers.</p>
+      <div class="feature-slider" aria-label="Key Features" aria-live="polite">
+        <div class="feature-slide active">
+          <div class="icon">
+            <i class="bi bi-search-heart"></i>
+          </div>
+          <div class="feature-slide-content">
+            <h3>Smart Job Post Discovery</h3>
+            <p>Automatically searches LinkedIn for relevant job postings based on your target roles and preferences.</p>
+          </div>
+        </div>
+        <div class="feature-slide">
+          <div class="icon">
+            <i class="bi bi-robot"></i>
+          </div>
+          <div class="feature-slide-content">
+            <h3>AI-Powered Email Generation</h3>
+            <p>Creates personalized emails for each opportunity using intelligent analysis of job posts and company information.</p>
+          </div>
+        </div>
+        <div class="feature-slide">
+          <div class="icon">
+            <i class="bi bi-graph-up-arrow"></i>
+          </div>
+          <div class="feature-slide-content">
+            <h3>Track & Optimize Campaigns</h3>
+            <p>Monitor sent emails, track responses, and analyze success rates to improve your outreach strategy.</p>
+          </div>
+        </div>
+        <div class="feature-slider-nav" role="group" aria-label="Feature steps">
+          <button class="feature-slider-dot active" type="button" aria-label="Feature 1"></button>
+          <button class="feature-slider-dot" type="button" aria-label="Feature 2"></button>
+          <button class="feature-slider-dot" type="button" aria-label="Feature 3"></button>
+        </div>
+      </div>
     </div>
 
     <div class="right">
       <div class="auth-card">
         <div class="card">
           <div class="card-body">
-            <h3 id="authHeading" style="margin:0 0 16px">Log in</h3>
-            <div class="muted" style="margin-bottom:20px">Need a QuickMail account? <a href="#" onclick="showTab('signup')">Register</a></div>
+            <h3 id="authHeading" style="margin:0 0 16px">Sign In</h3>
+            <div class="muted" style="margin-bottom:20px">New to LinkedIn Automation? <a href="#" onclick="showTab('signup')">Create Account</a></div>
 
             <div class="tabs" role="tablist">
-              <button id="tab-login" class="active" onclick="showTab('login')">Sign in</button>
-              <button id="tab-signup" onclick="showTab('signup')">Register</button>
+              <button id="tab-login" class="active" onclick="showTab('login')">Sign In</button>
+              <button id="tab-signup" onclick="showTab('signup')">Sign Up</button>
             </div>
 
-            <!-- Login Form -->
             <div id="loginForm">
               <div class="mb-2">
                 <input id="loginEmail" type="email" class="form-control" placeholder="Email" required />
@@ -236,25 +390,24 @@
                 <input id="loginPassword" type="password" class="form-control" placeholder="Password" required />
               </div>
               <div style="text-align:right;margin-bottom:12px"><a href="#" onclick="forgotPassword()" class="muted">Forgot Password?</a></div>
-              <button class="primary-btn" onclick="login()">Sign in</button>
+              <button class="primary-btn" onclick="login()">Sign In</button>
               <div id="loginMsg" class="muted" style="margin-top:10px;min-height:20px"></div>
             </div>
 
-            <!-- Signup Form (in-card) -->
             <div id="signupForm" style="display:none;">
               <div class="mb-2">
-                <input id="signupName" type="text" class="form-control" placeholder="Full name (optional)" />
+                <input id="signupName" type="text" class="form-control" placeholder="Full Name (optional)" />
               </div>
               <div class="mb-2">
-                <input id="signupEmail" type="email" class="form-control" placeholder="Email" required />
+                <input id="signupEmail" type="email" class="form-control" placeholder="Email Address" required />
               </div>
               <div class="mb-2">
-                <input id="signupPassword" type="password" class="form-control" placeholder="Password (min 6 chars)" required />
+                <input id="signupPassword" type="password" class="form-control" placeholder="Password (minimum 6 characters)" required />
               </div>
               <div class="mb-2">
-                <input id="signupPassword2" type="password" class="form-control" placeholder="Confirm password" required />
+                <input id="signupPassword2" type="password" class="form-control" placeholder="Confirm Password" required />
               </div>
-              <button class="primary-btn" onclick="signup()">Create account</button>
+              <button class="primary-btn" onclick="signup()">Create Account</button>
               <div id="signupMsg" class="muted" style="margin-top:10px;min-height:20px"></div>
             </div>
 
@@ -262,19 +415,20 @@
               <hr><div class="muted">Or continue with</div><hr>
             </div>
 
-            <!-- Social / provider buttons (non-functional placeholders except styling) -->
             <div style="display:flex;flex-direction:column;gap:12px">
-                <div class="social-btn disabled" id="microsoft-login" title="Coming soon">
-                  <img class="social-icon" src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="microsoft">
-                  <div style="flex:1;text-align:center">Continue with Microsoft</div>
-                </div>
-                <div class="social-btn disabled" id="linkedin-login" title="Coming soon">
-                  <img class="social-icon" src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="linkedin">
-                  <div style="flex:1;text-align:center">Continue with LinkedIn</div>
-                </div>
+              <div class="social-btn disabled" id="google-login" title="Coming soon">
+                <i class="bi bi-google" style="font-size: 22px; color: #DB4437;"></i>
+                <div style="flex:1;text-align:center">Continue with Google</div>
+              </div>
+              <div class="social-btn disabled" id="linkedin-login" title="Coming soon">
+                <i class="bi bi-linkedin" style="font-size: 22px; color: #0A66C2;"></i>
+                <div style="flex:1;text-align:center">Continue with LinkedIn</div>
+              </div>
             </div>
 
-            <div style="margin-top:18px;font-size:13px;color:#6b7280">By continuing you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</div>
+            <div style="margin-top:18px;font-size:13px;color:#6b7280;text-align:center">
+              By continuing you agree to our <a href="#" style="color:#6366f1">Terms of Service</a> and <a href="#" style="color:#6366f1">Privacy Policy</a>.
+            </div>
           </div>
         </div>
       </div>
@@ -282,7 +436,6 @@
   </div>
 
   <script>
-    // Firebase config (unchanged)
     const firebaseConfig = {
       apiKey: "AIzaSyDHm2fmm4q_Q6srw3BzCloiPbJCXs0Caqw",
       authDomain: "linkedin-7c251.firebaseapp.com",
@@ -291,7 +444,6 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 
     function showTab(tab){
-      // Toggle between login and signup panels inside the card
       const login = document.getElementById('loginForm');
       const signup = document.getElementById('signupForm');
       const tabLogin = document.getElementById('tab-login');
@@ -300,65 +452,105 @@
       if(tab === 'signup'){
         login.style.display = 'none'; signup.style.display = 'block';
         tabLogin.classList.remove('active'); tabSignup.classList.add('active');
-        if(heading) heading.textContent = 'Register';
-        // focus first signup input for better UX
-        const s = document.getElementById('signupName'); if(s) s.focus();
+        heading.textContent = 'Create Account';
       } else {
         login.style.display = 'block'; signup.style.display = 'none';
         tabLogin.classList.add('active'); tabSignup.classList.remove('active');
-        if(heading) heading.textContent = 'Log in';
-        // focus email input
-        const e = document.getElementById('loginEmail'); if(e) e.focus();
+        heading.textContent = 'Sign In';
       }
     }
 
-    // Ensure heading/tab state is correct on initial load
+    let featureSliderTimer;
+
+    // Auto-rotate the left-panel feature slider
+    function initFeatureSlider(){
+      const slides = Array.from(document.querySelectorAll('.feature-slide'));
+      const dots = Array.from(document.querySelectorAll('.feature-slider-dot'));
+      if (!slides.length || slides.length !== dots.length) { return; }
+
+      let activeIndex = 0;
+
+      const activate = (index) => {
+        slides[activeIndex].classList.remove('active');
+        dots[activeIndex].classList.remove('active');
+        slides[index].classList.add('active');
+        dots[index].classList.add('active');
+        activeIndex = index;
+      };
+
+      const startAuto = () => {
+        clearInterval(featureSliderTimer);
+        featureSliderTimer = setInterval(() => {
+          const nextIndex = (activeIndex + 1) % slides.length;
+          activate(nextIndex);
+        }, 6000);
+      };
+
+      dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+          if (index === activeIndex) { return; }
+          activate(index);
+          startAuto();
+        });
+      });
+
+      startAuto();
+    }
+
     document.addEventListener('DOMContentLoaded', function(){
-      // If the signup tab is active by server-side markup, show it
-      const tabSignup = document.getElementById('tab-signup');
-      if(tabSignup && tabSignup.classList.contains('active')) showTab('signup');
-      else showTab('login');
+      showTab('login');
+      initFeatureSlider();
     });
 
     async function login(){
       const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPassword').value;
       const msg = document.getElementById('loginMsg');
+      if(!email || !password){ msg.textContent = '⚠️ Please enter email and password.'; return; }
       try{
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         const idToken = await userCredential.user.getIdToken();
         const res = await fetch('/sessionLogin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken})});
-        if(res.ok){ msg.textContent = '✅ Login successful! Redirecting...'; setTimeout(()=>window.location.href='/',800); }
-        else msg.textContent = 'Invalid credentials.';
-      }catch(e){ msg.textContent = e.message; }
+        if(res.ok){ 
+          msg.textContent = '✅ Login successful! Redirecting...'; 
+          msg.style.color = '#10b981';
+          setTimeout(()=>window.location.href='/',800); 
+        }
+        else { 
+          msg.textContent = '❌ Invalid credentials.'; 
+        }
+      }catch(e){ 
+        msg.textContent = '❌ ' + e.message; 
+      }
     }
 
     async function forgotPassword(){
-      const email = document.getElementById('loginEmail').value; const msg = document.getElementById('loginMsg');
-      if(!email){ msg.textContent = '⚠️ Enter your email to reset password.'; return; }
-      try{ await firebase.auth().sendPasswordResetEmail(email); msg.textContent='📩 Password reset email sent!'; }catch(e){ msg.textContent = e.message }
+      const email = document.getElementById('loginEmail').value; 
+      const msg = document.getElementById('loginMsg');
+      if(!email){ msg.textContent = '⚠️ Please enter your email to reset password.'; return; }
+      try{ 
+        await firebase.auth().sendPasswordResetEmail(email); 
+        msg.textContent='✅ Password reset email sent! Check your inbox.'; 
+        msg.style.color = '#10b981';
+      }catch(e){ 
+        msg.textContent = '❌ ' + e.message;
+      }
     }
 
-    // Signup handler (in-card)
     async function signup(){
-      const name = document.getElementById('signupName').value || '';
       const email = document.getElementById('signupEmail').value;
       const p1 = document.getElementById('signupPassword').value;
       const p2 = document.getElementById('signupPassword2').value;
       const msg = document.getElementById('signupMsg');
-      if(!email || !p1){ msg.textContent = 'Enter email and password.'; return; }
-      if(p1.length < 6){ msg.textContent = 'Password should be at least 6 characters.'; return; }
-      if(p1 !== p2){ msg.textContent = 'Passwords do not match.'; return; }
+      if(!email || !p1){ msg.textContent = '⚠️ Please enter email and password.'; return; }
+      if(p1.length < 6){ msg.textContent = '⚠️ Password must be at least 6 characters.'; return; }
+      if(p1 !== p2){ msg.textContent = '⚠️ Passwords do not match.'; return; }
       try{
         await firebase.auth().createUserWithEmailAndPassword(email, p1);
-        msg.textContent = '✅ Account created! You may sign in now.';
+        msg.textContent = '✅ Account created! Redirecting to sign in...';
+        msg.style.color = '#10b981';
         setTimeout(()=>{ showTab('login'); }, 1200);
-      }catch(e){ msg.textContent = e.message; }
-    }
-
-    function social(provider){
-      // Placeholder: keep core functionality unchanged. If you later add OAuth, wire here.
-      alert('Social login ('+provider+') is not configured in this build.');
+      }catch(e){ msg.textContent = '❌ ' + e.message; }
     }
   </script>
 </body>

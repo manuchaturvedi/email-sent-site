@@ -10,19 +10,20 @@ RUN apt-get update && apt-get install -y \
     xvfb \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Google Chrome
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
+# Install Google Chrome (modern method without apt-key)
+RUN wget -q -O /tmp/google-chrome-key.pub https://dl.google.com/linux/linux_signing_key.pub \
+    && gpg --dearmor < /tmp/google-chrome-key.pub > /etc/apt/trusted.gpg.d/google-chrome.gpg \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
     && apt-get update \
     && apt-get install -y google-chrome-stable \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /tmp/google-chrome-key.pub
 
-# Install ChromeDriver
-RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.chromium.org/version` && \
-    wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip && \
-    unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/ && \
-    rm /tmp/chromedriver.zip && \
-    chmod +x /usr/local/bin/chromedriver
+# Install ChromeDriver (fixed version that works with current Chrome)
+RUN wget -O /tmp/chromedriver-linux64.zip "https://storage.googleapis.com/chrome-for-testing-public/130.0.6723.69/linux64/chromedriver-linux64.zip" && \
+    unzip /tmp/chromedriver-linux64.zip -d /tmp/ && \
+    mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/ && \
+    chmod +x /usr/local/bin/chromedriver && \
+    rm -rf /tmp/chromedriver-linux64.zip /tmp/chromedriver-linux64
 
 # Set working directory
 WORKDIR /app

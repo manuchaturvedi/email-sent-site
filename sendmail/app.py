@@ -531,16 +531,49 @@ def save_sent_email(record, run_id=None, user_email=None):
 app.secret_key = "super-secret-key-change-this"
 
 # Initialize Firebase Admin SDK
-# Initialize Firebase with credentials from the local directory
-cred_path = os.path.join(os.path.dirname(__file__), "linkedin-7c251-firebase-adminsdk-fbsvc-c9b46f2c3d.json")
-print(f"🔑 Loading Firebase credentials from: {cred_path}")
-cred = credentials.Certificate(cred_path)
-firebase_admin.initialize_app(cred)
-print("✅ Firebase initialized successfully")
+# Initialize Firebase with credentials (cloud-compatible)
+import base64
+import json
+
+def initialize_firebase():
+    """Initialize Firebase with environment variable or local file"""
+    try:
+        # Try environment variable first (for cloud deployment)
+        firebase_json_b64 = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_JSON')
+        
+        if firebase_json_b64:
+            print("🔑 Loading Firebase credentials from environment variable")
+            # Decode base64 and parse JSON
+            firebase_json_str = base64.b64decode(firebase_json_b64).decode('utf-8')
+            firebase_config = json.loads(firebase_json_str)
+            cred = credentials.Certificate(firebase_config)
+            firebase_admin.initialize_app(cred)
+            print("✅ Firebase initialized from environment variable")
+            return True
+            
+        else:
+            # Fallback to local file (for development)
+            cred_path = os.path.join(os.path.dirname(__file__), "linkedin-7c251-firebase-adminsdk-fbsvc-c9b46f2c3d.json")
+            if os.path.exists(cred_path):
+                print(f"🔑 Loading Firebase credentials from local file: {cred_path}")
+                cred = credentials.Certificate(cred_path)
+                firebase_admin.initialize_app(cred)
+                print("✅ Firebase initialized from local file")
+                return True
+            else:
+                print("⚠️ No Firebase credentials found - running without Firebase")
+                return False
+                
+    except Exception as e:
+        print(f"❌ Firebase initialization failed: {e}")
+        return False
+
+# Initialize Firebase
+firebase_initialized = initialize_firebase()
 
 # Initialize Firestore operations
 from firestore_ops import FirestoreOps
-db_ops = FirestoreOps()
+db_ops = FirestoreOps() if firebase_initialized else None
 
 
 # --- LOGIN CONTROL ---
@@ -1510,12 +1543,15 @@ def send_email():
     # Generate a unique run ID
     run_id = datetime.now().strftime('%Y%m%d_%H%M%S')
 
-    # Initialize automation run in Firestore
-    db_ops.save_automation_run(run_id, user_email, {
-        'subject': subject,
-        'usesSavedResume': use_saved_resume,
-        'resumePath': resume_path
-    })
+    # Initialize automation run in Firestore (if available)
+    if db_ops:
+        db_ops.save_automation_run(run_id, user_email, {
+            'subject': subject,
+            'usesSavedResume': use_saved_resume,
+            'resumePath': resume_path
+        })
+    else:
+        print(f"⚠️ Firestore not available - automation run {run_id} not saved")
 
     # Start automation in background thread
     threading.Thread(

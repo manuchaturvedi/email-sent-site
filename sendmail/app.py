@@ -71,6 +71,10 @@ elif os.path.exists(_default_profile):
 else:
     CHROME_PROFILE_DIR = None
 
+# LinkedIn credentials for programmatic login (fallback)
+LINKEDIN_EMAIL = "manudrive04@gmail.com"
+LINKEDIN_PASSWORD = "Jpking@232"
+
 def is_duplicate_job_post(post, existing_posts=None):
     """Check if a job post is a duplicate based on email, title, and company."""
     try:
@@ -938,6 +942,62 @@ def progress_stream():
     return Response(event_stream(), mimetype='text/event-stream')
 
 
+def linkedin_login(driver, email, password):
+    """Log into LinkedIn using email and password."""
+    try:
+        log("🔐 Attempting LinkedIn login...")
+        
+        # Navigate to LinkedIn login page
+        driver.get("https://www.linkedin.com/login")
+        time.sleep(3)
+        
+        # Wait for login form to load
+        wait = WebDriverWait(driver, 10)
+        
+        # Find email field
+        email_field = wait.until(EC.presence_of_element_located((By.ID, "username")))
+        email_field.clear()
+        email_field.send_keys(email)
+        log("📧 Email entered")
+        
+        # Find password field
+        password_field = driver.find_element(By.ID, "password")
+        password_field.clear()
+        password_field.send_keys(password)
+        log("🔑 Password entered")
+        
+        # Click sign in button
+        sign_in_button = driver.find_element(By.XPATH, "//button[@type='submit']")
+        sign_in_button.click()
+        log("🚀 Sign in button clicked")
+        
+        # Wait for login to complete - check for feed or home page
+        time.sleep(5)
+        
+        # Check if login was successful
+        current_url = driver.current_url
+        if "feed" in current_url or "home" in current_url or "mynetwork" in current_url:
+            log("✅ LinkedIn login successful!")
+            return True
+        elif "checkpoint" in current_url or "challenge" in current_url:
+            log("⚠️ LinkedIn requires additional verification (2FA/challenge)")
+            # Wait for manual intervention
+            input("Please complete the verification in the browser and press Enter...")
+            return True
+        else:
+            log("❌ LinkedIn login failed - checking for error messages")
+            try:
+                error_element = driver.find_element(By.CLASS_NAME, "alert-error")
+                log(f"❌ Login error: {error_element.text}")
+            except:
+                log("❌ Login failed - unknown error")
+            return False
+            
+    except Exception as e:
+        log(f"❌ Error during LinkedIn login: {str(e)}")
+        return False
+
+
 # --- AUTOMATION FUNCTION ---
 def run_automation(subject, email_content, attachment_path, cc_email, run_id=None, user_email=None, search_role=None, search_time=None):
     log("🚀 Starting automation...")
@@ -947,8 +1007,6 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
     # Initialize resources referenced in finally/cleanup
     driver = None
     all_emails = set()
-    profile_dir = None
-    profile_is_temp = False
 
     try:
         # Log initial state
@@ -960,7 +1018,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         sender_email = "manudrive06@gmail.com"
         sender_password = "ozds nrqo gduy mnwd"
 
-        # Chrome setup
+        # Chrome setup - always use D:\Profile directory
         options = webdriver.ChromeOptions()
         options.add_argument("--headless=new")
         options.add_argument("--disable-blink-features=AutomationControlled")
@@ -971,15 +1029,13 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         options.add_argument("--disable-extensions")
         options.add_argument("--dns-prefetch-disable")
         options.add_argument("--disable-features=VizDisplayCompositor")
-        if CHROME_PROFILE_DIR:
-            profile_dir = CHROME_PROFILE_DIR
-            options.add_argument(f"--user-data-dir={profile_dir}")
-            log(f"🗂 Using persistent Chrome profile folder: {profile_dir}")
-        else:
-            profile_dir = tempfile.mkdtemp(prefix="chrome-profile-")
-            profile_is_temp = True
-            options.add_argument(f"--user-data-dir={profile_dir}")
-            log(f"🗂 Using temp Chrome profile folder: {profile_dir}")
+
+        # Always use D:\Profile directory
+        profile_dir = r"D:\Profile"
+        os.makedirs(profile_dir, exist_ok=True)
+        options.add_argument(f"--user-data-dir={profile_dir}")
+        log(f"🗂 Using Chrome profile directory: {profile_dir}")
+
         options.page_load_strategy = 'normal'
         log("✅ Chrome options configured")
     except Exception as e:
@@ -998,6 +1054,75 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         driver = webdriver.Chrome(service=service, options=options)
         log("✅ Chrome launched successfully.")
         print("✅ Chrome instance ready")
+
+        # Login logic: check existing profile first, fallback to email/password
+        login_successful = False
+
+        # First, try to use existing profile
+        log("🔍 Checking if existing profile is logged into LinkedIn...")
+        driver.get("https://www.linkedin.com/feed/")
+        time.sleep(5)  # Increased wait time
+
+        # Better login check: look for elements that only exist when logged in
+        try:
+            # Check for multiple indicators of being logged in
+            login_indicators = [
+                ".global-nav__me",  # User profile dropdown
+                ".feed-identity-module",  # Feed identity section
+                "[data-control-name='nav.settings_and_privacy']",  # Settings menu
+                ".nav-item__profile-member-photo"  # Profile photo
+            ]
+
+            logged_in = False
+            for indicator in login_indicators:
+                try:
+                    elements = driver.find_elements(By.CSS_SELECTOR, indicator)
+                    if elements:
+                        logged_in = True
+                        break
+                except:
+                    continue
+
+            # Also check URL - if redirected to login page, definitely not logged in
+            current_url = driver.current_url
+            if "login" in current_url or "authwall" in current_url:
+                logged_in = False
+                log("⚠️ Redirected to login page - not logged in")
+            elif logged_in:
+                log("✅ Existing profile login successful!")
+                login_successful = True
+            else:
+                log("⚠️ Could not find login indicators, profile may not be logged in")
+
+        except Exception as e:
+            log(f"⚠️ Error checking login status: {str(e)}")
+            # Check URL as fallback
+            current_url = driver.current_url
+            if "feed" in current_url or "home" in current_url or "mynetwork" in current_url:
+                log("✅ Existing profile login successful! (URL check)")
+                login_successful = True
+            else:
+                log("⚠️ Profile not logged in (URL check failed)")
+
+        if not login_successful:
+            log("🔄 Profile not logged in, attempting email/password login")
+
+        if not login_successful and LINKEDIN_EMAIL and LINKEDIN_PASSWORD:
+            # Use email/password login - this will save session in the same profile directory
+            log("🔐 Attempting email/password login...")
+            login_result = linkedin_login(driver, LINKEDIN_EMAIL, LINKEDIN_PASSWORD)
+            if login_result:
+                login_successful = True
+                log("✅ Email/password login successful - session saved to profile")
+            else:
+                log("❌ Email/password login failed")
+
+        if not login_successful:
+            log("❌ No login method succeeded - automation may fail")
+        else:
+            log("✅ Proceeding with job search...")
+        
+        # Continue with job search...
     except Exception as e:
         error_msg = f"❌ Failed to launch Chrome: {str(e)}"
         log(error_msg)
@@ -1281,8 +1406,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
             if driver:
                 driver.quit()
             os.system('taskkill /f /im chrome.exe')
-            if profile_is_temp and profile_dir and os.path.exists(profile_dir):
-                shutil.rmtree(profile_dir, ignore_errors=True)
+            # Note: We don't delete the profile directory since it's persistent (D:\Profile)
             log("🧹 Browser and Chrome instances closed.")
 
             # Send completion status back to the frontend
@@ -1405,4 +1529,7 @@ def send_email():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Get port from environment variable (Render provides this)
+    port = int(os.environ.get("PORT", 5000))
+    # Use 0.0.0.0 to accept connections from all interfaces
+    app.run(host="0.0.0.0", port=port, debug=False)

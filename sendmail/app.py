@@ -28,6 +28,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from datetime import datetime
 import json
+import platform
 
 
 app = Flask(__name__)
@@ -35,6 +36,19 @@ app = Flask(__name__)
 # Server-Sent Events clients (each client gets a Queue)
 clients = []
 clients_lock = threading.Lock()
+
+def cleanup_chrome_processes():
+    """Cross-platform Chrome process cleanup"""
+    try:
+        system = platform.system().lower()
+        if system == "windows":
+            os.system('taskkill /f /im chrome.exe')
+        else:
+            # Linux/Unix systems (including Render)
+            os.system('pkill -f chrome || killall chrome || true')
+        print("🧹 Chrome processes cleaned up")
+    except Exception as e:
+        print(f"⚠️ Chrome cleanup failed: {e}")
 
 def send_event(message: str):
     """Push a message to all connected SSE clients."""
@@ -1081,8 +1095,21 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
     from webdriver_manager.chrome import ChromeDriverManager
     
     try:
-        print("🔄 Installing ChromeDriver...")
-        service = Service(ChromeDriverManager().install())
+        print("🔄 Setting up Chrome for cloud deployment...")
+        
+        # Check if we're in a cloud environment (Render)
+        chrome_bin = os.environ.get('CHROME_BIN')
+        chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
+        
+        if chrome_bin and chromedriver_path:
+            print(f"🌐 Using cloud Chrome: {chrome_bin}")
+            print(f"🔧 Using cloud ChromeDriver: {chromedriver_path}")
+            options.binary_location = chrome_bin
+            service = Service(chromedriver_path)
+        else:
+            print("🏠 Using local ChromeDriver manager...")
+            service = Service(ChromeDriverManager().install())
+        
         print("🚀 Launching Chrome...")
         driver = webdriver.Chrome(service=service, options=options)
         log("✅ Chrome launched successfully.")
@@ -1438,7 +1465,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
             # Force close any remaining Chrome instances
             if driver:
                 driver.quit()
-            os.system('taskkill /f /im chrome.exe')
+            cleanup_chrome_processes()
             # Note: We don't delete the profile directory since it's persistent (D:\Profile)
             log("🧹 Browser and Chrome instances closed.")
 
@@ -1458,7 +1485,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         except Exception as e:
             log(f"❌ Error during cleanup: {str(e)}")
             # Still try to kill Chrome processes even if driver.quit() fails
-            os.system('taskkill /f /im chrome.exe')
+            cleanup_chrome_processes()
 
 
 # --- START AUTOMATION ---
@@ -1538,7 +1565,7 @@ def send_email():
         resume.save(resume_path)
 
     # Clean up any existing Chrome instances before starting
-    os.system('taskkill /f /im chrome.exe')
+    cleanup_chrome_processes()
 
     # Generate a unique run ID
     run_id = datetime.now().strftime('%Y%m%d_%H%M%S')

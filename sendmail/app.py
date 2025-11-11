@@ -1077,8 +1077,14 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         options.add_argument("--dns-prefetch-disable")
         options.add_argument("--disable-features=VizDisplayCompositor")
 
-        # Always use D:\Profile directory
-        profile_dir = r"D:\Profile"
+        # Use appropriate profile directory based on environment
+        if os.environ.get('CHROME_BIN'):  # Docker/Cloud environment
+            profile_dir = "/tmp/chrome-profile"
+            log("🌐 Using Docker Chrome profile directory")
+        else:  # Local Windows environment
+            profile_dir = r"D:\Profile"
+            log("🏠 Using Windows Chrome profile directory")
+        
         os.makedirs(profile_dir, exist_ok=True)
         options.add_argument(f"--user-data-dir={profile_dir}")
         log(f"🗂 Using Chrome profile directory: {profile_dir}")

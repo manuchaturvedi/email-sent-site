@@ -3,33 +3,80 @@
 {% block title %}LinkedIn Job Posts{% endblock %}
 
 {% block additional_styles %}
+/* Modern card grid styling */
 .job-card {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(12px);
-    border-radius: 15px;
-    border: none;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-    margin-bottom: 20px;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
 }
 
 .job-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border-color: #667eea;
+}
+
+.job-card-header {
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
 }
 
 .job-title {
-    color: #0072ff;
-    font-weight: 600;
+    color: #2d3748;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    line-height: 1.4;
 }
 
 .company-name {
-    color: #666;
-    font-size: 0.9rem;
+    color: #667eea;
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.job-card-body {
+    flex-grow: 1;
+    margin-bottom: 15px;
 }
 
 .job-description {
-    color: #444;
-    font-size: 0.95rem;
+    color: #4a5568;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.job-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #718096;
+}
+
+.job-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.job-meta-item i {
+    color: #667eea;
 }
 
 .post-date {
@@ -38,10 +85,9 @@
 }
 
 .badge {
-    background: linear-gradient(90deg, #0072ff, #00c6ff);
     padding: 5px 10px;
     border-radius: 10px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 500;
 }
 
@@ -51,6 +97,81 @@
 
 .location-badge {
     background: #6c757d;
+}
+
+.job-card-footer {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* Modern filter styling */
+.filter-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.skill-tag {
+    background: #e6f2ff;
+    color: #0066cc;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.skill-tag:hover {
+    background: #cce5ff;
+    transform: translateY(-1px);
+}
+
+.skill-tag.selected {
+    background: #0066cc;
+    color: white;
+    border-color: #0052a3;
+}
+
+.skill-tag .remove {
+    margin-left: 6px;
+    font-weight: bold;
+    opacity: 0.7;
+}
+
+.skill-search-input {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 15px;
+    transition: all 0.2s ease;
+}
+
+.skill-search-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Stats badge */
+.stats-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 {% endblock %}
 
@@ -66,32 +187,57 @@
         <div class="row mb-3">
             <div class="col-12">
                 <!-- Filters -->
-                <div class="card p-3 mb-3">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-md-5">
-                            <input id="filterText" class="form-control" type="text" placeholder="Search description or email..." />
+                <div class="filter-card">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-4">
+                            <input id="filterText" class="form-control skill-search-input" type="text" placeholder="🔍 Search description, company, or email..." />
                         </div>
                         <div class="col-md-3">
-                            <input id="filterFrom" class="form-control" type="date" placeholder="From" />
+                            <input id="filterSkillSearch" class="form-control skill-search-input" type="text" placeholder="🏷️ Search skills..." />
+                        </div>
+                        <div class="col-md-2">
+                            <select id="filterStatus" class="form-select skill-search-input">
+                                <option value="">All Status</option>
+                                <option value="sent">Already Sent</option>
+                                <option value="not-sent">Not Sent</option>
+                            </select>
                         </div>
                         <div class="col-md-3">
-                            <input id="filterTo" class="form-control" type="date" placeholder="To" />
-                        </div>
-                        <div class="col-md-1 text-end">
-                            <div class="form-check">
+                            <div class="form-check" style="padding-top: 8px;">
                                 <input class="form-check-input" type="checkbox" value="" id="filterHasEmail">
-                                <label class="form-check-label small text-muted" for="filterHasEmail">
-                                    Has email
+                                <label class="form-check-label" for="filterHasEmail">
+                                    📧 Has email only
                                 </label>
                             </div>
                         </div>
                     </div>
-                    <div class="row mt-2">
+                    
+                    <!-- Selected Skills Display -->
+                    <div id="selectedSkillsContainer" class="skill-tags" style="display: none; margin-top: 15px;">
+                        <strong style="align-self: center; margin-right: 10px;">Selected Skills:</strong>
+                        <div id="selectedSkillsTags"></div>
+                    </div>
+                    
+                    <!-- Available Skills -->
+                    <div style="margin-top: 15px;">
+                        <details>
+                            <summary style="cursor: pointer; user-select: none; font-weight: 600; color: #667eea;">
+                                <i class="bi bi-tags-fill me-2"></i>Filter by Skills (Click to expand)
+                            </summary>
+                            <div id="skillTagsContainer" class="skill-tags"></div>
+                        </details>
+                    </div>
+                    
+                    <div class="row mt-3">
                         <div class="col-md-6">
-                            <button id="resetFilters" class="btn btn-sm btn-outline-secondary">Reset filters</button>
+                            <button id="resetFilters" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset All Filters
+                            </button>
                         </div>
                         <div class="col-md-6 text-end">
-                            <span class="text-muted small">Showing <span id="visibleCount">0</span> of <strong id="totalCount">0</strong></span>
+                            <span class="stats-badge">
+                                Showing <span id="visibleCount">0</span> of <span id="totalCount">0</span> jobs
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -99,108 +245,256 @@
 
         </div>
 
-        <div class="row" id="jobPostsContainer">
-            <div class="col-12">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col">Description</th>
-                                <th scope="col">Company</th>
-                                <!-- Location column hidden for now -->
-                                <th scope="col">Email</th>
-                                <th scope="col">Posted</th>
-                                <th scope="col">Link</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for post in job_posts %}
-                            <tr>
-                                <td class="desc-cell" style="max-width:460px; white-space:normal;">
-                                    {{ post.description }}
-                                    {% if post.skills %}
-                                        <div class="mt-2">
-                                            {% if post.skills is mapping %}
-                                                <!-- Skills as dictionary -->
-                                                {% for category, skills in post.skills.items() %}
-                                                    {% for skill in skills %}
-                                                        <span class="badge bg-info me-1">{{ skill }}</span>
-                                                    {% endfor %}
-                                                {% endfor %}
-                                            {% else %}
-                                                <!-- Skills as list -->
-                                                {% for skill in post.skills %}
-                                                    <span class="badge bg-info me-1">{{ skill }}</span>
-                                                {% endfor %}
-                                            {% endif %}
-                                        </div>
-                                    {% endif %}
-                                </td>
-                                <td class="company-cell">{{ post.company if post.company else '-' }}</td>
-                                <!-- location removed intentionally -->
-                                <td class="email-cell" style="white-space:nowrap;">{% if post.email %}<a href="mailto:{{ post.email }}">{{ post.email }}</a>{% else %}-{% endif %}</td>
-                                <td class="date-cell" style="white-space:nowrap;">{{ post.posted_date }}</td>
-                                <td class="link-cell">{% if post.url %}<a href="{{ post.url }}" target="_blank">Open</a>{% else %}-{% endif %}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        <!-- Job Cards Grid -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="jobPostsContainer">
+            {% for post in job_posts %}
+            <div class="col job-post-item">
+                <div class="job-card">
+                    <div class="job-card-header">
+                        <div class="job-title">{{ post.description[:120] }}{% if post.description|length > 120 %}...{% endif %}</div>
+                        <div class="company-name">
+                            <i class="bi bi-building"></i>
+                            {{ post.company if post.company else '-' }}
+                        </div>
+                    </div>
+                    
+                    <div class="job-card-body">
+                        <div class="job-meta">
+                            {% if post.email %}
+                            <div class="job-meta-item">
+                                <i class="bi bi-envelope"></i>
+                                <a href="mailto:{{ post.email }}" style="color: #4a5568; text-decoration: none;">{{ post.email }}</a>
+                            </div>
+                            {% endif %}
+                            <div class="job-meta-item">
+                                <i class="bi bi-calendar-event"></i>
+                                {{ post.posted_date }}
+                            </div>
+                        </div>
+                        
+                        {% if post.skills %}
+                        <div class="mt-3" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            {% if post.skills is mapping %}
+                                {% for category, skills in post.skills.items() %}
+                                    {% for skill in skills %}
+                                        <span class="badge bg-info">{{ skill }}</span>
+                                    {% endfor %}
+                                {% endfor %}
+                            {% else %}
+                                {% for skill in post.skills %}
+                                    <span class="badge bg-info">{{ skill }}</span>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="job-card-footer">
+                        <button class="btn btn-sm btn-outline-info view-details-btn flex-fill" 
+                                data-description="{{ post.description }}"
+                                data-fulltext="{{ post.full_text if post.full_text else post.description }}"
+                                data-company="{{ post.company if post.company else 'Company Not Found' }}"
+                                data-email="{{ post.email if post.email else 'N/A' }}"
+                                data-date="{{ post.posted_date }}"
+                                data-url="{{ post.url if post.url else '' }}"
+                                data-skills='{{ post.skills|tojson if post.skills else "[]" }}'>
+                            <i class="bi bi-info-circle me-1"></i>Details
+                        </button>
+                        
+                        <div class="flex-fill action-cell">
+                            {% if post.email %}
+                                {% if post.already_sent %}
+                                    <button class="btn btn-sm btn-success w-100" disabled>
+                                        <i class="bi bi-check-circle-fill me-1"></i>Sent
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-sm btn-warning send-mail-btn w-100" 
+                                            data-email="{{ post.email }}"
+                                            data-description="{{ post.description }}"
+                                            data-company="{{ post.company if post.company else '' }}"
+                                            data-url="{{ post.url if post.url else '' }}">
+                                        <i class="bi bi-envelope-fill me-1"></i>Send
+                                    </button>
+                                {% endif %}
+                            {% else %}
+                                <button class="btn btn-sm btn-secondary w-100" disabled>
+                                    No Email
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    <!-- Job Details Modal -->
+    <div class="modal fade" id="jobDetailsModal" tabindex="-1" aria-labelledby="jobDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="jobDetailsModalLabel">
+                        <i class="bi bi-file-text-fill me-2"></i>Full Job Post
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h6 class="text-primary"><i class="bi bi-building me-2"></i>Company</h6>
+                        <p id="modalCompany" class="mb-3"></p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-primary"><i class="bi bi-envelope-at me-2"></i>Email</h6>
+                        <p id="modalEmail" class="mb-3"></p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-primary"><i class="bi bi-calendar-event me-2"></i>Posted Date</h6>
+                        <p id="modalDate" class="mb-3"></p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-primary"><i class="bi bi-file-earmark-text me-2"></i>Complete Job Post</h6>
+                        <div id="modalDescription" class="mb-3 p-3 bg-light rounded" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;"></div>
+                    </div>
+                    <div class="mb-3" id="skillsContainer">
+                        <h6 class="text-primary"><i class="bi bi-star-fill me-2"></i>Skills</h6>
+                        <div id="modalSkills"></div>
+                    </div>
+                    <div class="mb-3" id="linkContainer">
+                        <h6 class="text-primary"><i class="bi bi-link-45deg me-2"></i>LinkedIn Post</h6>
+                        <a id="modalLink" href="#" target="_blank" class="btn btn-sm btn-primary">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Open LinkedIn Post
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
+    </div>
 
     <script>
-        // Client-side filtering for job posts table
+        // Modern multi-select skills filter for job posts cards
         (function(){
             const filterText = document.getElementById('filterText');
-            const filterFrom = document.getElementById('filterFrom');
-            const filterTo = document.getElementById('filterTo');
+            const filterSkillSearch = document.getElementById('filterSkillSearch');
+            const filterStatus = document.getElementById('filterStatus');
             const filterHasEmail = document.getElementById('filterHasEmail');
             const resetBtn = document.getElementById('resetFilters');
             const visibleCount = document.getElementById('visibleCount');
             const totalCount = document.getElementById('totalCount');
+            const skillTagsContainer = document.getElementById('skillTagsContainer');
+            const selectedSkillsContainer = document.getElementById('selectedSkillsContainer');
+            const selectedSkillsTags = document.getElementById('selectedSkillsTags');
 
-            const table = document.querySelector('table.table tbody');
-            if (!table) return;
+            const container = document.getElementById('jobPostsContainer');
+            if (!container) return;
 
-            const rows = Array.from(table.querySelectorAll('tr'));
-                totalCount.textContent = rows.length;
-            visibleCount.textContent = rows.length;
+            const cards = Array.from(container.querySelectorAll('.job-post-item'));
+            totalCount.textContent = cards.length;
+            visibleCount.textContent = cards.length;
 
-            function parseDate(s){
-                // Expect YYYY-MM-DD
-                if(!s) return null;
-                try{ return new Date(s); }catch{ return null; }
+            // Build skill list from all job posts
+            const allSkills = new Set();
+            const selectedSkills = new Set();
+            
+            cards.forEach(card => {
+                const badges = card.querySelectorAll('.badge.bg-info');
+                badges.forEach(badge => {
+                    const skill = badge.textContent.trim();
+                    if (skill) allSkills.add(skill);
+                });
+            });
+
+            // Create skill tags
+            const sortedSkills = Array.from(allSkills).sort();
+            sortedSkills.forEach(skill => {
+                const tag = document.createElement('span');
+                tag.className = 'skill-tag';
+                tag.textContent = skill;
+                tag.dataset.skill = skill.toLowerCase();
+                tag.addEventListener('click', function() {
+                    toggleSkill(skill, tag);
+                });
+                skillTagsContainer.appendChild(tag);
+            });
+
+            function toggleSkill(skill, tagElement) {
+                if (selectedSkills.has(skill)) {
+                    selectedSkills.delete(skill);
+                    tagElement.classList.remove('selected');
+                } else {
+                    selectedSkills.add(skill);
+                    tagElement.classList.add('selected');
+                }
+                updateSelectedSkillsDisplay();
+                applyFilters();
             }
 
-            function matches(row){
+            function updateSelectedSkillsDisplay() {
+                if (selectedSkills.size > 0) {
+                    selectedSkillsContainer.style.display = 'flex';
+                    selectedSkillsTags.innerHTML = '';
+                    selectedSkills.forEach(skill => {
+                        const tag = document.createElement('span');
+                        tag.className = 'skill-tag selected';
+                        tag.innerHTML = `${skill} <span class="remove">×</span>`;
+                        tag.addEventListener('click', function() {
+                            selectedSkills.delete(skill);
+                            // Also update the main tag
+                            const mainTag = Array.from(skillTagsContainer.children).find(t => t.textContent === skill);
+                            if (mainTag) mainTag.classList.remove('selected');
+                            updateSelectedSkillsDisplay();
+                            applyFilters();
+                        });
+                        selectedSkillsTags.appendChild(tag);
+                    });
+                } else {
+                    selectedSkillsContainer.style.display = 'none';
+                }
+            }
+
+            // Skill search filter
+            filterSkillSearch.addEventListener('input', function() {
+                const search = this.value.toLowerCase();
+                Array.from(skillTagsContainer.children).forEach(tag => {
+                    if (tag.dataset.skill.includes(search) || search === '') {
+                        tag.style.display = '';
+                    } else {
+                        tag.style.display = 'none';
+                    }
+                });
+            });
+
+            function matches(card){
                 const q = filterText.value.trim().toLowerCase();
-                const desc = row.querySelector('.desc-cell')?.textContent.trim().toLowerCase() || '';
-                const email = row.querySelector('.email-cell')?.textContent.trim().toLowerCase() || '';
-                const company = row.querySelector('.company-cell')?.textContent.trim().toLowerCase() || '';
-                const dateStr = row.querySelector('.date-cell')?.textContent.trim() || '';
+                const desc = card.querySelector('.job-description')?.textContent.trim().toLowerCase() || '';
+                const email = card.querySelector('.job-meta-item a')?.textContent.trim().toLowerCase() || '';
+                const company = card.querySelector('.company-name')?.textContent.trim().toLowerCase() || '';
 
                 // Text filter (search in description, email, or company)
-                if (q){
-                    if (!(desc.includes(q) || email.includes(q) || company.includes(q))) return false;
+                if (q && !(desc.includes(q) || email.includes(q) || company.includes(q))) return false;
+                
+                // Skills filter - match if ANY selected skill is present
+                if (selectedSkills.size > 0) {
+                    const cardSkills = Array.from(card.querySelectorAll('.badge.bg-info')).map(b => b.textContent.trim());
+                    const hasMatch = Array.from(selectedSkills).some(skill => cardSkills.includes(skill));
+                    if (!hasMatch) return false;
                 }
 
-                // Date range filter
-                if (filterFrom.value){
-                    const from = parseDate(filterFrom.value);
-                    const rowDate = parseDate(dateStr);
-                    if (rowDate && from && rowDate < from) return false;
-                }
-                if (filterTo.value){
-                    const to = parseDate(filterTo.value);
-                    const rowDate = parseDate(dateStr);
-                    if (rowDate && to && rowDate > to) return false;
+                // Status filter (sent/not sent)
+                if (filterStatus.value) {
+                    const actionCell = card.querySelector('.action-cell');
+                    const isSent = actionCell?.textContent.includes('Sent') && !actionCell?.textContent.includes('Send');
+                    
+                    if (filterStatus.value === 'sent' && !isSent) return false;
+                    if (filterStatus.value === 'not-sent' && isSent) return false;
                 }
 
                 // Has email filter
                 if (filterHasEmail.checked){
-                    const emailCell = row.querySelector('.email-cell')?.textContent.trim() || '';
-                    if (!emailCell || emailCell === '-') return false;
+                    const emailLink = card.querySelector('.job-meta-item a');
+                    if (!emailLink) return false;
                 }
 
                 return true;
@@ -208,27 +502,34 @@
 
             function applyFilters(){
                 let visible = 0;
-                rows.forEach(r => {
-                    if (matches(r)){
-                        r.style.display = '';
+                cards.forEach(c => {
+                    if (matches(c)){
+                        c.style.display = '';
                         visible++;
                     } else {
-                        r.style.display = 'none';
+                        c.style.display = 'none';
                     }
                 });
                 visibleCount.textContent = visible;
             }
 
-            [filterText, filterFrom, filterTo, filterHasEmail].forEach(el => {
+            [filterText, filterStatus, filterHasEmail].forEach(el => {
                 if (el) el.addEventListener('input', applyFilters);
+                if (el) el.addEventListener('change', applyFilters);
             });
 
             if (resetBtn) resetBtn.addEventListener('click', (e)=>{
                 e.preventDefault();
                 filterText.value = '';
-                filterFrom.value = '';
-                filterTo.value = '';
+                filterSkillSearch.value = '';
+                filterStatus.value = '';
                 filterHasEmail.checked = false;
+                selectedSkills.clear();
+                Array.from(skillTagsContainer.children).forEach(tag => {
+                    tag.classList.remove('selected');
+                    tag.style.display = '';
+                });
+                updateSelectedSkillsDisplay();
                 applyFilters();
             });
 
@@ -242,9 +543,149 @@
 
 {% block scripts %}
 <script>
+    // View details button handler
+    document.addEventListener('DOMContentLoaded', function() {
+        const detailsModal = new bootstrap.Modal(document.getElementById('jobDetailsModal'));
+        
+        document.querySelectorAll('.view-details-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const description = this.dataset.description;
+                const fullText = this.dataset.fulltext || description; // Use fulltext if available
+                const company = this.dataset.company;
+                const email = this.dataset.email;
+                const date = this.dataset.date;
+                const url = this.dataset.url;
+                let skills = [];
+                
+                try {
+                    skills = JSON.parse(this.dataset.skills);
+                } catch (e) {
+                    skills = [];
+                }
+                
+                // Populate modal
+                document.getElementById('modalCompany').textContent = company;
+                document.getElementById('modalEmail').textContent = email;
+                document.getElementById('modalDate').textContent = date;
+                document.getElementById('modalDescription').textContent = fullText; // Use full text
+                
+                // Handle skills
+                const skillsContainer = document.getElementById('modalSkills');
+                skillsContainer.innerHTML = '';
+                
+                if (skills && Array.isArray(skills) && skills.length > 0) {
+                    skills.forEach(skill => {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-info me-1 mb-1';
+                        badge.textContent = skill;
+                        skillsContainer.appendChild(badge);
+                    });
+                    document.getElementById('skillsContainer').style.display = 'block';
+                } else if (skills && typeof skills === 'object') {
+                    // Handle skills as dictionary
+                    Object.values(skills).flat().forEach(skill => {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-info me-1 mb-1';
+                        badge.textContent = skill;
+                        skillsContainer.appendChild(badge);
+                    });
+                    document.getElementById('skillsContainer').style.display = 'block';
+                } else {
+                    document.getElementById('skillsContainer').style.display = 'none';
+                }
+                
+                // Handle link
+                if (url) {
+                    document.getElementById('modalLink').href = url;
+                    document.getElementById('linkContainer').style.display = 'block';
+                } else {
+                    document.getElementById('linkContainer').style.display = 'none';
+                }
+                
+                // Show modal
+                detailsModal.show();
+            });
+        });
+    });
+
+    // Send mail button handler
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.send-mail-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const email = this.dataset.email;
+                const description = this.dataset.description;
+                const company = this.dataset.company;
+                const url = this.dataset.url;
+                
+                // Disable button and show loading
+                const originalText = this.innerHTML;
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Sending...';
+                
+                try {
+                    const response = await fetch('/send_job_email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            description: description,
+                            company: company,
+                            url: url
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Success - change button permanently to "Sent"
+                        this.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Sent';
+                        this.classList.remove('btn-warning');
+                        this.classList.add('btn-success');
+                        
+                        // Show success message
+                        showNotification('success', data.message);
+                        
+                        // Button stays disabled with "Sent" status
+                    } else {
+                        // Error - restore button
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                        showNotification('error', data.message);
+                    }
+                } catch (error) {
+                    // Network error - restore button
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                    showNotification('error', 'Network error: ' + error.message);
+                }
+            });
+        });
+    });
+    
+    // Notification helper
+    function showNotification(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+
     // Client-side filtering for job posts table
     (function(){
         const filterText = document.getElementById('filterText');
+        const filterSkill = document.getElementById('filterSkill');
+        const filterStatus = document.getElementById('filterStatus');
         const filterFrom = document.getElementById('filterFrom');
         const filterTo = document.getElementById('filterTo');
         const filterHasEmail = document.getElementById('filterHasEmail');
@@ -259,6 +700,25 @@
         totalCount.textContent = rows.length;
         visibleCount.textContent = rows.length;
 
+        // Build skill list from all job posts
+        const allSkills = new Set();
+        rows.forEach(row => {
+            const badges = row.querySelectorAll('.badge.bg-info');
+            badges.forEach(badge => {
+                const skill = badge.textContent.trim();
+                if (skill) allSkills.add(skill);
+            });
+        });
+
+        // Populate skill dropdown
+        const sortedSkills = Array.from(allSkills).sort();
+        sortedSkills.forEach(skill => {
+            const option = document.createElement('option');
+            option.value = skill.toLowerCase();
+            option.textContent = skill;
+            filterSkill.appendChild(option);
+        });
+
         function parseDate(s){
             if(!s) return null;
             try { return new Date(s); } catch { return null; }
@@ -268,10 +728,28 @@
             const q = filterText.value.trim().toLowerCase();
             const desc = row.querySelector('.desc-cell')?.textContent.trim().toLowerCase() || '';
             const email = row.querySelector('.email-cell')?.textContent.trim().toLowerCase() || '';
+            const company = row.querySelector('.company-cell')?.textContent.trim().toLowerCase() || '';
             const dateStr = row.querySelector('.date-cell')?.textContent.trim() || '';
 
-            if (q && !(desc.includes(q) || email.includes(q))) return false;
+            // Text search (description, email, or company)
+            if (q && !(desc.includes(q) || email.includes(q) || company.includes(q))) return false;
             
+            // Skill filter
+            if (filterSkill.value) {
+                const rowSkills = Array.from(row.querySelectorAll('.badge.bg-info')).map(b => b.textContent.trim().toLowerCase());
+                if (!rowSkills.includes(filterSkill.value.toLowerCase())) return false;
+            }
+
+            // Status filter (sent/not sent)
+            if (filterStatus.value) {
+                const actionCell = row.querySelector('.action-cell');
+                const isSent = actionCell?.textContent.includes('Already Sent') || actionCell?.textContent.includes('Sent!');
+                
+                if (filterStatus.value === 'sent' && !isSent) return false;
+                if (filterStatus.value === 'not-sent' && isSent) return false;
+            }
+            
+            // Date range filter
             if (filterFrom.value){
                 const from = parseDate(filterFrom.value);
                 const rowDate = parseDate(dateStr);
@@ -284,6 +762,7 @@
                 if (rowDate && to && rowDate > to) return false;
             }
 
+            // Has email filter
             if (filterHasEmail.checked){
                 const emailCell = row.querySelector('.email-cell')?.textContent.trim() || '';
                 if (!emailCell || emailCell === '-') return false;
@@ -305,13 +784,16 @@
             visibleCount.textContent = visible;
         }
 
-        [filterText, filterFrom, filterTo, filterHasEmail].forEach(el => {
+        [filterText, filterSkill, filterStatus, filterFrom, filterTo, filterHasEmail].forEach(el => {
             if (el) el.addEventListener('input', applyFilters);
+            if (el) el.addEventListener('change', applyFilters);
         });
 
         if (resetBtn) resetBtn.addEventListener('click', (e)=>{
             e.preventDefault();
             filterText.value = '';
+            filterSkill.value = '';
+            filterStatus.value = '';
             filterFrom.value = '';
             filterTo.value = '';
             filterHasEmail.checked = false;

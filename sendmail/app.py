@@ -479,8 +479,8 @@ def save_sent_email(record, run_id=None, user_email=None):
                     except Exception:
                         pass
                     
-                    # Update automation run statistics
-                    if run_id:
+                    # Update automation run statistics (skip for manual sends)
+                    if run_id and not run_id.startswith('manual_'):
                         run_ref = db.collection(FIRESTORE_COLLECTIONS['automation_runs']).document(run_id)
                         if record.get('status') == 'sent':
                             run_ref.update({
@@ -857,10 +857,204 @@ def send_page():
 @app.route("/jobs")
 @login_required
 def job_posts():
+    user_email = session.get("user")
     posts = load_job_posts()
+    
+    # Get list of emails already sent by this user
+    sent_emails = set()
+    try:
+        if firestore is not None:
+            db = firestore.client()
+            query = db.collection(FIRESTORE_COLLECTIONS['sent_emails']) \
+                .where('user_email', '==', user_email) \
+                .where('status', '==', 'sent')
+            
+            for doc in query.stream():
+                data = doc.to_dict()
+                sent_emails.add(data.get('email'))
+            
+            print(f"📧 User {user_email} has sent to {len(sent_emails)} unique emails")
+    except Exception as e:
+        print(f"⚠️ Error loading sent emails: {str(e)}")
+    
+    # Mark posts that were already sent and extract company from email
+    for post in posts:
+        if post.get('email') in sent_emails:
+            post['already_sent'] = True
+        else:
+            post['already_sent'] = False
+        
+        # Extract company name from email if not present
+        if not post.get('company') or post.get('company') == 'Company Not Found':
+            email = post.get('email', '')
+            if email and '@' in email:
+                # Extract domain from email
+                domain = email.split('@')[1]
+                # Remove common extensions
+                company_name = domain.split('.')[0]
+                # Capitalize first letter
+                post['company'] = company_name.upper()
+    
     # Sort posts by date, newest first
     posts.sort(key=lambda x: x["posted_date"], reverse=True)
     return render_template("job_posts.html", job_posts=posts)
+
+
+@app.route("/send_job_email", methods=["POST"])
+@login_required
+def send_job_email():
+    """Send email to a specific job post email."""
+    try:
+        user_email = session.get("user")
+        job_email = request.json.get("email")
+        job_description = request.json.get("description", "")
+        job_company = request.json.get("company", "")
+        job_url = request.json.get("url", "")
+        
+        if not job_email:
+            return jsonify({"success": False, "message": "No email address provided"}), 400
+        
+        # Get user's saved profile data
+        try:
+            db = firestore.client()
+            doc = db.collection('user_profiles').document(user_email).get()
+            if not doc.exists:
+                return jsonify({"success": False, "message": "Please set up your profile first"}), 400
+            
+            profile_data = doc.to_dict()
+            
+            # Get email content and subject from profile
+            email_content = profile_data.get('emailContent', '')
+            subject = profile_data.get('subject', 'Job Application')
+            
+            # Check if resume exists
+            if not profile_data.get('resumeData') or not profile_data.get('resumeFilename'):
+                return jsonify({"success": False, "message": "Please upload a resume first"}), 400
+            
+            # Get resume from Firestore and create temp file
+            resume_filename = profile_data['resumeFilename']
+            resume_data_b64 = profile_data['resumeData']
+            resume_bytes = base64.b64decode(resume_data_b64)
+            
+            temp_dir = tempfile.gettempdir()
+            resume_path = os.path.join(temp_dir, f"{user_email}_{resume_filename}")
+            
+            with open(resume_path, 'wb') as f:
+                f.write(resume_bytes)
+            
+            print(f"📧 Sending email to {job_email} for {job_company}")
+            
+        except Exception as e:
+            print(f"❌ Error getting profile data: {str(e)}")
+            return jsonify({"success": False, "message": "Error loading profile data"}), 500
+        
+        # Check for duplicate
+        try:
+            if firestore is not None:
+                db = firestore.client()
+                query = db.collection(FIRESTORE_COLLECTIONS['sent_emails']) \
+                    .where('email', '==', job_email) \
+                    .where('subject', '==', subject) \
+                    .where('user_email', '==', user_email) \
+                    .limit(1)
+                
+                existing = list(query.stream())
+                if existing:
+                    last_doc = existing[0].to_dict()
+                    last_sent = last_doc.get('sent_at', 'unknown time')
+                    return jsonify({
+                        "success": False, 
+                        "message": f"Already sent to this email on {last_sent}"
+                    }), 400
+        except Exception as e:
+            print(f"⚠️ Error checking duplicates: {str(e)}")
+        
+        # Send the email - use same credentials as main automation
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = "manudrive06@gmail.com"
+        sender_password = "ozds nrqo gduy mnwd"
+        
+        try:
+            msg = MIMEMultipart()
+            msg["From"] = sender_email
+            msg["To"] = job_email
+            msg["Cc"] = user_email
+            msg["Subject"] = subject
+            
+            # Attach email content
+            msg.attach(MIMEText(email_content, "plain", "utf-8"))
+            
+            # Attach resume
+            if resume_path and os.path.exists(resume_path):
+                with open(resume_path, "rb") as attachment:
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(attachment.read())
+                    encoders.encode_base64(part)
+                    part.add_header(
+                        "Content-Disposition",
+                        f"attachment; filename={os.path.basename(resume_path)}"
+                    )
+                    msg.attach(part)
+            
+            # Send email - match the pattern used in main automation
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, job_email, msg.as_string())
+            server.quit()
+            
+            print(f"✅ Email sent successfully to {job_email}")
+            
+            # Save to sent emails
+            run_id = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            save_sent_email({
+                "email": job_email,
+                "subject": subject,
+                "cc": user_email,
+                "sent_at": datetime.now().isoformat(),
+                "status": "sent",
+                "source_url": job_url,
+                "company": job_company,
+                "description": job_description[:100] + "..." if len(job_description) > 100 else job_description
+            }, run_id, user_email)
+            
+            # Clean up temp file
+            try:
+                if resume_path and os.path.exists(resume_path):
+                    os.remove(resume_path)
+            except:
+                pass
+            
+            return jsonify({
+                "success": True, 
+                "message": f"Email sent successfully to {job_email}"
+            })
+            
+        except Exception as e:
+            print(f"❌ Error sending email: {str(e)}")
+            
+            # Save failure
+            run_id = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            save_sent_email({
+                "email": job_email,
+                "subject": subject,
+                "cc": user_email,
+                "sent_at": datetime.now().isoformat(),
+                "status": "failed",
+                "error": str(e),
+                "source_url": job_url,
+                "company": job_company
+            }, run_id, user_email)
+            
+            return jsonify({
+                "success": False, 
+                "message": f"Failed to send email: {str(e)}"
+            }), 500
+            
+    except Exception as e:
+        print(f"❌ Error in send_job_email: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 @app.route("/sent_emails")
@@ -1604,7 +1798,9 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     
                     company = company_elem.text if company_elem else "Company Not Found"
                     
-                    description = title_elem.text[:200] + "..." if len(title_elem.text) > 200 else title_elem.text
+                    # Save full text and create a truncated description
+                    full_text = title_elem.text if title_elem else ""
+                    description = full_text[:200] + "..." if len(full_text) > 200 else full_text
                     
                     # Find mailto links in the post
                     mailtos = post.find_elements(By.XPATH, ".//a[contains(@href, 'mailto:')]")
@@ -1617,6 +1813,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                             "title": title,
                             "company": company,
                             "description": description,
+                            "full_text": full_text,  # Save complete post text
                             "email": email,
                             "location": "Remote/On-site",  # You can enhance this with actual location parsing
                             "job_type": "Full-time",      # You can enhance this with actual job type parsing

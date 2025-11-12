@@ -1399,7 +1399,21 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         log("🚀 DEBUG: About to launch Chrome browser...")
         log(f"🚀 DEBUG: Chrome binary location from options: {options.binary_location if hasattr(options, 'binary_location') and options.binary_location else 'Not set'}")
         
-        driver = webdriver.Chrome(service=service, options=options)
+        try:
+            log("🔄 Launching Chrome WebDriver...")
+            driver = webdriver.Chrome(service=service, options=options)
+            log("✅ Chrome WebDriver created successfully!")
+        except Exception as chrome_error:
+            log("=" * 70)
+            log("❌ CRITICAL: Failed to launch Chrome!")
+            log(f"❌ Error type: {type(chrome_error).__name__}")
+            log(f"❌ Error message: {str(chrome_error)}")
+            log("=" * 70)
+            import traceback
+            log(f"❌ Full traceback:")
+            log(traceback.format_exc())
+            log("=" * 70)
+            raise
         
         # Set global driver for 2FA handling
         global automation_driver
@@ -1408,7 +1422,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         log("✅ Chrome launched successfully!")
         log(f"✅ Chrome version: {driver.capabilities.get('browserVersion', 'unknown')}")
         log(f"✅ ChromeDriver version: {driver.capabilities.get('chrome', {}).get('chromedriverVersion', 'unknown')}")
-        print("✅ Chrome instance ready")
+        print("✅ Chrome instance ready", flush=True)
 
         # Login logic: check existing profile first, fallback to email/password
         login_successful = False
@@ -1803,6 +1817,26 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 except Exception:
                     pass
 
+    except Exception as automation_error:
+        # Catch ANY unhandled exception in the automation
+        log("=" * 80)
+        log("❌ CRITICAL ERROR IN AUTOMATION!")
+        log(f"❌ Error type: {type(automation_error).__name__}")
+        log(f"❌ Error message: {str(automation_error)}")
+        log("=" * 80)
+        import traceback
+        error_traceback = traceback.format_exc()
+        log("❌ Full traceback:")
+        log(error_traceback)
+        log("=" * 80)
+        
+        # Also print to stdout for visibility in logs
+        print("=" * 80, flush=True)
+        print("❌ CRITICAL ERROR IN AUTOMATION!", flush=True)
+        print(f"❌ Error: {str(automation_error)}", flush=True)
+        print(error_traceback, flush=True)
+        print("=" * 80, flush=True)
+        
     finally:
         try:
             # Force close any remaining Chrome instances

@@ -1423,9 +1423,13 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         log(f"✅ Chrome version: {driver.capabilities.get('browserVersion', 'unknown')}")
         log(f"✅ ChromeDriver version: {driver.capabilities.get('chrome', {}).get('chromedriverVersion', 'unknown')}")
         print("✅ Chrome instance ready", flush=True)
+        
+        log("🔄 DEBUG: About to start LinkedIn login flow")
 
         # Login logic: check existing profile first, fallback to email/password
         login_successful = False
+        
+        log("🔄 DEBUG: login_successful variable initialized")
 
         # First, try to use existing profile
         log("=" * 60)

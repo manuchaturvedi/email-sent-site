@@ -1059,54 +1059,14 @@ def linkedin_login(driver, email, password):
         log("🚀 Sign in button clicked")
         
         # Wait for login to complete - check for feed or home page
-        log("⏳ Waiting for page to load after login...")
         time.sleep(5)
         
         # Check if login was successful
         current_url = driver.current_url
-        log(f"🔍 Current URL after login: {current_url}")
-        log(f"🔍 Page title: {driver.title}")
-        
         if "feed" in current_url or "home" in current_url or "mynetwork" in current_url:
             log("✅ LinkedIn login successful!")
             return True
-        
-        # Check for 2FA/verification elements on page (not just URL)
-        has_2fa = False
-        try:
-            # Look for verification input fields
-            verification_selectors = [
-                "#input__email_verification_pin",
-                "#input__phone_verification_pin",
-                "input[name='pin']",
-                "input[autocomplete='one-time-code']",
-                "input[id*='verification']",
-                "input[id*='pin']"
-            ]
-            
-            for selector in verification_selectors:
-                try:
-                    elements = driver.find_elements(By.CSS_SELECTOR, selector)
-                    if elements and len(elements) > 0:
-                        log(f"🔍 Found 2FA input field: {selector}")
-                        has_2fa = True
-                        break
-                except:
-                    continue
-            
-            # Also check page text for 2FA keywords
-            if not has_2fa:
-                page_text = driver.page_source.lower()
-                verification_keywords = ["verification code", "verify", "two-step", "security code", "enter the code"]
-                for keyword in verification_keywords:
-                    if keyword in page_text:
-                        log(f"🔍 Found 2FA keyword in page: '{keyword}'")
-                        has_2fa = True
-                        break
-        except Exception as check_error:
-            log(f"⚠️ Error checking for 2FA: {str(check_error)}")
-        
-        if "checkpoint" in current_url or "challenge" in current_url or has_2fa:
+        elif "checkpoint" in current_url or "challenge" in current_url:
             log("=" * 70)
             log("⚠️ LinkedIn requires additional verification (2FA/challenge)")
             log(f"� Current URL: {current_url}")
@@ -1164,29 +1124,21 @@ def linkedin_login(driver, email, password):
                     log("   3. Enter your 6-digit code in the input field")
                     log("   4. Click 'Submit Code' button")
                     log("   5. Automation will enter the code and continue")
-                    log("⏳ Waiting for code submission (max 10 minutes)...")
+                    log("⏳ Waiting for code submission (max 5 minutes)...")
                     log("=" * 70)
-                    # Also send to stdout for visibility
-                    print("=" * 70, flush=True)
-                    print("🔐 ENTER YOUR 2FA CODE", flush=True)
-                    print("=" * 70, flush=True)
                     
                     # Reset verification state
                     verification_code_submitted = False
                     verification_code_value = None
                     
                     # Wait for user to submit code via web interface
-                    timeout = 600  # 10 minutes (increased from 5)
+                    timeout = 300  # 5 minutes
                     elapsed = 0
                     while elapsed < timeout and not verification_code_submitted:
                         time.sleep(1)
                         elapsed += 1
-                        if elapsed % 10 == 0:  # Log every 10 seconds
-                            remaining = timeout - elapsed
-                            log(f"⏳ Still waiting for 2FA code... ({elapsed}s / {timeout}s - {remaining}s remaining)")
-                            # Keep the modal trigger visible
-                            if elapsed % 30 == 0:  # Re-send trigger every 30 seconds
-                                log("🔐 ENTER YOUR 2FA CODE")
+                        if elapsed % 15 == 0:
+                            log(f"⏳ Still waiting for 2FA code... ({elapsed}s elapsed)")
                     
                     if verification_code_submitted and verification_code_value:
                         log(f"✅ Received code, entering it now...")
@@ -1213,7 +1165,7 @@ def linkedin_login(driver, email, password):
                                 submit_button = driver.find_element(By.CSS_SELECTOR, btn_selector)
                                 if submit_button and submit_button.is_displayed():
                                     submit_button.click()
-                                    log(f"✅ Submit button clicked: {btn_selector}")
+                                    log(f"✅ Submit button clicked")
                                     break
                             except:
                                 continue
@@ -1237,10 +1189,7 @@ def linkedin_login(driver, email, password):
                             log("❌ Verification may have failed - check code")
                             return False
                     else:
-                        log("=" * 70)
-                        log("⏰ TIMEOUT: No 2FA code entered within 10 minutes")
-                        log("❌ Please try running automation again and enter code faster")
-                        log("=" * 70)
+                        log("⏰ Timeout waiting for 2FA code")
                         return False
                 else:
                     log("⚠️ Could not find verification input field")
@@ -1346,25 +1295,6 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         options.add_argument("--disable-extensions")
         options.add_argument("--dns-prefetch-disable")
         options.add_argument("--disable-features=VizDisplayCompositor")
-        
-        # Memory optimization for low-RAM environments
-        options.add_argument("--disable-software-rasterizer")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-setuid-sandbox")
-        options.add_argument("--single-process")  # Run in single process mode
-        options.add_argument("--disable-background-networking")
-        options.add_argument("--disable-background-timer-throttling")
-        options.add_argument("--disable-backgrounding-occluded-windows")
-        options.add_argument("--disable-breakpad")
-        options.add_argument("--disable-component-update")
-        options.add_argument("--disable-domain-reliability")
-        options.add_argument("--disable-features=TranslateUI,BlinkGenPropertyTrees")
-        options.add_argument("--disable-ipc-flooding-protection")
-        options.add_argument("--disable-renderer-backgrounding")
-        options.add_argument("--enable-features=NetworkService,NetworkServiceInProcess")
-        options.add_argument("--force-color-profile=srgb")
-        options.add_argument("--metrics-recording-only")
-        options.add_argument("--mute-audio")
 
         # Use appropriate profile directory based on environment
         if os.environ.get('CHROME_BIN'):  # Docker/Cloud environment
@@ -1418,21 +1348,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         log("🚀 DEBUG: About to launch Chrome browser...")
         log(f"🚀 DEBUG: Chrome binary location from options: {options.binary_location if hasattr(options, 'binary_location') and options.binary_location else 'Not set'}")
         
-        try:
-            log("🔄 Launching Chrome WebDriver...")
-            driver = webdriver.Chrome(service=service, options=options)
-            log("✅ Chrome WebDriver created successfully!")
-        except Exception as chrome_error:
-            log("=" * 70)
-            log("❌ CRITICAL: Failed to launch Chrome!")
-            log(f"❌ Error type: {type(chrome_error).__name__}")
-            log(f"❌ Error message: {str(chrome_error)}")
-            log("=" * 70)
-            import traceback
-            log(f"❌ Full traceback:")
-            log(traceback.format_exc())
-            log("=" * 70)
-            raise
+        driver = webdriver.Chrome(service=service, options=options)
         
         # Set global driver for 2FA handling
         global automation_driver
@@ -1441,14 +1357,10 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         log("✅ Chrome launched successfully!")
         log(f"✅ Chrome version: {driver.capabilities.get('browserVersion', 'unknown')}")
         log(f"✅ ChromeDriver version: {driver.capabilities.get('chrome', {}).get('chromedriverVersion', 'unknown')}")
-        print("✅ Chrome instance ready", flush=True)
-        
-        log("🔄 DEBUG: About to start LinkedIn login flow")
+        print("✅ Chrome instance ready")
 
         # Login logic: check existing profile first, fallback to email/password
         login_successful = False
-        
-        log("🔄 DEBUG: login_successful variable initialized")
 
         # First, try to use existing profile
         log("=" * 60)
@@ -1548,17 +1460,9 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 log("✅ Email/password login successful - session saved to profile")
             else:
                 log("❌ Email/password login failed")
-                error_msg = "LinkedIn login failed. Please check your credentials or complete 2FA verification."
-                print(f"❌ ERROR: {error_msg}", flush=True)
-                driver.quit()
-                raise Exception(error_msg)
 
         if not login_successful:
-            error_msg = "No login method succeeded - cannot proceed with automation"
-            log(f"❌ {error_msg}")
-            print(f"❌ ERROR: {error_msg}", flush=True)
-            driver.quit()
-            raise Exception(error_msg)
+            log("❌ No login method succeeded - automation may fail")
         else:
             log("✅ Proceeding with job search...")
         
@@ -1840,26 +1744,6 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 except Exception:
                     pass
 
-    except Exception as automation_error:
-        # Catch ANY unhandled exception in the automation
-        log("=" * 80)
-        log("❌ CRITICAL ERROR IN AUTOMATION!")
-        log(f"❌ Error type: {type(automation_error).__name__}")
-        log(f"❌ Error message: {str(automation_error)}")
-        log("=" * 80)
-        import traceback
-        error_traceback = traceback.format_exc()
-        log("❌ Full traceback:")
-        log(error_traceback)
-        log("=" * 80)
-        
-        # Also print to stdout for visibility in logs
-        print("=" * 80, flush=True)
-        print("❌ CRITICAL ERROR IN AUTOMATION!", flush=True)
-        print(f"❌ Error: {str(automation_error)}", flush=True)
-        print(error_traceback, flush=True)
-        print("=" * 80, flush=True)
-        
     finally:
         try:
             # Force close any remaining Chrome instances

@@ -756,54 +756,21 @@
         .then(response => response.json())
         .then(data => {
           if (data.status === 'success') {
-            successDiv.textContent = 'Code submitted! Waiting for verification...';
+            successDiv.textContent = '✅ Code submitted! Verifying...';
             successDiv.classList.remove('d-none');
             
-            // Disable submit button to prevent multiple submissions
-            document.getElementById('submitTwoFactorCode').disabled = true;
-            
-            // Monitor for successful login completion
-            const loginCheckInterval = setInterval(() => {
-              const progressContainer = document.getElementById('progress');
-              if (progressContainer) {
-                const allText = progressContainer.textContent || '';
-                // Check if login was successful - hide modal immediately
-                if (allText.includes('✅ Verification completed') || 
-                    allText.includes('✅ Redirected to:') ||
-                    allText.includes('LinkedIn login successful')) {
-                  clearInterval(loginCheckInterval);
-                  // Hide modal immediately on success
-                  twoFactorModal.hide();
-                  checkingFor2FA = false;
-                  document.getElementById('twoFactorCode').value = '';
-                  document.getElementById('submitTwoFactorCode').disabled = false;
-                  errorDiv.classList.add('d-none');
-                  successDiv.classList.add('d-none');
-                }
-                // Check if verification failed
-                else if (allText.includes('❌ Verification') || 
-                         allText.includes('incorrect code')) {
-                  clearInterval(loginCheckInterval);
-                  errorDiv.textContent = 'Verification failed. Please try again.';
-                  errorDiv.classList.remove('d-none');
-                  successDiv.classList.add('d-none');
-                  document.getElementById('submitTwoFactorCode').disabled = false;
-                }
-              }
-            }, 500); // Check every 500ms
-            
-            // Timeout after 30 seconds
+            // Hide modal immediately after showing success
             setTimeout(() => {
-              clearInterval(loginCheckInterval);
-              if (document.getElementById('submitTwoFactorCode').disabled) {
-                twoFactorModal.hide();
+              twoFactorModal.hide();
+              
+              // Reset everything after modal is hidden
+              setTimeout(() => {
                 checkingFor2FA = false;
                 document.getElementById('twoFactorCode').value = '';
-                document.getElementById('submitTwoFactorCode').disabled = false;
-                errorDiv.classList.add('d-none');
                 successDiv.classList.add('d-none');
-              }
-            }, 30000);
+                errorDiv.classList.add('d-none');
+              }, 500);
+            }, 1500);
           } else {
             errorDiv.textContent = data.message || 'Failed to submit code';
             errorDiv.classList.remove('d-none');

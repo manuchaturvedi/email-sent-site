@@ -3,13 +3,15 @@ from functools import wraps
 import firebase_admin
 from firebase_admin import credentials, auth
 from job_analyzer import JobAnalyzer
-# Firestore is optional; we'll import if available at runtime
+# Firestore and Storage are optional; we'll import if available at runtime
 try:
-    from firebase_admin import firestore
+    from firebase_admin import firestore, storage
     from firebase_admin.firestore import FieldFilter  # Add FieldFilter import
 except Exception:
     firestore = None
+    storage = None
     FieldFilter = None
+import base64
 import threading
 from queue import Queue, Empty
 import os
@@ -88,6 +90,11 @@ else:
 # LinkedIn credentials for programmatic login (fallback)
 LINKEDIN_EMAIL = "manudrive04@gmail.com"
 LINKEDIN_PASSWORD = "Jpking@232"
+
+# Global variables for 2FA handling
+automation_driver = None
+verification_code_submitted = None
+verification_code_value = None
 
 def is_duplicate_job_post(post, existing_posts=None):
     """Check if a job post is a duplicate based on email, title, and company."""
@@ -747,32 +754,38 @@ def save_profile():
     search_role = request.form.get("searchRole", "devops, cloud, site reliability")
     search_time_period = request.form.get("searchTimePeriod", "past-week")
     
-    # Handle resume file
+    # Handle resume file - store in Firestore as base64
+    resume_data = None
     resume_filename = None
     if "resumeFile" in request.files:
         resume = request.files["resumeFile"]
         if resume.filename:
-            # Save resume to user-specific folder
-            user_uploads = os.path.join("uploads", user_email)
-            os.makedirs(user_uploads, exist_ok=True)
-            resume_filename = os.path.join(user_uploads, resume.filename)
-            resume.save(resume_filename)
+            # Read file and encode as base64
+            resume_bytes = resume.read()
+            resume_data = base64.b64encode(resume_bytes).decode('utf-8')
+            resume_filename = resume.filename
+            print(f"📄 Resume uploaded: {resume_filename}, size: {len(resume_bytes)} bytes")
     
     try:
         db = firestore.client()
         profile_data = {
             "emailSubject": email_subject,
             "emailContent": email_content,
-            "resumeFilename": resume_filename,
             "searchRole": search_role,
             "searchTimePeriod": search_time_period,
             "updatedAt": datetime.now()
         }
         
+        # Only update resume if new one uploaded
+        if resume_data:
+            profile_data["resumeData"] = resume_data
+            profile_data["resumeFilename"] = resume_filename
+            print(f"✅ Storing resume in Firestore: {resume_filename}")
+        
         db.collection('user_profiles').document(user_email).set(profile_data, merge=True)
         return jsonify({"status": "success"})
     except Exception as e:
-        print(f"Error saving profile: {str(e)}")
+        print(f"❌ Error saving profile: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/")
@@ -953,6 +966,33 @@ def user_preferences():
     preferences = get_user_preferences(user_email)
     return jsonify(preferences)
 
+@app.route('/submit_2fa_code', methods=['POST'])
+@login_required
+def submit_2fa_code():
+    """Endpoint to submit 2FA verification code."""
+    global verification_code_submitted, verification_code_value, automation_driver
+    
+    code = request.json.get('code', '').strip()
+    
+    if not code:
+        return jsonify({"status": "error", "message": "Code is required"}), 400
+    
+    if automation_driver is None:
+        return jsonify({"status": "error", "message": "No active automation session"}), 400
+    
+    try:
+        log(f"📱 Received 2FA code from user: {code}")
+        verification_code_value = code
+        verification_code_submitted = True
+        
+        return jsonify({
+            "status": "success", 
+            "message": "Code submitted successfully. Automation will continue..."
+        })
+    except Exception as e:
+        log(f"❌ Error submitting 2FA code: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/progress')
 @login_required
 def progress_stream():
@@ -1027,10 +1067,157 @@ def linkedin_login(driver, email, password):
             log("✅ LinkedIn login successful!")
             return True
         elif "checkpoint" in current_url or "challenge" in current_url:
+            log("=" * 70)
             log("⚠️ LinkedIn requires additional verification (2FA/challenge)")
-            # Wait for manual intervention
-            input("Please complete the verification in the browser and press Enter...")
-            return True
+            log(f"� Current URL: {current_url}")
+            log("=" * 70)
+            
+            # Save screenshot for debugging
+            try:
+                screenshot_path = "/tmp/linkedin_2fa_challenge.png"
+                driver.save_screenshot(screenshot_path)
+                log(f"📸 Screenshot saved: {screenshot_path}")
+            except Exception as ss_error:
+                log(f"⚠️ Could not save screenshot: {str(ss_error)}")
+            
+            # Save page HTML
+            try:
+                html_path = "/tmp/linkedin_2fa_challenge.html"
+                with open(html_path, 'w', encoding='utf-8') as f:
+                    f.write(driver.page_source)
+                log(f"📄 Page HTML saved: {html_path}")
+            except Exception as html_error:
+                log(f"⚠️ Could not save HTML: {str(html_error)}")
+            
+            log("�🔍 Waiting for 2FA verification code...")
+            
+            # Wait for verification code input field
+            try:
+                # Try to find the verification code input field
+                code_input = None
+                input_selectors = [
+                    "#input__email_verification_pin",
+                    "#input__phone_verification_pin", 
+                    "input[name='pin']",
+                    "input[autocomplete='one-time-code']",
+                    "input[id*='verification']",
+                    "input[id*='pin']"
+                ]
+                
+                for selector in input_selectors:
+                    try:
+                        code_input = driver.find_element(By.CSS_SELECTOR, selector)
+                        if code_input and code_input.is_displayed():
+                            log(f"✅ Found verification input field: {selector}")
+                            break
+                    except:
+                        continue
+                
+                if code_input:
+                    global verification_code_submitted, verification_code_value
+                    
+                    log("📱 2FA code input field detected")
+                    log("=" * 70)
+                    log("🔐 ENTER YOUR 2FA CODE VIA WEB INTERFACE:")
+                    log("   1. Check your email/phone for LinkedIn verification code")
+                    log("   2. A modal will appear on the web page")
+                    log("   3. Enter your 6-digit code in the input field")
+                    log("   4. Click 'Submit Code' button")
+                    log("   5. Automation will enter the code and continue")
+                    log("⏳ Waiting for code submission (max 5 minutes)...")
+                    log("=" * 70)
+                    
+                    # Reset verification state
+                    verification_code_submitted = False
+                    verification_code_value = None
+                    
+                    # Wait for user to submit code via web interface
+                    timeout = 300  # 5 minutes
+                    elapsed = 0
+                    while elapsed < timeout and not verification_code_submitted:
+                        time.sleep(1)
+                        elapsed += 1
+                        if elapsed % 15 == 0:
+                            log(f"⏳ Still waiting for 2FA code... ({elapsed}s elapsed)")
+                    
+                    if verification_code_submitted and verification_code_value:
+                        log(f"✅ Received code, entering it now...")
+                        
+                        # Enter the code
+                        code_input.clear()
+                        code_input.send_keys(verification_code_value)
+                        log("✅ Code entered into LinkedIn form")
+                        time.sleep(1)
+                        
+                        # Find and click submit button
+                        from selenium.webdriver.common.keys import Keys
+                        submit_button = None
+                        button_selectors = [
+                            "button[type='submit']",
+                            "button[data-litms-control-urn*='verify']",
+                            "button[aria-label*='Submit']",
+                            ".primary-action-button",
+                            "button.btn__primary--large"
+                        ]
+                        
+                        for btn_selector in button_selectors:
+                            try:
+                                submit_button = driver.find_element(By.CSS_SELECTOR, btn_selector)
+                                if submit_button and submit_button.is_displayed():
+                                    submit_button.click()
+                                    log(f"✅ Submit button clicked")
+                                    break
+                            except:
+                                continue
+                        
+                        if not submit_button:
+                            log("⚠️ Could not find submit button, using Enter key...")
+                            code_input.send_keys(Keys.RETURN)
+                        
+                        # Wait for redirect
+                        log("⏳ Waiting for LinkedIn to verify...")
+                        time.sleep(3)
+                        wait = WebDriverWait(driver, 30)
+                        try:
+                            wait.until(lambda d: "feed" in d.current_url or "home" in d.current_url or "mynetwork" in d.current_url)
+                            log("=" * 70)
+                            log("✅ Verification completed successfully!")
+                            log(f"✅ Redirected to: {driver.current_url}")
+                            log("=" * 70)
+                            return True
+                        except:
+                            log("❌ Verification may have failed - check code")
+                            return False
+                    else:
+                        log("⏰ Timeout waiting for 2FA code")
+                        return False
+                else:
+                    log("⚠️ Could not find verification input field")
+                    log("=" * 70)
+                    log("⏳ WAITING FOR MANUAL VERIFICATION:")
+                    log("   1. Complete the verification challenge on LinkedIn")
+                    log("   2. You should be redirected to feed/home")
+                    log("   3. Automation will detect completion and resume")
+                    log("⏳ Maximum wait time: 5 minutes")
+                    log("=" * 70)
+                    
+                    # Wait for URL to change to feed/home (verification completed)
+                    wait = WebDriverWait(driver, 300)  # 5 minutes
+                    wait.until(lambda d: "feed" in d.current_url or "home" in d.current_url or "mynetwork" in d.current_url)
+                    
+                    log("=" * 70)
+                    log("✅ Verification completed!")
+                    log(f"✅ Redirected to: {driver.current_url}")
+                    log("=" * 70)
+                    return True
+                    
+            except Exception as verification_error:
+                log("=" * 70)
+                log(f"⏰ Verification timeout or error: {str(verification_error)}")
+                log(f"⏰ Current URL after timeout: {driver.current_url}")
+                log("⚠️ Please check LinkedIn and try again")
+                log("=" * 70)
+                return False
         else:
             log("❌ LinkedIn login failed - checking for error messages")
             try:
@@ -1047,6 +1234,28 @@ def linkedin_login(driver, email, password):
 
 # --- AUTOMATION FUNCTION ---
 def run_automation(subject, email_content, attachment_path, cc_email, run_id=None, user_email=None, search_role=None, search_time=None):
+    # Wrap EVERYTHING in try-catch to catch silent failures
+    try:
+        print("=" * 80, flush=True)
+        print("🚀 DEBUG: run_automation FUNCTION CALLED", flush=True)
+        print(f"🚀 DEBUG: Thread ID: {threading.current_thread().ident}", flush=True)
+        print(f"🚀 DEBUG: Thread Name: {threading.current_thread().name}", flush=True)
+        print(f"🚀 DEBUG: Parameters received:", flush=True)
+        print(f"    - subject: {subject}", flush=True)
+        print(f"    - email_content length: {len(email_content) if email_content else 0}", flush=True)
+        print(f"    - attachment_path: {attachment_path}", flush=True)
+        print(f"    - cc_email: {cc_email}", flush=True)
+        print(f"    - run_id: {run_id}", flush=True)
+        print(f"    - user_email: {user_email}", flush=True)
+        print(f"    - search_role: {search_role}", flush=True)
+        print(f"    - search_time: {search_time}", flush=True)
+        print("=" * 80, flush=True)
+    except Exception as top_error:
+        print(f"❌ CRITICAL: Error in function entry: {str(top_error)}", flush=True)
+        import traceback
+        traceback.print_exc()
+        return
+    
     log("🚀 Starting automation...")
     log(f"📝 Run ID: {run_id}")
     if user_email:
@@ -1056,6 +1265,9 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
     all_emails = set()
 
     try:
+        print("✅ DEBUG: Entered main try block")
+        log("⚙️ Initializing automation process...")
+        print("✅ DEBUG: About to set email credentials")
         # Log initial state
         log("⚙️ Initializing automation process...")
 
@@ -1067,7 +1279,14 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
 
         # Chrome setup - always use D:\Profile directory
         options = webdriver.ChromeOptions()
-        options.add_argument("--headless=new")
+        
+        # Only use headless mode if HEADLESS environment variable is not set to "false"
+        if os.environ.get('HEADLESS', 'true').lower() != 'false':
+            options.add_argument("--headless=new")
+            log("🔇 Running Chrome in headless mode")
+        else:
+            log("👁️ Running Chrome in visible mode (headless disabled)")
+        
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
@@ -1098,39 +1317,71 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         raise
     
     from selenium.webdriver.chrome.service import Service
-    from webdriver_manager.chrome import ChromeDriverManager
     
     try:
-        print("🔄 Setting up Chrome for cloud deployment...")
+        log("=" * 60)
+        log("🔍 DEBUG: Starting Chrome initialization")
+        log(f"🔍 DEBUG: CHROME_BIN env = {os.environ.get('CHROME_BIN')}")
+        log(f"🔍 DEBUG: CHROMEDRIVER_PATH env = {os.environ.get('CHROMEDRIVER_PATH')}")
+        log("=" * 60)
         
-        # Check if we're in a cloud environment (Render)
-        chrome_bin = os.environ.get('CHROME_BIN')
-        chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
-        
-        if chrome_bin and chromedriver_path:
-            print(f"🌐 Using cloud Chrome: {chrome_bin}")
-            print(f"🔧 Using cloud ChromeDriver: {chromedriver_path}")
-            options.binary_location = chrome_bin
+        # Use explicit ChromeDriver path in Docker/Cloud, auto-install locally
+        if os.environ.get('CHROMEDRIVER_PATH'):
+            chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
+            log(f"🔧 Using ChromeDriver from: {chromedriver_path}")
+            
+            # Verify ChromeDriver exists
+            if os.path.exists(chromedriver_path):
+                log(f"✅ ChromeDriver file exists at {chromedriver_path}")
+            else:
+                log(f"❌ ChromeDriver file NOT FOUND at {chromedriver_path}")
+                raise FileNotFoundError(f"ChromeDriver not found at {chromedriver_path}")
+            
             service = Service(chromedriver_path)
+            log("✅ Service object created")
         else:
-            print("🏠 Using local ChromeDriver manager...")
+            from webdriver_manager.chrome import ChromeDriverManager
+            log("🔄 Installing ChromeDriver via webdriver_manager...")
             service = Service(ChromeDriverManager().install())
+            log("✅ ChromeDriver installed via webdriver_manager")
         
-        print("🚀 Launching Chrome...")
+        log("🚀 DEBUG: About to launch Chrome browser...")
+        log(f"🚀 DEBUG: Chrome binary location from options: {options.binary_location if hasattr(options, 'binary_location') and options.binary_location else 'Not set'}")
+        
         driver = webdriver.Chrome(service=service, options=options)
-        log("✅ Chrome launched successfully.")
+        
+        # Set global driver for 2FA handling
+        global automation_driver
+        automation_driver = driver
+        
+        log("✅ Chrome launched successfully!")
+        log(f"✅ Chrome version: {driver.capabilities.get('browserVersion', 'unknown')}")
+        log(f"✅ ChromeDriver version: {driver.capabilities.get('chrome', {}).get('chromedriverVersion', 'unknown')}")
         print("✅ Chrome instance ready")
 
         # Login logic: check existing profile first, fallback to email/password
         login_successful = False
 
         # First, try to use existing profile
-        log("🔍 Checking if existing profile is logged into LinkedIn...")
-        driver.get("https://www.linkedin.com/feed/")
+        log("=" * 60)
+        log("🔍 DEBUG: Starting LinkedIn login check...")
+        log("🔍 DEBUG: Navigating to LinkedIn feed...")
+        
+        try:
+            driver.get("https://www.linkedin.com/feed/")
+            log(f"✅ DEBUG: Page loaded, current URL: {driver.current_url}")
+            log(f"✅ DEBUG: Page title: {driver.title}")
+        except Exception as nav_error:
+            log(f"❌ DEBUG: Navigation error: {str(nav_error)}")
+            raise
+        
+        log("⏳ DEBUG: Waiting 5 seconds for page to settle...")
         time.sleep(5)  # Increased wait time
+        log(f"✅ DEBUG: After wait, URL: {driver.current_url}")
 
         # Better login check: look for elements that only exist when logged in
         try:
+            log("🔍 DEBUG: Checking login indicators...")
             # Check for multiple indicators of being logged in
             login_indicators = [
                 ".global-nav__me",  # User profile dropdown
@@ -1142,15 +1393,21 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
             logged_in = False
             for indicator in login_indicators:
                 try:
+                    log(f"🔍 DEBUG: Checking indicator: {indicator}")
                     elements = driver.find_elements(By.CSS_SELECTOR, indicator)
+                    log(f"🔍 DEBUG: Found {len(elements)} elements for {indicator}")
                     if elements:
                         logged_in = True
+                        log(f"✅ DEBUG: Login confirmed via indicator: {indicator}")
                         break
-                except:
+                except Exception as ind_error:
+                    log(f"⚠️ DEBUG: Error checking {indicator}: {str(ind_error)}")
                     continue
 
             # Also check URL - if redirected to login page, definitely not logged in
             current_url = driver.current_url
+            log(f"🔍 DEBUG: Final URL check: {current_url}")
+            
             if "login" in current_url or "authwall" in current_url:
                 logged_in = False
                 log("⚠️ Redirected to login page - not logged in")
@@ -1159,18 +1416,39 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 login_successful = True
             else:
                 log("⚠️ Could not find login indicators, profile may not be logged in")
+                log(f"🔍 DEBUG: Page source length: {len(driver.page_source)}")
+                # Save page source for debugging
+                try:
+                    with open('/tmp/linkedin_debug.html', 'w', encoding='utf-8') as f:
+                        f.write(driver.page_source)
+                    log("📄 DEBUG: Page source saved to /tmp/linkedin_debug.html")
+                except:
+                    pass
 
         except Exception as e:
-            log(f"⚠️ Error checking login status: {str(e)}")
+            log(f"❌ DEBUG: Error checking login status: {str(e)}")
+            log(f"❌ DEBUG: Error type: {type(e).__name__}")
+            import traceback
+            log(f"❌ DEBUG: Traceback: {traceback.format_exc()}")
+            
             # Check URL as fallback
-            current_url = driver.current_url
-            if "feed" in current_url or "home" in current_url or "mynetwork" in current_url:
-                log("✅ Existing profile login successful! (URL check)")
-                login_successful = True
-            else:
-                log("⚠️ Profile not logged in (URL check failed)")
+            try:
+                current_url = driver.current_url
+                log(f"🔍 DEBUG: Fallback URL check: {current_url}")
+                if "feed" in current_url or "home" in current_url or "mynetwork" in current_url:
+                    log("✅ Existing profile login successful! (URL check)")
+                    login_successful = True
+                else:
+                    log("⚠️ Profile not logged in (URL check failed)")
+            except Exception as url_error:
+                log(f"❌ DEBUG: Error getting URL in fallback: {str(url_error)}")
 
         if not login_successful:
+            log("=" * 60)
+            log("🔍 DEBUG: Profile not logged in, checking for email/password login...")
+            log(f"🔍 DEBUG: LINKEDIN_EMAIL env = {'SET' if LINKEDIN_EMAIL else 'NOT SET'}")
+            log(f"🔍 DEBUG: LINKEDIN_PASSWORD env = {'SET' if LINKEDIN_PASSWORD else 'NOT SET'}")
+            log("=" * 60)
             log("🔄 Profile not logged in, attempting email/password login")
 
         if not login_successful and LINKEDIN_EMAIL and LINKEDIN_PASSWORD:
@@ -1529,17 +1807,37 @@ def send_email():
     resume_path = None
     
     if use_saved_resume:
-        # Get saved resume path from user profile
+        # Get saved resume from Firestore and create temporary file
         try:
             db = firestore.client()
             doc = db.collection('user_profiles').document(user_email).get()
             if doc.exists:
                 profile_data = doc.to_dict()
-                if profile_data.get('resumeFilename'):
-                    resume_path = profile_data['resumeFilename']
-                    print(f"📄 Using saved resume: {resume_path}")
-                    if not os.path.exists(resume_path):
-                        flash("Saved resume file not found. Please upload a new resume.", "error")
+                
+                # Check if resume data exists in Firestore
+                if profile_data.get('resumeData') and profile_data.get('resumeFilename'):
+                    resume_filename = profile_data['resumeFilename']
+                    resume_data_b64 = profile_data['resumeData']
+                    
+                    print(f"📄 Retrieving saved resume from Firestore: {resume_filename}")
+                    
+                    try:
+                        # Decode base64 resume data
+                        resume_bytes = base64.b64decode(resume_data_b64)
+                        
+                        # Create temporary file for the resume
+                        temp_dir = tempfile.gettempdir()
+                        resume_path = os.path.join(temp_dir, f"{user_email}_{resume_filename}")
+                        
+                        with open(resume_path, 'wb') as f:
+                            f.write(resume_bytes)
+                        
+                        print(f"✅ Resume restored to temporary file: {resume_path}")
+                        print(f"✅ Resume size: {len(resume_bytes)} bytes")
+                        
+                    except Exception as decode_error:
+                        print(f"❌ Error decoding resume: {str(decode_error)}")
+                        flash("Error loading saved resume. Please upload a new resume.", "error")
                         return redirect(url_for("send_page"))
                 else:
                     flash("No resume found in your profile. Please upload a resume.", "error")
@@ -1549,10 +1847,12 @@ def send_email():
                 return redirect(url_for("send_page"))
         except Exception as e:
             print(f"❌ Error accessing profile: {str(e)}")
+            import traceback
+            traceback.print_exc()
             flash("Error accessing profile. Please upload a resume.", "error")
             return redirect(url_for("send_page"))
     else:
-        # Handle new file upload
+        # Handle new file upload - save to temporary location
         if "resume" not in request.files:
             print("❌ No resume file in request")
             flash("Please upload a resume or use your saved resume.", "error")
@@ -1564,34 +1864,48 @@ def send_email():
             flash("No resume file selected. Please choose a file or use your saved resume.", "error")
             return redirect(url_for("send_page"))
 
-        # Save the uploaded resume
-        upload_folder = "uploads"
-        os.makedirs(upload_folder, exist_ok=True)
-        resume_path = os.path.join(upload_folder, resume.filename)
+        # Save the uploaded resume to temporary location (works in Docker)
+        temp_dir = tempfile.gettempdir()
+        resume_path = os.path.join(temp_dir, f"{user_email}_{resume.filename}")
         resume.save(resume_path)
+        print(f"📄 Resume saved to temporary file: {resume_path}")
 
     # Clean up any existing Chrome instances before starting
+    print("🧹 DEBUG: Cleaning up Chrome processes...")
     cleanup_chrome_processes()
+    print("✅ DEBUG: Chrome cleanup complete")
 
     # Generate a unique run ID
     run_id = datetime.now().strftime('%Y%m%d_%H%M%S')
+    print(f"🆔 DEBUG: Generated run_id: {run_id}")
 
     # Initialize automation run in Firestore (if available)
     if db_ops:
+        print("💾 DEBUG: Saving automation run to Firestore...")
         db_ops.save_automation_run(run_id, user_email, {
             'subject': subject,
             'usesSavedResume': use_saved_resume,
             'resumePath': resume_path
         })
+        print("✅ DEBUG: Automation run saved to Firestore")
     else:
         print(f"⚠️ Firestore not available - automation run {run_id} not saved")
 
     # Start automation in background thread
-    threading.Thread(
+    print("=" * 60)
+    print("🧵 DEBUG: Starting automation thread...")
+    print(f"🧵 DEBUG: Thread args: subject={subject}, content_len={len(email_content)}, resume={resume_path}")
+    print(f"🧵 DEBUG: Thread args: run_id={run_id}, user={user_email}, role={search_role}, time={search_time_period}")
+    print("=" * 60)
+    
+    thread = threading.Thread(
         target=run_automation,
         args=(subject, email_content, resume_path, user_email, run_id, user_email, search_role, search_time_period),
         daemon=True
-    ).start()
+    )
+    thread.start()
+    print(f"✅ DEBUG: Thread started, thread is alive: {thread.is_alive()}")
+    print(f"✅ DEBUG: Thread name: {thread.name}")
 
     flash("🚀 Automation started in background. Check console logs for updates.", "success")
     return redirect(url_for("send_page"))

@@ -120,11 +120,19 @@
                                     {{ post.description }}
                                     {% if post.skills %}
                                         <div class="mt-2">
-                                            {% for category, skills in post.skills.items() %}
-                                                {% for skill in skills %}
+                                            {% if post.skills is mapping %}
+                                                <!-- Skills as dictionary -->
+                                                {% for category, skills in post.skills.items() %}
+                                                    {% for skill in skills %}
+                                                        <span class="badge bg-info me-1">{{ skill }}</span>
+                                                    {% endfor %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <!-- Skills as list -->
+                                                {% for skill in post.skills %}
                                                     <span class="badge bg-info me-1">{{ skill }}</span>
                                                 {% endfor %}
-                                            {% endfor %}
+                                            {% endif %}
                                         </div>
                                     {% endif %}
                                 </td>

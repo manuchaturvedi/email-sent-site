@@ -1,109 +1,242 @@
-from firebase_admin import firestore
-from datetime import datetime
-import json
-import os
+"""
+Firestore Operations Module - Simplified version for cloud deployment
+Handles Firebase Firestore operations for the email automation app
+"""
 
-SENT_EMAILS_FILE = 'sent_emails.json'
+import os
+from datetime import datetime
+
+# Try to import Firebase/Firestore
+try:
+    import firebase_admin
+    from firebase_admin import firestore
+    FIRESTORE_AVAILABLE = True
+except ImportError:
+    FIRESTORE_AVAILABLE = False
+    print("⚠️ Firebase not available - using local storage fallback")
+
 
 class FirestoreOps:
+    """Handles Firestore operations with fallback to local storage"""
+    
     def __init__(self):
-        self.db = firestore.client()
-    
-    def save_email(self, record, run_id=None, user_email=None):
-        """Save email record to Firestore."""
-        try:
-            # Add metadata
-            if user_email:
-                record['user_email'] = user_email
-            if run_id:
-                record['run_id'] = run_id
-                record['run_time'] = datetime.now().isoformat()
-            
-            # Save to Firestore
-            doc_ref = self.db.collection('sent_emails').document()
-            record['created_at'] = firestore.SERVER_TIMESTAMP
-            doc_ref.set(record)
-            
-            # Update run statistics
-            if run_id:
-                run_ref = self.db.collection('automation_runs').document(run_id)
-                if record.get('status') == 'sent':
-                    run_ref.update({
-                        'successful': firestore.Increment(1),
-                        'total_emails': firestore.Increment(1)
-                    })
-                elif record.get('status') == 'failed':
-                    run_ref.update({
-                        'failed': firestore.Increment(1),
-                        'total_emails': firestore.Increment(1)
-                    })
-            
-            return True
-            
-        except Exception as e:
-            print(f"❌ Firestore error: {str(e)}")
-            return False
-    
-    def get_user_emails(self, user_email):
-        """Get all emails for a user."""
-        try:
-            # Simple query with just user_email filter
-            docs = self.db.collection('sent_emails')\
-                .where(filter=firestore.FieldFilter('user_email', '==', user_email))\
-                .stream()
-            
-            emails = []
-            for doc in docs:
-                data = doc.to_dict()
-                data['id'] = doc.id
-                emails.append(data)
-            
-            # Sort in memory
-            emails.sort(key=lambda x: x.get('created_at', x.get('sent_at', '')), reverse=True)
-            return emails
-            
-        except Exception as e:
-            print(f"❌ Error loading from Firestore: {str(e)}")
-            return self.get_local_emails(user_email)
-    
-    def get_local_emails(self, user_email=None):
-        """Fallback to load emails from local storage."""
-        try:
-            with open(SENT_EMAILS_FILE, 'r') as f:
-                all_emails = json.load(f)
-                if user_email:
-                    return [e for e in all_emails if e.get('user_email') == user_email]
-                return all_emails
-        except FileNotFoundError:
-            return []
+        """Initialize Firestore operations"""
+        self.db = None
+        if FIRESTORE_AVAILABLE:
+            try:
+                self.db = firestore.client()
+                print("✅ Firestore client initialized")
+            except Exception as e:
+                print(f"⚠️ Firestore initialization failed: {e}")
+                self.db = None
     
     def save_automation_run(self, run_id, user_email, settings=None):
-        """Initialize an automation run record."""
+        """
+        Save automation run data to Firestore
+        
+        Args:
+            run_id: Unique identifier for the automation run
+            user_email: Email of the user who initiated the run
+            settings: Dictionary of settings used for this run
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
         try:
-            run_data = {
-                'user_email': user_email,
-                'start_time': firestore.SERVER_TIMESTAMP,
-                'status': 'running',
-                'settings': settings or {},
-                'total_emails': 0,
-                'successful': 0,
-                'failed': 0
-            }
-            self.db.collection('automation_runs').document(run_id).set(run_data)
-            return True
+            if self.db is not None:
+                run_data = {
+                    'user_email': user_email,
+                    'start_time': firestore.SERVER_TIMESTAMP,
+                    'status': 'running',
+                    'settings_used': settings or {},
+                    'total_emails': 0,
+                    'successful': 0,
+                    'failed': 0,
+                    'run_id': run_id,
+                    'created_at': datetime.now().isoformat()
+                }
+                
+                doc_ref = self.db.collection('automation_runs').document(run_id)
+                doc_ref.set(run_data)
+                print(f"✅ Automation run {run_id} saved to Firestore")
+                return True
+            else:
+                print(f"⚠️ Firestore not available - automation run {run_id} not saved")
+                return False
+                
         except Exception as e:
-            print(f"❌ Error saving automation run: {str(e)}")
+            print(f"❌ Error saving automation run {run_id}: {e}")
             return False
     
-    def complete_automation_run(self, run_id, stats):
-        """Mark an automation run as completed."""
+    def update_automation_run(self, run_id, stats):
+        """
+        Update automation run statistics in Firestore
+        
+        Args:
+            run_id: Automation run ID
+            stats: Dictionary with statistics to update
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
         try:
-            self.db.collection('automation_runs').document(run_id).update({
-                'end_time': firestore.SERVER_TIMESTAMP,
-                'status': 'completed',
-                **stats
-            })
-            return True
+            if self.db is not None:
+                update_data = stats.copy()
+                update_data['end_time'] = firestore.SERVER_TIMESTAMP
+                update_data['status'] = 'completed'
+                update_data['updated_at'] = datetime.now().isoformat()
+                
+                doc_ref = self.db.collection('automation_runs').document(run_id)
+                doc_ref.update(update_data)
+                print(f"✅ Automation run {run_id} updated in Firestore")
+                return True
+            else:
+                print(f"⚠️ Firestore not available - automation run {run_id} not updated")
+                return False
+                
         except Exception as e:
-            print(f"❌ Error updating automation run: {str(e)}")
+            print(f"❌ Error updating automation run {run_id}: {e}")
             return False
+    
+    def get_automation_runs(self, user_email, limit=10):
+        """
+        Get automation runs for a user
+        
+        Args:
+            user_email: User's email address
+            limit: Maximum number of runs to return
+            
+        Returns:
+            list: List of automation run records
+        """
+        try:
+            if self.db is not None:
+                query = (self.db.collection('automation_runs')
+                        .where('user_email', '==', user_email)
+                        .limit(limit))
+                
+                docs = list(query.stream())
+                runs = []
+                
+                for doc in docs:
+                    run_data = doc.to_dict()
+                    run_data['id'] = doc.id
+                    runs.append(run_data)
+                
+                # Sort by start time descending
+                runs.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+                print(f"✅ Retrieved {len(runs)} automation runs for {user_email}")
+                return runs
+            else:
+                print(f"⚠️ Firestore not available - no automation runs retrieved")
+                return []
+                
+        except Exception as e:
+            print(f"❌ Error getting automation runs for {user_email}: {e}")
+            return []
+    
+    def save_job_post(self, job_post):
+        """
+        Save a job post to Firestore
+        
+        Args:
+            job_post: Dictionary containing job post data
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            if self.db is not None:
+                # Add timestamps
+                job_post_data = job_post.copy()
+                job_post_data.update({
+                    'created_at': firestore.SERVER_TIMESTAMP,
+                    'updated_at': firestore.SERVER_TIMESTAMP,
+                    'status': 'active'
+                })
+                
+                doc_ref = self.db.collection('job_posts').document()
+                doc_ref.set(job_post_data)
+                print(f"✅ Job post saved to Firestore: {job_post.get('title', 'Unknown')}")
+                return True
+            else:
+                print(f"⚠️ Firestore not available - job post not saved")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Error saving job post: {e}")
+            return False
+    
+    def save_sent_email(self, email_record):
+        """
+        Save sent email record to Firestore
+        
+        Args:
+            email_record: Dictionary containing email record data
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            if self.db is not None:
+                # Add timestamps
+                email_data = email_record.copy()
+                email_data.update({
+                    'created_at': firestore.SERVER_TIMESTAMP,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+                doc_ref = self.db.collection('sent_emails').document()
+                doc_ref.set(email_data)
+                print(f"✅ Email record saved to Firestore: {email_record.get('email', 'Unknown')}")
+                return True
+            else:
+                print(f"⚠️ Firestore not available - email record not saved")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Error saving email record: {e}")
+            return False
+    
+    def get_user_stats(self, user_email):
+        """
+        Get user statistics from Firestore
+        
+        Args:
+            user_email: User's email address
+            
+        Returns:
+            dict: User statistics
+        """
+        try:
+            if self.db is not None:
+                # Get sent emails count
+                sent_emails_query = (self.db.collection('sent_emails')
+                                   .where('user_email', '==', user_email))
+                sent_emails = list(sent_emails_query.stream())
+                
+                # Calculate stats
+                stats = {
+                    'total_emails': len(sent_emails),
+                    'sent': sum(1 for email in sent_emails if email.to_dict().get('status') == 'sent'),
+                    'failed': sum(1 for email in sent_emails if email.to_dict().get('status') == 'failed'),
+                    'skipped': sum(1 for email in sent_emails if email.to_dict().get('status') == 'skipped'),
+                }
+                
+                print(f"✅ Retrieved stats for {user_email}: {stats}")
+                return stats
+            else:
+                print(f"⚠️ Firestore not available - no stats retrieved")
+                return {'total_emails': 0, 'sent': 0, 'failed': 0, 'skipped': 0}
+                
+        except Exception as e:
+            print(f"❌ Error getting user stats for {user_email}: {e}")
+            return {'total_emails': 0, 'sent': 0, 'failed': 0, 'skipped': 0}
+    
+    def is_available(self):
+        """Check if Firestore is available and initialized"""
+        return self.db is not None
+
+
+# Global instance for easy import
+firestore_ops = FirestoreOps()

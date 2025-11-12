@@ -1059,14 +1059,54 @@ def linkedin_login(driver, email, password):
         log("🚀 Sign in button clicked")
         
         # Wait for login to complete - check for feed or home page
+        log("⏳ Waiting for page to load after login...")
         time.sleep(5)
         
         # Check if login was successful
         current_url = driver.current_url
+        log(f"🔍 Current URL after login: {current_url}")
+        log(f"🔍 Page title: {driver.title}")
+        
         if "feed" in current_url or "home" in current_url or "mynetwork" in current_url:
             log("✅ LinkedIn login successful!")
             return True
-        elif "checkpoint" in current_url or "challenge" in current_url:
+        
+        # Check for 2FA/verification elements on page (not just URL)
+        has_2fa = False
+        try:
+            # Look for verification input fields
+            verification_selectors = [
+                "#input__email_verification_pin",
+                "#input__phone_verification_pin",
+                "input[name='pin']",
+                "input[autocomplete='one-time-code']",
+                "input[id*='verification']",
+                "input[id*='pin']"
+            ]
+            
+            for selector in verification_selectors:
+                try:
+                    elements = driver.find_elements(By.CSS_SELECTOR, selector)
+                    if elements and len(elements) > 0:
+                        log(f"🔍 Found 2FA input field: {selector}")
+                        has_2fa = True
+                        break
+                except:
+                    continue
+            
+            # Also check page text for 2FA keywords
+            if not has_2fa:
+                page_text = driver.page_source.lower()
+                verification_keywords = ["verification code", "verify", "two-step", "security code", "enter the code"]
+                for keyword in verification_keywords:
+                    if keyword in page_text:
+                        log(f"🔍 Found 2FA keyword in page: '{keyword}'")
+                        has_2fa = True
+                        break
+        except Exception as check_error:
+            log(f"⚠️ Error checking for 2FA: {str(check_error)}")
+        
+        if "checkpoint" in current_url or "challenge" in current_url or has_2fa:
             log("=" * 70)
             log("⚠️ LinkedIn requires additional verification (2FA/challenge)")
             log(f"� Current URL: {current_url}")
@@ -1124,21 +1164,29 @@ def linkedin_login(driver, email, password):
                     log("   3. Enter your 6-digit code in the input field")
                     log("   4. Click 'Submit Code' button")
                     log("   5. Automation will enter the code and continue")
-                    log("⏳ Waiting for code submission (max 5 minutes)...")
+                    log("⏳ Waiting for code submission (max 10 minutes)...")
                     log("=" * 70)
+                    # Also send to stdout for visibility
+                    print("=" * 70, flush=True)
+                    print("🔐 ENTER YOUR 2FA CODE", flush=True)
+                    print("=" * 70, flush=True)
                     
                     # Reset verification state
                     verification_code_submitted = False
                     verification_code_value = None
                     
                     # Wait for user to submit code via web interface
-                    timeout = 300  # 5 minutes
+                    timeout = 600  # 10 minutes (increased from 5)
                     elapsed = 0
                     while elapsed < timeout and not verification_code_submitted:
                         time.sleep(1)
                         elapsed += 1
-                        if elapsed % 15 == 0:
-                            log(f"⏳ Still waiting for 2FA code... ({elapsed}s elapsed)")
+                        if elapsed % 10 == 0:  # Log every 10 seconds
+                            remaining = timeout - elapsed
+                            log(f"⏳ Still waiting for 2FA code... ({elapsed}s / {timeout}s - {remaining}s remaining)")
+                            # Keep the modal trigger visible
+                            if elapsed % 30 == 0:  # Re-send trigger every 30 seconds
+                                log("🔐 ENTER YOUR 2FA CODE")
                     
                     if verification_code_submitted and verification_code_value:
                         log(f"✅ Received code, entering it now...")
@@ -1165,7 +1213,7 @@ def linkedin_login(driver, email, password):
                                 submit_button = driver.find_element(By.CSS_SELECTOR, btn_selector)
                                 if submit_button and submit_button.is_displayed():
                                     submit_button.click()
-                                    log(f"✅ Submit button clicked")
+                                    log(f"✅ Submit button clicked: {btn_selector}")
                                     break
                             except:
                                 continue
@@ -1189,7 +1237,10 @@ def linkedin_login(driver, email, password):
                             log("❌ Verification may have failed - check code")
                             return False
                     else:
-                        log("⏰ Timeout waiting for 2FA code")
+                        log("=" * 70)
+                        log("⏰ TIMEOUT: No 2FA code entered within 10 minutes")
+                        log("❌ Please try running automation again and enter code faster")
+                        log("=" * 70)
                         return False
                 else:
                     log("⚠️ Could not find verification input field")
@@ -1460,9 +1511,17 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 log("✅ Email/password login successful - session saved to profile")
             else:
                 log("❌ Email/password login failed")
+                error_msg = "LinkedIn login failed. Please check your credentials or complete 2FA verification."
+                print(f"❌ ERROR: {error_msg}", flush=True)
+                driver.quit()
+                raise Exception(error_msg)
 
         if not login_successful:
-            log("❌ No login method succeeded - automation may fail")
+            error_msg = "No login method succeeded - cannot proceed with automation"
+            log(f"❌ {error_msg}")
+            print(f"❌ ERROR: {error_msg}", flush=True)
+            driver.quit()
+            raise Exception(error_msg)
         else:
             log("✅ Proceeding with job search...")
         

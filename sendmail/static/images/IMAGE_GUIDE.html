@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Guide - LinkedIn Automation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #764ba2;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+        }
+        .image-box {
+            border: 2px dashed #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            background: #f8f9ff;
+        }
+        .filename {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .specs {
+            background: #e8ebff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        .step {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+        .resource-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .resource-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+        .resource-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Image & Logo Setup Guide</h1>
+        <p>Follow this guide to add your custom logo, photos, and posters to your LinkedIn Automation site.</p>
+
+        <div class="success">
+            <strong>✅ Structure Already Created!</strong><br>
+            The <code>sendmail/static/images/</code> folder is ready for your images.
+        </div>
+
+        <h2><span class="step">1</span>Required Images</h2>
+        
+        <div class="image-box">
+            <div class="filename">logo.png</div>
+            <p><strong>Purpose:</strong> Your brand logo in the navigation bar</p>
+            <div class="specs">
+                <strong>Specifications:</strong><br>
+                • Recommended size: 200x50px (or similar 4:1 ratio)<br>
+                • Format: PNG with transparent background (preferred) or JPG<br>
+                • Location: <code>sendmail/static/images/logo.png</code>
+            </div>
+        </div>
+
+        <div class="image-box">
+            <div class="filename">hero-bg.jpg</div>
+            <p><strong>Purpose:</strong> Hero section background on home page</p>
+            <div class="specs">
+                <strong>Specifications:</strong><br>
+                • Recommended size: 1920x600px (landscape)<br>
+                • Format: JPG (optimized, under 500KB)<br>
+                • Style: Professional, modern, related to automation/technology<br>
+                • Location: <code>sendmail/static/images/hero-bg.jpg</code>
+            </div>
+        </div>
+
+        <h2><span class="step">2</span>Feature Card Images (Optional)</h2>
+        <p>These images enhance the 4 feature cards on your home page:</p>
+
+        <div class="image-box">
+            <div class="filename">profile-icon.jpg</div>
+            <p><strong>Feature:</strong> Profile Setup Card</p>
+            <div class="specs">
+                Size: 400x400px | Format: JPG or PNG | Theme: User profile/settings
+            </div>
+        </div>
+
+        <div class="image-box">
+            <div class="filename">automation-icon.jpg</div>
+            <p><strong>Feature:</strong> Run Campaign Card</p>
+            <div class="specs">
+                Size: 400x400px | Format: JPG or PNG | Theme: Automation/robots/workflow
+            </div>
+        </div>
+
+        <div class="image-box">
+            <div class="filename">jobs-icon.jpg</div>
+            <p><strong>Feature:</strong> Browse Jobs Card</p>
+            <div class="specs">
+                Size: 400x400px | Format: JPG or PNG | Theme: Job search/briefcase
+            </div>
+        </div>
+
+        <div class="image-box">
+            <div class="filename">email-icon.jpg</div>
+            <p><strong>Feature:</strong> View History Card</p>
+            <div class="specs">
+                Size: 400x400px | Format: JPG or PNG | Theme: Email/tracking/analytics
+            </div>
+        </div>
+
+        <h2><span class="step">3</span>Free Stock Image Resources</h2>
+        <p>Don't have professional images? Download free, high-quality photos from these sites:</p>
+
+        <div class="resource-links">
+            <a href="https://unsplash.com" target="_blank" class="resource-card">
+                <h3>📸 Unsplash</h3>
+                <p>Free high-resolution photos</p>
+            </a>
+            <a href="https://pexels.com" target="_blank" class="resource-card">
+                <h3>🎬 Pexels</h3>
+                <p>Free stock photos & videos</p>
+            </a>
+            <a href="https://pixabay.com" target="_blank" class="resource-card">
+                <h3>🖼️ Pixabay</h3>
+                <p>Royalty-free images</p>
+            </a>
+            <a href="https://freepik.com" target="_blank" class="resource-card">
+                <h3>🎨 Freepik</h3>
+                <p>Vectors, photos, PSD</p>
+            </a>
+        </div>
+
+        <h2><span class="step">4</span>Search Keywords</h2>
+        <p>Use these keywords when searching for images:</p>
+        <ul>
+            <li><strong>Logo:</strong> Your company name + "logo" (or create one with Canva)</li>
+            <li><strong>Hero Background:</strong> "office technology", "professional workspace", "automation", "digital transformation"</li>
+            <li><strong>Profile Icon:</strong> "user profile", "professional headshot", "business person"</li>
+            <li><strong>Automation Icon:</strong> "robot", "automation", "workflow", "artificial intelligence"</li>
+            <li><strong>Jobs Icon:</strong> "job search", "briefcase", "career", "hiring"</li>
+            <li><strong>Email Icon:</strong> "email marketing", "inbox", "communication", "tracking"</li>
+        </ul>
+
+        <h2><span class="step">5</span>Logo Creation Tools</h2>
+        <div class="note">
+            <strong>💡 Don't have a logo?</strong> Create one for free with these tools:
+            <ul>
+                <li><strong>Canva:</strong> <a href="https://canva.com/create/logos/" target="_blank">canva.com/create/logos</a></li>
+                <li><strong>LogoMakr:</strong> <a href="https://logomakr.com" target="_blank">logomakr.com</a></li>
+                <li><strong>Hatchful (Shopify):</strong> <a href="https://hatchful.shopify.com" target="_blank">hatchful.shopify.com</a></li>
+            </ul>
+        </div>
+
+        <h2><span class="step">6</span>How to Add Images</h2>
+        <ol style="line-height: 2;">
+            <li>Download or create your images according to the specifications above</li>
+            <li>Rename them exactly as shown (case-sensitive):
+                <ul>
+                    <li><code>logo.png</code></li>
+                    <li><code>hero-bg.jpg</code></li>
+                    <li><code>profile-icon.jpg</code></li>
+                    <li><code>automation-icon.jpg</code></li>
+                    <li><code>jobs-icon.jpg</code></li>
+                    <li><code>email-icon.jpg</code></li>
+                </ul>
+            </li>
+            <li>Copy the images to: <code>c:\Users\windows 10\Desktop\AI_support\sendmail\static\images\</code></li>
+            <li>Restart your Flask application or refresh your Docker container</li>
+            <li>Visit your site - the images will automatically appear!</li>
+        </ol>
+
+        <div class="success">
+            <strong>✨ No Code Changes Needed!</strong><br>
+            The templates are already configured to use these images. Just add the files and they'll appear automatically.
+        </div>
+
+        <h2><span class="step">7</span>Image Optimization Tips</h2>
+        <ul>
+            <li>Keep file sizes under 500KB for fast loading</li>
+            <li>Use JPG for photos (hero backgrounds, feature images)</li>
+            <li>Use PNG for logos (supports transparency)</li>
+            <li>Compress images using <a href="https://tinypng.com" target="_blank">TinyPNG</a> or <a href="https://squoosh.app" target="_blank">Squoosh</a></li>
+            <li>Use descriptive filenames for SEO</li>
+        </ul>
+
+        <h2><span class="step">8</span>Fallback Behavior</h2>
+        <div class="note">
+            <strong>📌 Important:</strong> If an image is missing, the site will gracefully fall back to:
+            <ul>
+                <li><strong>Logo:</strong> Text-based logo "LinkedIn Automation" with icon</li>
+                <li><strong>Hero Background:</strong> Gradient background only</li>
+                <li><strong>Feature Images:</strong> Hidden, showing only icon badges</li>
+            </ul>
+            Your site will work perfectly even without images!
+        </div>
+
+        <h2><span class="step">9</span>Testing Your Images</h2>
+        <p>After adding images:</p>
+        <ol style="line-height: 2;">
+            <li>Open your browser and visit <code>http://localhost:5000</code></li>
+            <li>Check the navigation bar for your logo</li>
+            <li>Scroll to the hero section on the home page</li>
+            <li>Review the 4 feature cards below</li>
+            <li>Open browser developer tools (F12) to check for any loading errors</li>
+        </ol>
+
+        <div class="success">
+            <strong>🎉 All Set!</strong><br>
+            Your site now has a professional look with custom branding and visual elements.
+        </div>
+
+        <h2><span class="step">10</span>Deployment to Render</h2>
+        <p>After adding images locally, deploy to production:</p>
+        <div class="specs">
+            <code>git add sendmail/static/images/</code><br>
+            <code>git commit -m "Add custom logo and feature images"</code><br>
+            <code>git push origin cloud-deployment</code>
+        </div>
+
+    </div>
+</body>
+</html>

@@ -88,12 +88,29 @@
     }
 
     .navbar-brand {
-      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
       font-weight: 800;
       font-size: 1.4rem;
       letter-spacing: -0.5px;
+      text-decoration: none;
+    }
+
+    .navbar-logo {
+      height: 45px;
+      width: auto;
+      transition: transform 0.3s ease;
+    }
+
+    .navbar-brand:hover .navbar-logo {
+      transform: scale(1.05) rotate(2deg);
+    }
+
+    .navbar-brand-text {
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .nav-link {
@@ -510,7 +527,11 @@
   <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
       <a class="navbar-brand" href="/">
-        <i class="bi bi-linkedin me-2"></i>LinkedIn Automation
+        <img src="{{ url_for('static', filename='images/logo.png') }}" 
+             alt="Logo" 
+             class="navbar-logo"
+             onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/logo.svg') }}';">
+        <span class="navbar-brand-text">LinkedIn Automation</span>
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
         <span class="navbar-toggler-icon"></span>

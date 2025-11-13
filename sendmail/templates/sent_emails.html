@@ -61,6 +61,96 @@
 .run-card:hover {
   transform: translateX(5px);
 }
+
+/* Mobile Responsive Styles for Sent Emails Page */
+@media (max-width: 768px) {
+  .stats-card {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .stats-card .row {
+    gap: 1rem;
+  }
+  
+  .stats-card .col-md {
+    margin-bottom: 1rem;
+  }
+  
+  .stats-number {
+    font-size: 1.75rem;
+  }
+  
+  .run-card {
+    margin-bottom: 1rem;
+    border-radius: 12px;
+  }
+  
+  .run-header {
+    padding: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .run-body {
+    padding: 1rem;
+  }
+  
+  .table-responsive {
+    font-size: 0.85rem;
+  }
+  
+  .table td,
+  .table th {
+    padding: 0.5rem;
+  }
+  
+  .badge-status {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+  }
+  
+  .position-fixed {
+    position: relative !important;
+    margin-bottom: 1rem;
+  }
+  
+  h4 {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .stats-card .col-md {
+    width: 100%;
+  }
+  
+  .stats-number {
+    font-size: 1.5rem;
+  }
+  
+  .run-header {
+    padding: 0.875rem;
+  }
+  
+  .run-body {
+    padding: 0.875rem;
+  }
+  
+  .table {
+    font-size: 0.8rem;
+  }
+  
+  .table td,
+  .table th {
+    padding: 0.4rem;
+  }
+  
+  /* Stack table on very small screens */
+  .table-responsive table {
+    display: block;
+    overflow-x: auto;
+  }
+}
 </style>
 {% endblock %}
 

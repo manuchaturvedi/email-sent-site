@@ -201,6 +201,121 @@
     font-size: 0.9rem;
     margin-top: 20px;
   }
+
+  /* Mobile Responsive Styles for Email Automation Page */
+  @media (max-width: 768px) {
+    .email-composer {
+      padding: 1rem 0.5rem;
+    }
+    
+    .campaign-card {
+      padding: 1.5rem 1rem;
+      border-radius: 16px;
+    }
+    
+    .campaign-icon {
+      width: 80px;
+      height: 80px;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    
+    .campaign-header h1 {
+      font-size: 1.5rem;
+    }
+    
+    .campaign-header p {
+      font-size: 0.9rem;
+    }
+    
+    .stats-row {
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      width: 100%;
+      padding: 1rem;
+    }
+    
+    .stat-card h3 {
+      font-size: 1.5rem;
+    }
+    
+    .form-section {
+      margin-bottom: 1.5rem;
+    }
+    
+    .section-title {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .btn-submit {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+    }
+    
+    .progress-section {
+      padding: 1rem;
+    }
+    
+    #logWindow {
+      max-height: 250px;
+      font-size: 12px;
+    }
+    
+    /* Search options */
+    .search-options {
+      flex-direction: column;
+    }
+    
+    .search-options .form-group {
+      width: 100%;
+    }
+    
+    /* Resume options */
+    .resume-options {
+      flex-direction: column;
+    }
+    
+    .resume-option {
+      width: 100%;
+      margin-bottom: 0.75rem;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .campaign-icon {
+      width: 70px;
+      height: 70px;
+      font-size: 1.75rem;
+    }
+    
+    .campaign-header h1 {
+      font-size: 1.25rem;
+    }
+    
+    .stat-card {
+      padding: 0.875rem;
+    }
+    
+    .stat-card h3 {
+      font-size: 1.25rem;
+    }
+    
+    .stat-card p {
+      font-size: 0.875rem;
+    }
+    
+    #logWindow {
+      max-height: 200px;
+      font-size: 11px;
+      padding: 0.75rem;
+    }
+  }
 </style>
 {% endblock %}
 

@@ -1001,10 +1001,12 @@ def send_job_email():
             server = smtplib.SMTP(smtp_server, smtp_port)
             server.starttls()
             server.login(sender_email, sender_password)
-            server.sendmail(sender_email, job_email, msg.as_string())
+            # Send to both job_email and user_email (CC)
+            recipients = [job_email, user_email]
+            server.sendmail(sender_email, recipients, msg.as_string())
             server.quit()
             
-            print(f"✅ Email sent successfully to {job_email}")
+            print(f"✅ Email sent successfully to {job_email} (CC: {user_email})")
             
             # Save to sent emails
             run_id = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -1912,10 +1914,14 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 server = smtplib.SMTP(smtp_server, smtp_port)
                 server.starttls()
                 server.login(sender_email, sender_password)
-                server.sendmail(sender_email, receiver_email, msg.as_string())
+                # Send to both receiver and CC recipient
+                recipients = [receiver_email]
+                if cc_email:
+                    recipients.append(cc_email)
+                server.sendmail(sender_email, recipients, msg.as_string())
                 server.quit()
 
-                log(f"✅ Sent to {receiver_email}")
+                log(f"✅ Sent to {receiver_email} (CC: {cc_email})")
                 # Persist sent email record
                 save_sent_email({
                     "email": receiver_email,
@@ -2095,6 +2101,8 @@ def send_email():
     print(f"🧵 DEBUG: Thread args: run_id={run_id}, user={user_email}, role={search_role}, time={search_time_period}")
     print("=" * 60)
     
+    # Fixed argument order to match function signature:
+    # run_automation(subject, email_content, attachment_path, cc_email, run_id, user_email, search_role, search_time)
     thread = threading.Thread(
         target=run_automation,
         args=(subject, email_content, resume_path, user_email, run_id, user_email, search_role, search_time_period),

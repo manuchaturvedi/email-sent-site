@@ -1,0 +1,158 @@
+┌────────────────────────────────────────────────────────────────────┐
+│                      SITE VISUAL STRUCTURE                         │
+└────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════╗
+║  NAVIGATION BAR (All Pages)                                        ║
+╟────────────────────────────────────────────────────────────────────╢
+║  [🎨 LOGO]  LinkedIn Automation    Home  Profile  Jobs  Emails    ║
+║   ↑                                                                 ║
+║   logo.png (200x50px) or logo.svg (default)                       ║
+╚════════════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════════════╗
+║  HOME PAGE - HERO SECTION                                          ║
+╟────────────────────────────────────────────────────────────────────╢
+║  ┌──────────────────────────────────────────────────────────────┐  ║
+║  │  [🖼️ Background: hero-bg.jpg with purple gradient overlay]  │  ║
+║  │                                                                │  ║
+║  │          🚀 LinkedIn Job Automation                           │  ║
+║  │                                                                │  ║
+║  │   Automate your job search and streamline email outreach     │  ║
+║  │             with AI-powered tools                             │  ║
+║  │                                                                │  ║
+║  │   ┌────────┐    ┌────────┐    ┌────────┐                    │  ║
+║  │   │  160   │    │   20   │    │  140   │                    │  ║
+║  │   │ Jobs   │    │ Emails │    │Remain  │                    │  ║
+║  │   └────────┘    └────────┘    └────────┘                    │  ║
+║  │                                                                │  ║
+║  └──────────────────────────────────────────────────────────────┘  ║
+║                           ↑                                         ║
+║                    hero-bg.jpg (1920x600px)                        ║
+╚════════════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════════════╗
+║  HOME PAGE - USER GUIDE SECTION                                    ║
+╟────────────────────────────────────────────────────────────────────╢
+║                                                                     ║
+║  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌──────────┐ ║
+║  │[Image]      │  │[Image]      │  │[Image]      │  │[Image]   │ ║
+║  │profile-icon │  │automation-  │  │jobs-icon.jpg│  │email-icon│ ║
+║  │.jpg         │  │icon.jpg     │  │             │  │.jpg      │ ║
+║  ├─────────────┤  ├─────────────┤  ├─────────────┤  ├──────────┤ ║
+║  │[1]          │  │[2]          │  │[3]          │  │[4]       │ ║
+║  │👤 Profile   │  │🚀 Run       │  │💼 Browse    │  │🕐 View   │ ║
+║  │   Setup     │  │   Campaign  │  │   Jobs      │  │   History│ ║
+║  │             │  │             │  │             │  │          │ ║
+║  │Configure    │  │Launch       │  │View scraped │  │Track all │ ║
+║  │credentials  │  │automation   │  │job posts    │  │sent      │ ║
+║  │and templates│  │and scraping │  │and send     │  │emails    │ ║
+║  │             │  │             │  │             │  │          │ ║
+║  │[Get Started]│  │[Launch →]   │  │[Explore →]  │  │[Review →]│ ║
+║  └─────────────┘  └─────────────┘  └─────────────┘  └──────────┘ ║
+║       ↑                ↑                 ↑                ↑        ║
+║  profile-icon.jpg  automation-icon  jobs-icon.jpg  email-icon.jpg ║
+║  (400x400px)       (400x400px)      (400x400px)    (400x400px)   ║
+║                                                                     ║
+╚════════════════════════════════════════════════════════════════════╝
+
+┌────────────────────────────────────────────────────────────────────┐
+│  IMAGE SPECIFICATIONS QUICK REFERENCE                              │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  📁 All images go in: sendmail/static/images/                     │
+│                                                                     │
+│  🎨 Logo:                                                          │
+│     • logo.png (200x50px) - Your custom logo                      │
+│     • logo.svg (✅ Included) - Default fallback                   │
+│                                                                     │
+│  🖼️ Hero Background:                                              │
+│     • hero-bg.jpg (1920x600px) - Landscape poster                 │
+│     • JPG format, optimized <500KB                                │
+│                                                                     │
+│  📸 Feature Images (All 400x400px squares):                       │
+│     • profile-icon.jpg - User/profile themed                      │
+│     • automation-icon.jpg - Robot/automation themed               │
+│     • jobs-icon.jpg - Briefcase/career themed                     │
+│     • email-icon.jpg - Email/tracking themed                      │
+│                                                                     │
+│  💡 Don't have images?                                            │
+│     • Site works perfectly without them (uses gradients)          │
+│     • Download free from Unsplash, Pexels, Pixabay               │
+│     • Create logo at Canva.com/create/logos                       │
+│                                                                     │
+└────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────┐
+│  HOVER EFFECTS & ANIMATIONS                                        │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  Logo: Scale + Rotate on hover                                     │
+│  Hero Stats: Pulse animation on numbers                            │
+│  Feature Cards: Lift up + shadow enhancement                       │
+│  Feature Images: Zoom in (scale 1.05)                              │
+│                                                                     │
+└────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────┐
+│  FALLBACK BEHAVIOR                                                 │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ❌ No logo.png → ✅ Uses logo.svg (default)                      │
+│  ❌ No hero-bg.jpg → ✅ Shows gradient background                 │
+│  ❌ No feature images → ✅ Hides images, shows icon badges        │
+│                                                                     │
+│  Your site looks professional either way! 🎉                       │
+│                                                                     │
+└────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────┐
+│  FREE IMAGE RESOURCES                                              │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  📸 Stock Photos:                                                  │
+│     • Unsplash.com - High-res professional photos                  │
+│     • Pexels.com - Free stock photos & videos                      │
+│     • Pixabay.com - Royalty-free images                            │
+│                                                                     │
+│  🎨 Logo Creation:                                                 │
+│     • Canva.com/create/logos - Drag & drop logo maker              │
+│     • LogoMakr.com - Simple online logo tool                       │
+│     • Hatchful.shopify.com - AI logo generator                     │
+│                                                                     │
+│  🔧 Image Optimization:                                            │
+│     • TinyPNG.com - Compress images without quality loss           │
+│     • Squoosh.app - Google's image optimizer                       │
+│                                                                     │
+└────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────┐
+│  DOCUMENTATION FILES                                               │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  📖 IMAGE_QUICK_START.md (Root folder)                            │
+│     → Quick reference checklist                                    │
+│                                                                     │
+│  🌐 IMAGE_GUIDE.html (sendmail/static/images/)                    │
+│     → Open in browser for beautiful interactive guide              │
+│                                                                     │
+│  📝 README.md (sendmail/static/images/)                           │
+│     → Technical specs and instructions                             │
+│                                                                     │
+│  📊 IMAGES_AND_LOGO_SUMMARY.md (Root folder)                      │
+│     → Complete implementation summary                              │
+│                                                                     │
+└────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════╗
+║                         STATUS: ✅ COMPLETE                         ║
+╟────────────────────────────────────────────────────────────────────╢
+║  • Static folder structure created                                 ║
+║  • Templates updated with image support                            ║
+║  • Default SVG logo included                                       ║
+║  • Hero section with background image support added                ║
+║  • Feature cards with image support added                          ║
+║  • Comprehensive documentation created                             ║
+║  • Changes committed and pushed to production                      ║
+║  • Automatic deployment triggered on Render                        ║
+╚════════════════════════════════════════════════════════════════════╝

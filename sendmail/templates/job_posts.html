@@ -700,6 +700,111 @@
 .stats-badge.updating span {
     animation: pulse 0.5s ease;
 }
+
+/* Mobile Responsive Styles for Job Posts Page */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 16px;
+    }
+    
+    .page-header h4 {
+        font-size: 1.4rem;
+    }
+    
+    .page-header p {
+        font-size: 0.875rem;
+    }
+    
+    .job-card {
+        margin-bottom: 1rem;
+        padding: 1rem;
+    }
+    
+    .job-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .job-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .company-name {
+        font-size: 0.9rem;
+    }
+    
+    .job-meta {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .meta-item {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.75rem;
+    }
+    
+    .job-description {
+        font-size: 0.875rem;
+    }
+    
+    .btn-send-email {
+        width: 100%;
+        padding: 0.875rem;
+        font-size: 0.95rem;
+    }
+    
+    .filter-section {
+        flex-direction: column;
+    }
+    
+    .search-box,
+    .filter-group {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .stats-container {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .stats-badge {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-header {
+        padding: 15px;
+    }
+    
+    .page-header h4 {
+        font-size: 1.2rem;
+    }
+    
+    .job-card {
+        padding: 0.875rem;
+    }
+    
+    .job-title {
+        font-size: 1rem;
+    }
+    
+    .job-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    
+    .meta-item {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+    }
+}
 {% endblock %}
 
 {% block content %}

@@ -3,37 +3,336 @@
 {% block title %}LinkedIn Job Posts{% endblock %}
 
 {% block additional_styles %}
-/* Modern card grid styling */
-.job-card {
+/* Page animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.8), 0 0 30px rgba(118, 75, 162, 0.6);
+    }
+}
+
+/* Page header animation */
+.page-header {
+    animation: slideInLeft 0.6s ease-out;
     background: white;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    padding: 20px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 25px 30px;
+    border-radius: 20px;
+    color: #2d3748;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    border: 3px solid transparent;
     transition: all 0.3s ease;
 }
 
-.job-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+.page-header:hover {
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
     border-color: #667eea;
+    transform: translateY(-3px);
+}
+
+.page-header h4 {
+    font-weight: 800;
+    margin: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 1.8rem;
+}
+
+.page-header p {
+    margin: 8px 0 0 0;
+    opacity: 0.7;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.page-header i {
+    animation: float 3s ease-in-out infinite;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Stats tabs */
+.stats-tabs {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.stat-tab {
+    flex: 1;
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    cursor: pointer;
+    border: 3px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-tab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    transition: left 0.6s;
+}
+
+.stat-tab:hover::before {
+    left: 100%;
+}
+
+.stat-tab:hover {
+    transform: translateY(-12px) scale(1.05);
+    box-shadow: 0 20px 50px rgba(102, 126, 234, 0.25);
+    border-color: #667eea;
+}
+
+.stat-tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-8px);
+    box-shadow: 0 20px 50px rgba(102, 126, 234, 0.4);
+    border-color: transparent;
+}
+
+.stat-tab.active::before {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.stat-tab .stat-number {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: all 0.3s ease;
+    text-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
+}
+
+.stat-tab.active .stat-number {
+    background: white;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+}
+
+.stat-tab .stat-label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.7;
+    color: #4a5568;
+}
+
+.stat-tab.active .stat-label {
+    opacity: 1;
+    color: white;
+}
+
+.stat-tab .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    display: inline-block;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.stat-tab:hover .stat-icon {
+    transform: scale(1.3) rotate(360deg);
+}
+
+.stat-tab.active .stat-icon {
+    transform: scale(1.2);
+    filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.5));
+}
+
+/* Filter card animation */
+.filter-card {
+    animation: fadeInUp 0.5s ease-out;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+}
+
+.filter-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    padding: 2px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.5;
+}
+
+/* Modern card grid styling */
+.job-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    padding: 24px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: scaleIn 0.5s ease-out backwards;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Stagger animation for cards */
+.job-post-item:nth-child(1) .job-card { animation-delay: 0.1s; }
+.job-post-item:nth-child(2) .job-card { animation-delay: 0.15s; }
+.job-post-item:nth-child(3) .job-card { animation-delay: 0.2s; }
+.job-post-item:nth-child(4) .job-card { animation-delay: 0.25s; }
+.job-post-item:nth-child(5) .job-card { animation-delay: 0.3s; }
+.job-post-item:nth-child(6) .job-card { animation-delay: 0.35s; }
+.job-post-item:nth-child(n+7) .job-card { animation-delay: 0.4s; }
+
+.job-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
+    transition: left 0.7s;
+}
+
+.job-card:hover::before {
+    left: 100%;
+}
+
+.job-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 20px;
+    opacity: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: opacity 0.4s;
+    z-index: -1;
+}
+
+.job-card:hover {
+    transform: translateY(-10px) scale(1.03) rotateY(2deg);
+    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+    border-color: transparent;
+}
+
+.job-card:hover::after {
+    opacity: 0.05;
 }
 
 .job-card-header {
     margin-bottom: 15px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 15px;
+    border-bottom: 3px solid transparent;
+    background: linear-gradient(90deg, #667eea, #764ba2) left bottom no-repeat;
+    background-size: 0% 3px;
+    transition: all 0.4s ease;
+}
+
+.job-card:hover .job-card-header {
+    background-size: 100% 3px;
 }
 
 .job-title {
     color: #2d3748;
     font-weight: 700;
     font-size: 1.1rem;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     line-height: 1.4;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0.8;
+}
+
+.job-card:hover .job-title {
+    opacity: 1;
+    transform: translateX(5px);
 }
 
 .company-name {
@@ -42,7 +341,26 @@
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #e6f2ff 0%, #f0e6ff 100%);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    width: fit-content;
+}
+
+.company-name i {
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    color: #764ba2;
+}
+
+.job-card:hover .company-name {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.job-card:hover .company-name i {
+    transform: scale(1.3) rotate(360deg);
 }
 
 .job-card-body {
@@ -72,11 +390,39 @@
 .job-meta-item {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 10px;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.job-meta-item:hover {
+    transform: translateX(10px) scale(1.05);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
 .job-meta-item i {
     color: #667eea;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    font-size: 1.1rem;
+}
+
+.job-meta-item:hover i {
+    transform: scale(1.4) rotate(360deg);
+    color: #764ba2;
+}
+
+.job-meta-item a {
+    color: #4a5568;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.job-meta-item:hover a {
+    color: #667eea;
+    font-weight: 600;
 }
 
 .post-date {
@@ -85,10 +431,41 @@
 }
 
 .badge {
-    padding: 5px 10px;
-    border-radius: 10px;
+    padding: 6px 14px;
+    border-radius: 20px;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    cursor: pointer;
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.badge::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.badge:hover::before {
+    width: 200px;
+    height: 200px;
+}
+
+.badge:hover {
+    transform: translateY(-4px) scale(1.1) rotate(5deg);
+    box-shadow: 0 8px 16px rgba(23, 162, 184, 0.4);
+    animation: glow 1.5s ease-in-out infinite;
 }
 
 .email-badge {
@@ -101,49 +478,169 @@
 
 .job-card-footer {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     margin-top: auto;
-    padding-top: 15px;
-    border-top: 1px solid #f0f0f0;
+    padding-top: 20px;
+    border-top: 2px solid transparent;
+    background: linear-gradient(90deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3)) left bottom no-repeat;
+    background-size: 0% 2px;
+    transition: background-size 0.4s ease;
+}
+
+.job-card:hover .job-card-footer {
+    background-size: 100% 2px;
+}
+
+.job-card-footer .btn {
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: relative;
+    overflow: hidden;
+    font-weight: 600;
+    border: 2px solid transparent;
+}
+
+.job-card-footer .btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.job-card-footer .btn:hover::before {
+    width: 400px;
+    height: 400px;
+}
+
+.job-card-footer .btn:hover {
+    transform: translateY(-4px) scale(1.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.job-card-footer .btn:active {
+    transform: translateY(-2px) scale(1.05);
+}
+
+.job-card-footer .btn-outline-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+    border-color: #17a2b8;
+}
+
+.job-card-footer .btn-outline-info:hover {
+    background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+    box-shadow: 0 10px 25px rgba(23, 162, 184, 0.4);
+}
+
+.job-card-footer .btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: white;
+    border: none;
+}
+
+.job-card-footer .btn-warning:hover {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    box-shadow: 0 10px 25px rgba(255, 193, 7, 0.5);
+}
+
+.job-card-footer .btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    animation: glow 2s ease-in-out infinite;
+}
+
+.job-card-footer .btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
 }
 
 /* Modern filter styling */
 .filter-card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    padding: 20px;
-    margin-bottom: 20px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    padding: 25px;
+    margin-bottom: 30px;
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, #667eea, #764ba2) border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+.filter-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.05), transparent);
+    transform: rotate(45deg);
+    animation: shimmer 3s infinite;
 }
 
 .skill-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
+    gap: 10px;
+    margin-top: 15px;
 }
 
 .skill-tag {
-    background: #e6f2ff;
+    background: linear-gradient(135deg, #e6f2ff 0%, #f0e6ff 100%);
     color: #0066cc;
-    padding: 6px 12px;
-    border-radius: 20px;
+    padding: 8px 16px;
+    border-radius: 25px;
     font-size: 0.85rem;
+    font-weight: 600;
     cursor: pointer;
     border: 2px solid transparent;
-    transition: all 0.2s ease;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     user-select: none;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.skill-tag::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transform: translateX(-50%);
+    transition: width 0.4s ease;
+    border-radius: 3px;
 }
 
 .skill-tag:hover {
-    background: #cce5ff;
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #cce5ff 0%, #e6d5ff 100%);
+    transform: translateY(-5px) scale(1.1) rotate(-3deg);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.skill-tag:hover::after {
+    width: 100%;
 }
 
 .skill-tag.selected {
-    background: #0066cc;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    border-color: #0052a3;
+    border-color: #764ba2;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+    animation: glow 2s ease-in-out infinite;
+}
+
+.skill-tag.selected::after {
+    display: none;
 }
 
 .skill-tag .remove {
@@ -154,32 +651,81 @@
 
 .skill-search-input {
     border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 10px 15px;
-    transition: all 0.2s ease;
+    border-radius: 10px;
+    padding: 12px 18px;
+    transition: all 0.4s ease;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
 }
 
 .skill-search-input:focus {
     border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 5px rgba(102, 126, 234, 0.2), 0 8px 20px rgba(102, 126, 234, 0.3);
+    transform: translateY(-3px);
+    outline: none;
 }
 
 /* Stats badge */
 .stats-badge {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.stats-badge:hover {
+    transform: scale(1.1) rotate(-2deg);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+    animation: glow 1.5s ease-in-out infinite;
+}
+
+/* Pulse animation for badge numbers */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.stats-badge span {
+    display: inline-block;
+}
+
+.stats-badge.updating span {
+    animation: pulse 0.5s ease;
 }
 {% endblock %}
 
 {% block content %}
-        <div class="row mb-4">
+        <div class="row mb-4 page-header">
             <div class="col">
                 <h4><i class="bi bi-briefcase-fill me-2"></i>Recent Job Posts</h4>
                 <p class="text-muted">Job posts from which emails were collected</p>
+            </div>
+        </div>
+
+        <!-- Stats Tabs -->
+        <div class="stats-tabs">
+            <div class="stat-tab active" data-filter="all" id="statAll">
+                <div class="stat-icon">📊</div>
+                <div class="stat-number" id="countAll">{{ job_posts|length }}</div>
+                <div class="stat-label">Total Posts</div>
+            </div>
+            <div class="stat-tab" data-filter="sent" id="statSent">
+                <div class="stat-icon">✅</div>
+                <div class="stat-number" id="countSent">0</div>
+                <div class="stat-label">Already Sent</div>
+            </div>
+            <div class="stat-tab" data-filter="remaining" id="statRemaining">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-number" id="countRemaining">0</div>
+                <div class="stat-label">Remaining</div>
             </div>
         </div>
 
@@ -374,7 +920,7 @@
     </div>
 
     <script>
-        // Modern multi-select skills filter for job posts cards
+        // Modern multi-select skills filter for job posts cards with stats tabs
         (function(){
             const filterText = document.getElementById('filterText');
             const filterSkillSearch = document.getElementById('filterSkillSearch');
@@ -386,6 +932,13 @@
             const skillTagsContainer = document.getElementById('skillTagsContainer');
             const selectedSkillsContainer = document.getElementById('selectedSkillsContainer');
             const selectedSkillsTags = document.getElementById('selectedSkillsTags');
+            
+            // Stats tabs
+            const statTabs = document.querySelectorAll('.stat-tab');
+            const countAll = document.getElementById('countAll');
+            const countSent = document.getElementById('countSent');
+            const countRemaining = document.getElementById('countRemaining');
+            let currentTabFilter = 'all';
 
             const container = document.getElementById('jobPostsContainer');
             if (!container) return;
@@ -394,12 +947,45 @@
             totalCount.textContent = cards.length;
             visibleCount.textContent = cards.length;
 
+            // Calculate initial stats
+            function updateStats() {
+                let sentCount = 0;
+                let remainingCount = 0;
+                
+                cards.forEach(card => {
+                    const actionCell = card.querySelector('.action-cell');
+                    const isSent = actionCell?.textContent.includes('Sent') && !actionCell?.textContent.includes('Send');
+                    if (isSent) {
+                        sentCount++;
+                    } else {
+                        const hasEmail = card.querySelector('.job-meta-item a');
+                        if (hasEmail) remainingCount++;
+                    }
+                });
+                
+                countAll.textContent = cards.length;
+                countSent.textContent = sentCount;
+                countRemaining.textContent = remainingCount;
+            }
+            
+            updateStats();
+
+            // Stats tab click handlers
+            statTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    statTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTabFilter = this.dataset.filter;
+                    applyFilters();
+                });
+            });
+
             // Build skill list from all job posts
             const allSkills = new Set();
             const selectedSkills = new Set();
             
             cards.forEach(card => {
-                const badges = card.querySelectorAll('.badge.bg-info');
+                const badges = card.querySelectorAll('.badge');
                 badges.forEach(badge => {
                     const skill = badge.textContent.trim();
                     if (skill) allSkills.add(skill);
@@ -441,7 +1027,6 @@
                         tag.innerHTML = `${skill} <span class="remove">×</span>`;
                         tag.addEventListener('click', function() {
                             selectedSkills.delete(skill);
-                            // Also update the main tag
                             const mainTag = Array.from(skillTagsContainer.children).find(t => t.textContent === skill);
                             if (mainTag) mainTag.classList.remove('selected');
                             updateSelectedSkillsDisplay();
@@ -468,33 +1053,37 @@
 
             function matches(card){
                 const q = filterText.value.trim().toLowerCase();
-                const desc = card.querySelector('.job-description')?.textContent.trim().toLowerCase() || '';
+                const desc = card.querySelector('.job-title')?.textContent.trim().toLowerCase() || '';
                 const email = card.querySelector('.job-meta-item a')?.textContent.trim().toLowerCase() || '';
                 const company = card.querySelector('.company-name')?.textContent.trim().toLowerCase() || '';
+
+                // Tab filter (all/sent/remaining)
+                const actionCell = card.querySelector('.action-cell');
+                const isSent = actionCell?.textContent.includes('Sent') && !actionCell?.textContent.includes('Send');
+                const hasEmail = card.querySelector('.job-meta-item a');
+                
+                if (currentTabFilter === 'sent' && !isSent) return false;
+                if (currentTabFilter === 'remaining' && (isSent || !hasEmail)) return false;
 
                 // Text filter (search in description, email, or company)
                 if (q && !(desc.includes(q) || email.includes(q) || company.includes(q))) return false;
                 
                 // Skills filter - match if ANY selected skill is present
                 if (selectedSkills.size > 0) {
-                    const cardSkills = Array.from(card.querySelectorAll('.badge.bg-info')).map(b => b.textContent.trim());
+                    const cardSkills = Array.from(card.querySelectorAll('.badge')).map(b => b.textContent.trim());
                     const hasMatch = Array.from(selectedSkills).some(skill => cardSkills.includes(skill));
                     if (!hasMatch) return false;
                 }
 
                 // Status filter (sent/not sent)
                 if (filterStatus.value) {
-                    const actionCell = card.querySelector('.action-cell');
-                    const isSent = actionCell?.textContent.includes('Sent') && !actionCell?.textContent.includes('Send');
-                    
                     if (filterStatus.value === 'sent' && !isSent) return false;
                     if (filterStatus.value === 'not-sent' && isSent) return false;
                 }
 
                 // Has email filter
                 if (filterHasEmail.checked){
-                    const emailLink = card.querySelector('.job-meta-item a');
-                    if (!emailLink) return false;
+                    if (!hasEmail) return false;
                 }
 
                 return true;
@@ -502,14 +1091,45 @@
 
             function applyFilters(){
                 let visible = 0;
+                let visibleSent = 0;
+                let visibleRemaining = 0;
+                
                 cards.forEach(c => {
                     if (matches(c)){
                         c.style.display = '';
                         visible++;
+                        
+                        const actionCell = c.querySelector('.action-cell');
+                        const isSent = actionCell?.textContent.includes('Sent') && !actionCell?.textContent.includes('Send');
+                        if (isSent) {
+                            visibleSent++;
+                        } else {
+                            const hasEmail = c.querySelector('.job-meta-item a');
+                            if (hasEmail) visibleRemaining++;
+                        }
                     } else {
                         c.style.display = 'none';
                     }
                 });
+                
+                // Update stats based on visible cards
+                countAll.textContent = visible;
+                countSent.textContent = visibleSent;
+                countRemaining.textContent = visibleRemaining;
+                
+                // Add pulse animation to stats
+                [countAll, countSent, countRemaining].forEach(el => {
+                    el.style.animation = 'none';
+                    setTimeout(() => el.style.animation = 'pulse 0.5s ease', 10);
+                });
+                
+                // Update visible count badge
+                const statsBadge = document.querySelector('.stats-badge');
+                if (statsBadge) {
+                    statsBadge.classList.add('updating');
+                    setTimeout(() => statsBadge.classList.remove('updating'), 500);
+                }
+                
                 visibleCount.textContent = visible;
             }
 
@@ -525,6 +1145,9 @@
                 filterStatus.value = '';
                 filterHasEmail.checked = false;
                 selectedSkills.clear();
+                currentTabFilter = 'all';
+                statTabs.forEach(t => t.classList.remove('active'));
+                document.getElementById('statAll').classList.add('active');
                 Array.from(skillTagsContainer.children).forEach(tag => {
                     tag.classList.remove('selected');
                     tag.style.display = '';

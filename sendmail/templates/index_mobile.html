@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#6366f1">
+    <title>JustMailIt - Professional Email Campaigns Made Easy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-app.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="app-header">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="JustMailIt Logo" class="app-logo">
+            <h1 class="app-title">JustMailIt</h1>
+            <p class="app-subtitle">Send Professional Email Campaigns in Minutes</p>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-grid fade-in">
+            <div class="stat-card">
+                <div class="stat-value">10K+</div>
+                <div class="stat-label">Emails Sent</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">95%</div>
+                <div class="stat-label">Success Rate</div>
+            </div>
+        </div>
+
+        <!-- Email Templates Section -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <div class="card-icon">📧</div>
+                <div>
+                    <h2 class="card-title">Email Templates</h2>
+                    <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Choose a template to get started</p>
+                </div>
+            </div>
+
+            <div id="templateList">
+                <!-- DevOps Job Application Template -->
+                <div class="template-card" onclick="useTemplate('devops')">
+                    <span class="template-badge">Job Application</span>
+                    <h3 class="template-name">DevOps Engineer Application</h3>
+                    <p class="template-preview">Professional job application template for DevOps positions with experience summary and key skills...</p>
+                </div>
+
+                <!-- Business Proposal Template -->
+                <div class="template-card" onclick="useTemplate('business')">
+                    <span class="template-badge">Business</span>
+                    <h3 class="template-name">Business Proposal</h3>
+                    <p class="template-preview">Formal business proposal template with professional tone and clear structure...</p>
+                </div>
+
+                <!-- Marketing Campaign Template -->
+                <div class="template-card" onclick="useTemplate('marketing')">
+                    <span class="template-badge">Marketing</span>
+                    <h3 class="template-name">Product Launch Campaign</h3>
+                    <p class="template-preview">Engaging product launch email with call-to-action and benefit highlights...</p>
+                </div>
+
+                <!-- Follow-up Template -->
+                <div class="template-card" onclick="useTemplate('followup')">
+                    <span class="template-badge">Follow-up</span>
+                    <h3 class="template-name">Professional Follow-up</h3>
+                    <p class="template-preview">Polite follow-up template for job applications, meetings, or business inquiries...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Composer -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <div class="card-icon">✍️</div>
+                <div>
+                    <h2 class="card-title">Compose Email</h2>
+                </div>
+            </div>
+
+            <form id="emailForm" action="/send_bulk_email" method="POST" enctype="multipart/form-data">
+                <!-- Subject -->
+                <div class="form-group">
+                    <label class="form-label">📋 Subject Line</label>
+                    <input type="text" id="subject" name="subject" class="form-control" placeholder="Enter email subject" required>
+                </div>
+
+                <!-- Email Body -->
+                <div class="form-group">
+                    <label class="form-label">📝 Email Body</label>
+                    <textarea id="body" name="body" class="form-control" placeholder="Write your email message here..." required></textarea>
+                </div>
+
+                <!-- File Upload -->
+                <div class="form-group">
+                    <label class="form-label">📎 Attach Resume/CV (Optional)</label>
+                    <div class="file-upload-wrapper" onclick="document.getElementById('fileInput').click()">
+                        <div class="file-upload-icon">📁</div>
+                        <div class="file-upload-text">Tap to upload your file</div>
+                        <input type="file" id="fileInput" name="file" style="display: none;" accept=".pdf,.doc,.docx">
+                    </div>
+                </div>
+
+                <!-- Recipient Email List -->
+                <div class="form-group">
+                    <label class="form-label">👥 Recipient Email List</label>
+                    <textarea name="recipients" class="form-control" placeholder="Paste email addresses (one per line or comma-separated)" rows="4" required></textarea>
+                </div>
+
+                <!-- Send Button -->
+                <button type="submit" class="btn btn-primary">
+                    <span class="btn-icon">🚀</span>
+                    Send Emails Now
+                </button>
+            </form>
+        </div>
+
+        <!-- How It Works -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <div class="card-icon">💡</div>
+                <div>
+                    <h2 class="card-title">How It Works</h2>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; gap: 1rem; align-items: start;">
+                    <div style="min-width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #10b981, #059669); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</div>
+                    <div>
+                        <h4 style="margin: 0 0 0.25rem 0; color: var(--text-dark);">Choose a Template</h4>
+                        <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Select from our professional email templates or write your own</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: start;">
+                    <div style="min-width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</div>
+                    <div>
+                        <h4 style="margin: 0 0 0.25rem 0; color: var(--text-dark);">Customize Your Message</h4>
+                        <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Edit subject and body, attach files if needed</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: start;">
+                    <div style="min-width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</div>
+                    <div>
+                        <h4 style="margin: 0 0 0.25rem 0; color: var(--text-dark);">Add Recipients</h4>
+                        <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">Paste email list (one per line or comma-separated)</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: start;">
+                    <div style="min-width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">4</div>
+                    <div>
+                        <h4 style="margin: 0 0 0.25rem 0; color: var(--text-dark);">Send & Track</h4>
+                        <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">We send your emails and provide delivery reports</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing Card -->
+        <div class="card fade-in" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div style="text-align: center;">
+                <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">₹99 Only</h2>
+                <p style="font-size: 1.125rem; opacity: 0.9; margin-bottom: 1.5rem;">Send up to 500 emails</p>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; text-align: left; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>✅</span>
+                        <span>Professional email delivery</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>✅</span>
+                        <span>Attach files (PDF, DOC)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>✅</span>
+                        <span>Real-time delivery tracking</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>✅</span>
+                        <span>24/7 customer support</span>
+                    </div>
+                </div>
+                <button class="btn" style="background: white; color: var(--primary-color);" onclick="scrollToForm()">
+                    <span class="btn-icon">🎯</span>
+                    Get Started Now
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom spacing for mobile nav -->
+        <div style="height: 80px;"></div>
+    </div>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active">
+            <div class="nav-icon">🏠</div>
+            <div>Home</div>
+        </a>
+        <a href="#templates" class="nav-item" onclick="scrollToTemplates()">
+            <div class="nav-icon">📧</div>
+            <div>Templates</div>
+        </a>
+        <a href="#compose" class="nav-item" onclick="scrollToForm()">
+            <div class="nav-icon">✍️</div>
+            <div>Compose</div>
+        </a>
+        <a href="/sent_emails" class="nav-item">
+            <div class="nav-icon">📊</div>
+            <div>Reports</div>
+        </a>
+    </nav>
+
+    <script>
+        // Email Templates Data
+        const templates = {
+            devops: {
+                subject: "Application for DevOps Engineer - [Your Name] - Notice Period LWD [Date] - Immediate Joiner",
+                body: `Dear Hiring Manager,
+
+I hope this email finds you well. I am writing to express my strong interest in the DevOps Engineer position at your esteemed organization.
+
+PROFILE SUMMARY:
+I am a skilled DevOps Engineer with 4 years of hands-on experience in cloud infrastructure, CI/CD pipelines, and automation. Currently serving my notice period at Tata Consultancy Services (TCS) with my Last Working Day (LWD) on 5th May, making me an immediate joiner.
+
+KEY SKILLS:
+• Cloud Platforms: AWS, Azure, Google Cloud Platform
+• Containerization: Docker, Kubernetes
+• CI/CD Tools: Jenkins, GitLab CI, GitHub Actions
+• Infrastructure as Code: Terraform, Ansible
+• Monitoring: Prometheus, Grafana, ELK Stack
+• Scripting: Python, Bash, PowerShell
+
+EXPERIENCE HIGHLIGHTS:
+• Automated deployment pipelines reducing deployment time by 70%
+• Managed cloud infrastructure for applications serving 1M+ users
+• Implemented monitoring solutions improving incident response time by 50%
+• Led migration of legacy applications to containerized microservices
+
+I am excited about the opportunity to contribute to your team with my technical expertise and problem-solving abilities. I am available for an interview at your earliest convenience.
+
+Thank you for considering my application. I look forward to hearing from you soon.
+
+Best regards,
+[Your Full Name]
+[Your Phone Number]
+[Your Email]
+[LinkedIn Profile]`
+            },
+            business: {
+                subject: "Business Proposal - Partnership Opportunity with [Your Company]",
+                body: `Dear [Recipient Name],
+
+I hope this message finds you well.
+
+I am reaching out to introduce [Your Company Name] and explore a potential partnership opportunity that could be mutually beneficial for both our organizations.
+
+ABOUT US:
+[Your Company] specializes in [your services/products] and has been serving clients in [your industry] for [X years]. Our mission is to [your mission statement].
+
+PROPOSAL OVERVIEW:
+We believe there is a strong alignment between our services and your business objectives. We would like to propose a collaboration that focuses on:
+• [Key benefit 1]
+• [Key benefit 2]
+• [Key benefit 3]
+
+VALUE PROPOSITION:
+By partnering with us, you can expect:
+• Increased efficiency and cost savings
+• Access to cutting-edge technology/expertise
+• Dedicated support and personalized service
+
+NEXT STEPS:
+We would welcome the opportunity to discuss this proposal in more detail. Would you be available for a brief call next week to explore how we can work together?
+
+Thank you for considering this proposal. I look forward to your positive response.
+
+Best regards,
+[Your Name]
+[Your Title]
+[Company Name]
+[Contact Information]`
+            },
+            marketing: {
+                subject: "🚀 Exciting News: Introducing [Product Name] - Exclusive Launch Offer Inside!",
+                body: `Hi [First Name],
+
+We're thrilled to announce the launch of [Product Name] - the solution you've been waiting for!
+
+WHAT'S NEW:
+[Product Name] is designed to help you [main benefit]. After months of development and testing with beta users, we're excited to bring this to you.
+
+KEY FEATURES:
+✨ [Feature 1] - [benefit description]
+✨ [Feature 2] - [benefit description]
+✨ [Feature 3] - [benefit description]
+
+EXCLUSIVE LAUNCH OFFER:
+As a valued member of our community, you get:
+• 30% OFF for the first 3 months
+• FREE setup and onboarding
+• Priority customer support
+
+LIMITED TIME: This offer expires in 7 days!
+
+🎯 TAKE ACTION NOW:
+Click here to claim your exclusive discount: [Link]
+
+Have questions? Reply to this email and our team will be happy to help!
+
+Looking forward to having you on board!
+
+Best regards,
+[Your Name]
+[Company Name] Team
+
+P.S. Don't miss out - only [X] spots remaining for this exclusive offer!`
+            },
+            followup: {
+                subject: "Following Up: [Original Subject/Topic]",
+                body: `Dear [Recipient Name],
+
+I hope this email finds you well.
+
+I wanted to follow up on my previous email sent on [date] regarding [topic/subject]. I understand you may be busy, and I wanted to ensure my message didn't get lost in your inbox.
+
+QUICK RECAP:
+[Brief 2-3 sentence summary of your previous email or request]
+
+WHY IT MATTERS:
+• [Key benefit or reason 1]
+• [Key benefit or reason 2]
+
+I would greatly appreciate the opportunity to [discuss this further / get your feedback / schedule a call / etc.]. Would you have 15 minutes available this week for a brief conversation?
+
+Alternatively, if now is not the right time, please let me know when might be more convenient, and I'll be happy to reach out then.
+
+Thank you for your time and consideration. I look forward to hearing from you.
+
+Best regards,
+[Your Name]
+[Your Title]
+[Contact Information]
+
+P.S. Feel free to reply with any questions or concerns you may have.`
+            }
+        };
+
+        // Use Template Function
+        function useTemplate(templateId) {
+            const template = templates[templateId];
+            if (template) {
+                document.getElementById('subject').value = template.subject;
+                document.getElementById('body').value = template.body;
+                
+                // Update active state
+                document.querySelectorAll('.template-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+                event.target.closest('.template-card').classList.add('active');
+                
+                // Scroll to form
+                scrollToForm();
+            }
+        }
+
+        // File upload display
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                const wrapper = e.target.closest('.file-upload-wrapper');
+                wrapper.querySelector('.file-upload-text').textContent = `📄 ${fileName}`;
+            }
+        });
+
+        // Scroll functions
+        function scrollToForm() {
+            document.getElementById('emailForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function scrollToTemplates() {
+            document.getElementById('templateList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Form submission with loading state
+        document.getElementById('emailForm').addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<div class="spinner" style="width: 24px; height: 24px; border-width: 2px; margin: 0;"></div> Sending...';
+            submitBtn.disabled = true;
+        });
+
+        // Add fade-in animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'all 0.5s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

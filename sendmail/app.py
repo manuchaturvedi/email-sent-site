@@ -461,6 +461,123 @@ def prepare_email_record(record, run_id=None, user_email=None):
     })
     return record_to_save
 
+
+def count_emails_sent_today(user_email):
+    """Count how many emails a user has sent today. Returns tuple (count, error_message)."""
+    try:
+        print(f"📧 Counting emails for user: {user_email}")
+        
+        if not firestore:
+            print("⚠️ Firestore not available")
+            return 0, None
+        
+        from datetime import date
+        today = date.today()
+        print(f"📅 Today's date: {today}")
+        
+        db = firestore.client()
+        query = db.collection(FIRESTORE_COLLECTIONS['sent_emails']) \
+            .where('user_email', '==', user_email) \
+            .where('status', '==', 'sent')
+        
+        all_emails = list(query.stream())
+        print(f"📊 Total sent emails in database: {len(all_emails)}")
+        
+        emails_today = 0
+        
+        for email_doc in all_emails:
+            email_data = email_doc.to_dict()
+            
+            # Check multiple possible timestamp fields
+            timestamp = email_data.get('sent_at') or email_data.get('timestamp') or email_data.get('created_at')
+            
+            if not timestamp:
+                continue
+            
+            # Handle different timestamp types
+            try:
+                if isinstance(timestamp, datetime):
+                    if timestamp.date() == today:
+                        emails_today += 1
+                        print(f"  ✓ Email #{emails_today}: {email_data.get('email')} at {timestamp}")
+                elif isinstance(timestamp, str):
+                    # Try ISO format first (YYYY-MM-DD)
+                    try:
+                        sent_date = datetime.fromisoformat(timestamp.replace('Z', '+00:00')).date()
+                        if sent_date == today:
+                            emails_today += 1
+                            print(f"  ✓ Email #{emails_today}: {email_data.get('email')} at {timestamp[:10]}")
+                    except:
+                        # Try other formats
+                        try:
+                            sent_date = datetime.strptime(timestamp.split()[0], '%Y-%m-%d').date()
+                            if sent_date == today:
+                                emails_today += 1
+                                print(f"  ✓ Email #{emails_today}: {email_data.get('email')} at {timestamp[:10]}")
+                        except:
+                            pass
+            except Exception as e:
+                print(f"⚠️ Error parsing timestamp {timestamp}: {e}")
+                continue
+        
+        print(f"✅ Total emails sent today: {emails_today}")
+        return emails_today, None
+    except Exception as e:
+        error_msg = f"Error counting emails: {str(e)}"
+        print(f"❌ {error_msg}")
+        return 0, error_msg
+
+
+def check_email_limit(user_email):
+    """Check if user has reached their daily email limit. Returns (can_send, emails_sent, message)."""
+    try:
+        print(f"🔍 Checking email limit for user: {user_email}")
+        
+        if not firestore:
+            print("⚠️ Firestore not available, allowing send")
+            return True, 0, None
+        
+        db = firestore.client()
+        doc = db.collection('user_profiles').document(user_email).get()
+        
+        if not doc.exists:
+            print(f"⚠️ User profile not found for {user_email}")
+            return False, 0, "Please set up your profile first"
+        
+        profile_data = doc.to_dict()
+        user_subscription = profile_data.get('subscription', {})
+        user_plan = user_subscription.get('plan', 'free')
+        
+        print(f"💳 User plan: {user_plan}")
+        
+        # Pro users have no limit
+        if user_plan != 'free':
+            print(f"✅ Pro user - no limits")
+            return True, 0, None
+        
+        # Count today's emails for free users
+        emails_today, error = count_emails_sent_today(user_email)
+        
+        print(f"📊 Emails sent today: {emails_today}/10")
+        
+        if error:
+            # If we can't check reliably, allow (fail open)
+            print(f"⚠️ Error counting emails: {error}, allowing send")
+            return True, 0, None
+        
+        if emails_today >= 10:
+            print(f"🔒 LIMIT REACHED! User has sent {emails_today} emails today")
+            return False, emails_today, f"Daily limit reached! You've sent {emails_today}/10 emails today. Upgrade to Pro for unlimited emails."
+        
+        print(f"✅ Limit check passed - can send")
+        return True, emails_today, None
+        
+    except Exception as e:
+        print(f"❌ Error checking email limit: {str(e)}")
+        # Fail open - allow if we can't check
+        return True, 0, None
+
+
 def save_sent_email(record, run_id=None, user_email=None):
     """Save a single sent-email record locally and to Firestore."""
     try:
@@ -888,6 +1005,12 @@ def send_page():
     """Email sending UI (previously the root index)."""
     return render_template("index_live.html", user=session["user"])
 
+@app.route("/email_templates")
+@login_required
+def email_templates_page():
+    """Email templates education page"""
+    return render_template("email_templates.html", user=session["user"])
+
 # --- JOB POSTS PAGE ---
 @app.route("/jobs")
 @login_required
@@ -946,8 +1069,24 @@ def send_job_email():
         job_company = request.json.get("company", "")
         job_url = request.json.get("url", "")
         
+        print(f"🔔 /send_job_email called by user: {user_email}")
+        print(f"   Target email: {job_email}")
+        
         if not job_email:
             return jsonify({"success": False, "message": "No email address provided"}), 400
+        
+        # CHECK DAILY EMAIL LIMIT
+        can_send, emails_sent, limit_message = check_email_limit(user_email)
+        if not can_send:
+            print(f"🚫 Blocking send - limit reached!")
+            return jsonify({
+                "success": False, 
+                "message": limit_message,
+                "limit_reached": True,
+                "upgrade_url": "/pricing"
+            }), 403
+        
+        print(f"✅ Email limit check passed. Sent today: {emails_sent}/10")
         
         # Get user's saved profile data
         try:
@@ -957,45 +1096,6 @@ def send_job_email():
                 return jsonify({"success": False, "message": "Please set up your profile first"}), 400
             
             profile_data = doc.to_dict()
-            
-            # CHECK DAILY EMAIL LIMIT FOR FREE USERS
-            user_subscription = profile_data.get('subscription', {})
-            user_plan = user_subscription.get('plan', 'free')
-            
-            if user_plan == 'free':
-                # Count emails sent today
-                from datetime import date
-                today = date.today()
-                
-                query = db.collection(FIRESTORE_COLLECTIONS['sent_emails']) \
-                    .where('user_email', '==', user_email)
-                
-                all_emails = list(query.stream())
-                emails_today = 0
-                
-                for email_doc in all_emails:
-                    email_data = email_doc.to_dict()
-                    sent_at = email_data.get('sent_at')
-                    if sent_at and isinstance(sent_at, datetime):
-                        if sent_at.date() == today:
-                            emails_today += 1
-                    elif sent_at and isinstance(sent_at, str):
-                        try:
-                            sent_date = datetime.strptime(sent_at.split()[0], '%Y-%m-%d').date()
-                            if sent_date == today:
-                                emails_today += 1
-                        except:
-                            pass
-                
-                if emails_today >= 10:
-                    return jsonify({
-                        "success": False, 
-                        "message": "Daily limit reached! Free users can send 10 emails per day. Upgrade to Pro for unlimited emails.",
-                        "limit_reached": True,
-                        "upgrade_url": "/pricing"
-                    }), 403
-            
-            print(f"✅ Email limit check passed. Plan: {user_plan}")
             
             # Get email content and subject from profile
             email_content = profile_data.get('emailContent', '')
@@ -1904,6 +2004,59 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
 
         log(f"📧 Found {len(all_emails)} email(s).")
 
+        # CHECK EMAIL LIMIT FOR FREE USERS BEFORE SENDING
+        if user_email and firestore is not None:
+            try:
+                db = firestore.client()
+                user_doc = db.collection('user_profiles').document(user_email).get()
+                if user_doc.exists:
+                    user_data = user_doc.to_dict()
+                    user_subscription = user_data.get('subscription', {})
+                    user_plan = user_subscription.get('plan', 'free')
+                    
+                    if user_plan == 'free':
+                        # Count emails sent today
+                        from datetime import date
+                        today = date.today()
+                        
+                        query = db.collection(FIRESTORE_COLLECTIONS['sent_emails']) \
+                            .where('user_email', '==', user_email)
+                        
+                        all_sent = list(query.stream())
+                        emails_today = 0
+                        
+                        for email_doc in all_sent:
+                            email_data = email_doc.to_dict()
+                            sent_at = email_data.get('sent_at')
+                            if sent_at and isinstance(sent_at, datetime):
+                                if sent_at.date() == today:
+                                    emails_today += 1
+                            elif sent_at and isinstance(sent_at, str):
+                                try:
+                                    sent_date = datetime.strptime(sent_at.split()[0], '%Y-%m-%d').date()
+                                    if sent_date == today:
+                                        emails_today += 1
+                                except:
+                                    pass
+                        
+                        if emails_today >= 10:
+                            log(f"❌ Daily limit reached! Free users can send 10 emails per day. Already sent: {emails_today}")
+                            log("⚠️ Stopping automation. Upgrade to Pro for unlimited emails.")
+                            send_event(f"ERROR: Daily limit of 10 emails reached. Sent today: {emails_today}. <a href='/pricing'>Upgrade to Pro</a> for unlimited emails.")
+                            return  # Stop the automation
+                        
+                        # Check if we're about to exceed the limit
+                        emails_to_send = len(all_emails)
+                        if emails_today + emails_to_send > 10:
+                            max_can_send = 10 - emails_today
+                            log(f"⚠️ Can only send {max_can_send} more emails today (already sent {emails_today}/10)")
+                            send_event(f"WARNING: Free plan limit - can only send {max_can_send} more emails today. <a href='/pricing'>Upgrade to Pro</a>")
+                            all_emails = set(list(all_emails)[:max_can_send])  # Limit to remaining quota
+                        
+                        log(f"✅ Email limit check passed. Plan: {user_plan}, Sent today: {emails_today}/10")
+            except Exception as e:
+                log(f"⚠️ Could not check email limit: {str(e)}")
+
         # Function to check if email was already sent (directly in Firestore if available)
         def is_duplicate_email(email, subject):
             try:
@@ -2058,6 +2211,19 @@ def send_email():
     # Get the logged-in user's email for CC
     user_email = session.get("user")
     print(f"👤 User email: {user_email}")
+    
+    # CHECK EMAIL LIMIT BEFORE STARTING AUTOMATION
+    can_send, emails_sent, limit_message = check_email_limit(user_email)
+    if not can_send:
+        print(f"🚫 Blocking automation - limit reached!")
+        return jsonify({
+            "success": False,
+            "error": limit_message,
+            "limit_reached": True,
+            "upgrade_url": "/pricing"
+        }), 403
+    
+    print(f"✅ Email limit check passed. Sent today: {emails_sent}/10")
     
     # Get form data
     subject = request.form.get("subject", "Application")
@@ -2523,7 +2689,15 @@ def check_payment_status(order_id):
 
 
 if __name__ == "__main__":
+    import sys
+    # Force unbuffered output
+    sys.stdout.flush()
+    sys.stderr.flush()
+    
     # Get port from environment variable (Render provides this)
     port = int(os.environ.get("PORT", 5000))
+    print(f"\n{'='*60}")
+    print(f"🚀 SERVER STARTING ON PORT {port}")
+    print(f"{'='*60}\n")
     # Use 0.0.0.0 to accept connections from all interfaces
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)

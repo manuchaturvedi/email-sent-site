@@ -741,6 +741,45 @@ document.addEventListener('DOMContentLoaded', () => {
     ` : '<div class="text-muted text-center">No emails processed yet</div>';
   }
 
+  // Show limit reached modal
+  function showLimitReachedModal(message) {
+    const modal = document.createElement('div');
+    modal.className = 'modal fade show';
+    modal.style.cssText = 'display: block; background: rgba(0,0,0,0.5);';
+    modal.innerHTML = `
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              Daily Limit Reached
+            </h5>
+            <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
+          </div>
+          <div class="modal-body text-center py-4">
+            <div class="mb-3">
+              <i class="bi bi-envelope-x" style="font-size: 4rem; color: #ffc107;"></i>
+            </div>
+            <h6 class="mb-3">${message}</h6>
+            <p class="text-muted mb-4">
+              <strong>Free Plan:</strong> 10 emails/day<br>
+              <strong>Pro Plan:</strong> Unlimited emails
+            </p>
+            <div class="d-grid gap-2">
+              <a href="/pricing" class="btn btn-primary btn-lg">
+                <i class="bi bi-star-fill me-2"></i>Upgrade to Pro - Only ₹19/month
+              </a>
+              <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     const runBtn = document.getElementById('runBtn');
@@ -773,6 +812,23 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'POST',
         body: formData
       });
+
+      // Check if limit reached
+      if (response.status === 403) {
+        const data = await response.json();
+        if (data.limit_reached) {
+          const progressStatus = document.getElementById('progressStatus');
+          
+          // Show modal popup
+          showLimitReachedModal(data.error);
+          
+          progressStatus.textContent = 'Limit Reached';
+          progressStatus.className = 'badge bg-danger';
+          runBtn.disabled = false;
+          runBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Run Automation';
+          return;
+        }
+      }
 
       if (!response.ok) {
         throw new Error('Network response was not ok');

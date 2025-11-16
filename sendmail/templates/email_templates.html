@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Templates - JustMailIt</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .container {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .template-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+        
+        .template-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .template-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .template-description {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+        
+        .template-content {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+        
+        .copy-btn.copied {
+            background: #10b981;
+        }
+        
+        .placeholder-tag {
+            background: #fef3c7;
+            color: #d97706;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .tips-section {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid var(--primary-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .tips-section h5 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .tips-section ul {
+            margin-bottom: 0;
+        }
+        
+        .tips-section li {
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        
+        .section-header {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .section-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .section-header p {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 0;
+        }
+        
+        .subject-line {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" alt="JustMailIt" height="40" class="me-2">
+                <span class="fw-bold">JustMailIt</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="bi bi-house-door me-1"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/send"><i class="bi bi-send me-1"></i> Send Email</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/email_templates"><i class="bi bi-file-text me-1"></i> Templates</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile"><i class="bi bi-person me-1"></i> Profile</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Header Section -->
+        <div class="section-header">
+            <h1><i class="bi bi-file-text-fill text-primary me-2"></i>Professional Email Templates</h1>
+            <p>Learn how to write effective emails that get responses. Copy these templates and customize them for your needs.</p>
+        </div>
+
+        <!-- DevOps Job Application Template -->
+        <div class="template-card">
+            <span class="template-badge"><i class="bi bi-briefcase me-1"></i> Job Application</span>
+            <h2 class="template-title">DevOps Engineer Application</h2>
+            <p class="template-description">
+                Professional job application template for DevOps and technical positions. Includes profile summary, key skills, and experience highlights.
+            </p>
+            
+            <div class="template-content">
+                <button class="copy-btn" onclick="copyTemplate(this, 'devops')"><i class="bi bi-clipboard me-1"></i> Copy</button>
+                <div class="subject-line">📋 Subject: Application for DevOps Engineer - [Your Name] - Notice Period LWD [Date] - Immediate Joiner</div>
+                <div style="margin-top: 1rem;">Dear Hiring Manager,
+
+I hope this email finds you well. I am writing to express my strong interest in the DevOps Engineer position at your esteemed organization.
+
+PROFILE SUMMARY:
+I am a skilled DevOps Engineer with 4 years of hands-on experience in cloud infrastructure, CI/CD pipelines, and automation. Currently serving my notice period at Tata Consultancy Services (TCS) with my Last Working Day (LWD) on 5th May, making me an immediate joiner.
+
+KEY SKILLS:
+• Cloud Platforms: AWS, Azure, Google Cloud Platform
+• Containerization: Docker, Kubernetes
+• CI/CD Tools: Jenkins, GitLab CI, GitHub Actions
+• Infrastructure as Code: Terraform, Ansible
+• Monitoring: Prometheus, Grafana, ELK Stack
+• Scripting: Python, Bash, PowerShell
+
+EXPERIENCE HIGHLIGHTS:
+• Automated deployment pipelines reducing deployment time by 70%
+• Managed cloud infrastructure for applications serving 1M+ users
+• Implemented monitoring solutions improving incident response time by 50%
+• Led migration of legacy applications to containerized microservices
+
+I am excited about the opportunity to contribute to your team with my technical expertise and problem-solving abilities. I am available for an interview at your earliest convenience.
+
+Thank you for considering my application. I look forward to hearing from you soon.
+
+Best regards,
+<span class="placeholder-tag">[Your Full Name]</span>
+<span class="placeholder-tag">[Your Phone Number]</span>
+<span class="placeholder-tag">[Your Email]</span>
+<span class="placeholder-tag">[LinkedIn Profile]</span></div>
+            </div>
+            
+            <div class="tips-section">
+                <h5><i class="bi bi-lightbulb-fill me-2"></i>Tips for Job Applications</h5>
+                <ul>
+                    <li><strong>Subject Line:</strong> Include position, your name, and availability (LWD, immediate joiner)</li>
+                    <li><strong>Keep it Concise:</strong> Hiring managers scan emails quickly - make key points stand out</li>
+                    <li><strong>Quantify Achievements:</strong> Use numbers (70% faster, 1M+ users, 50% improvement)</li>
+                    <li><strong>Show Availability:</strong> Mention notice period or immediate joining clearly</li>
+                    <li><strong>Customize:</strong> Replace placeholders with your actual information</li>
+                    <li><strong>Attach Resume:</strong> Always include your updated resume/CV</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Business Proposal Template -->
+        <div class="template-card">
+            <span class="template-badge"><i class="bi bi-building me-1"></i> Business</span>
+            <h2 class="template-title">Business Proposal</h2>
+            <p class="template-description">
+                Professional business proposal template for B2B partnerships, client outreach, and collaboration opportunities.
+            </p>
+            
+            <div class="template-content">
+                <button class="copy-btn" onclick="copyTemplate(this, 'business')"><i class="bi bi-clipboard me-1"></i> Copy</button>
+                <div class="subject-line">📋 Subject: Business Proposal - Partnership Opportunity with [Your Company]</div>
+                <div style="margin-top: 1rem;">Dear <span class="placeholder-tag">[Recipient Name]</span>,
+
+I hope this message finds you well.
+
+I am reaching out to introduce <span class="placeholder-tag">[Your Company Name]</span> and explore a potential partnership opportunity that could be mutually beneficial for both our organizations.
+
+ABOUT US:
+<span class="placeholder-tag">[Your Company]</span> specializes in <span class="placeholder-tag">[your services/products]</span> and has been serving clients in <span class="placeholder-tag">[your industry]</span> for <span class="placeholder-tag">[X years]</span>. Our mission is to <span class="placeholder-tag">[your mission statement]</span>.
+
+PROPOSAL OVERVIEW:
+We believe there is a strong alignment between our services and your business objectives. We would like to propose a collaboration that focuses on:
+• <span class="placeholder-tag">[Key benefit 1]</span>
+• <span class="placeholder-tag">[Key benefit 2]</span>
+• <span class="placeholder-tag">[Key benefit 3]</span>
+
+VALUE PROPOSITION:
+By partnering with us, you can expect:
+• Increased efficiency and cost savings
+• Access to cutting-edge technology/expertise
+• Dedicated support and personalized service
+
+NEXT STEPS:
+We would welcome the opportunity to discuss this proposal in more detail. Would you be available for a brief call next week to explore how we can work together?
+
+Thank you for considering this proposal. I look forward to your positive response.
+
+Best regards,
+<span class="placeholder-tag">[Your Name]</span>
+<span class="placeholder-tag">[Your Title]</span>
+<span class="placeholder-tag">[Company Name]</span>
+<span class="placeholder-tag">[Contact Information]</span></div>
+            </div>
+            
+            <div class="tips-section">
+                <h5><i class="bi bi-lightbulb-fill me-2"></i>Tips for Business Proposals</h5>
+                <ul>
+                    <li><strong>Research First:</strong> Understand recipient's business before reaching out</li>
+                    <li><strong>Be Specific:</strong> Replace generic placeholders with actual value propositions</li>
+                    <li><strong>Highlight Benefits:</strong> Focus on what they gain, not just what you offer</li>
+                    <li><strong>Call to Action:</strong> Propose a specific next step (call, meeting, demo)</li>
+                    <li><strong>Professional Tone:</strong> Maintain formality while being approachable</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Follow-up Template -->
+        <div class="template-card">
+            <span class="template-badge"><i class="bi bi-arrow-repeat me-1"></i> Follow-up</span>
+            <h2 class="template-title">Professional Follow-up</h2>
+            <p class="template-description">
+                Polite follow-up template for job applications, meetings, business inquiries, or any pending response.
+            </p>
+            
+            <div class="template-content">
+                <button class="copy-btn" onclick="copyTemplate(this, 'followup')"><i class="bi bi-clipboard me-1"></i> Copy</button>
+                <div class="subject-line">📋 Subject: Following Up: [Original Subject/Topic]</div>
+                <div style="margin-top: 1rem;">Dear <span class="placeholder-tag">[Recipient Name]</span>,
+
+I hope this email finds you well.
+
+I wanted to follow up on my previous email sent on <span class="placeholder-tag">[date]</span> regarding <span class="placeholder-tag">[topic/subject]</span>. I understand you may be busy, and I wanted to ensure my message didn't get lost in your inbox.
+
+QUICK RECAP:
+<span class="placeholder-tag">[Brief 2-3 sentence summary of your previous email or request]</span>
+
+WHY IT MATTERS:
+• <span class="placeholder-tag">[Key benefit or reason 1]</span>
+• <span class="placeholder-tag">[Key benefit or reason 2]</span>
+
+I would greatly appreciate the opportunity to <span class="placeholder-tag">[discuss this further / get your feedback / schedule a call / etc.]</span>. Would you have 15 minutes available this week for a brief conversation?
+
+Alternatively, if now is not the right time, please let me know when might be more convenient, and I'll be happy to reach out then.
+
+Thank you for your time and consideration. I look forward to hearing from you.
+
+Best regards,
+<span class="placeholder-tag">[Your Name]</span>
+<span class="placeholder-tag">[Your Title]</span>
+<span class="placeholder-tag">[Contact Information]</span>
+
+P.S. Feel free to reply with any questions or concerns you may have.</div>
+            </div>
+            
+            <div class="tips-section">
+                <h5><i class="bi bi-lightbulb-fill me-2"></i>Tips for Follow-ups</h5>
+                <ul>
+                    <li><strong>Wait 3-5 Days:</strong> Don't follow up too quickly; give them time to respond</li>
+                    <li><strong>Be Polite:</strong> Acknowledge they're busy; don't sound pushy or demanding</li>
+                    <li><strong>Reference Original:</strong> Mention date and topic of previous email</li>
+                    <li><strong>Keep it Short:</strong> Follow-ups should be briefer than original email</li>
+                    <li><strong>Provide Context:</strong> Include quick recap in case they forgot</li>
+                    <li><strong>Offer Flexibility:</strong> Give them an easy way to reschedule or decline politely</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Marketing Campaign Template -->
+        <div class="template-card">
+            <span class="template-badge"><i class="bi bi-megaphone me-1"></i> Marketing</span>
+            <h2 class="template-title">Product Launch Campaign</h2>
+            <p class="template-description">
+                Engaging product launch email with clear benefits, features, and compelling call-to-action for high conversion.
+            </p>
+            
+            <div class="template-content">
+                <button class="copy-btn" onclick="copyTemplate(this, 'marketing')"><i class="bi bi-clipboard me-1"></i> Copy</button>
+                <div class="subject-line">📋 Subject: 🚀 Exciting News: Introducing [Product Name] - Exclusive Launch Offer Inside!</div>
+                <div style="margin-top: 1rem;">Hi <span class="placeholder-tag">[First Name]</span>,
+
+We're thrilled to announce the launch of <span class="placeholder-tag">[Product Name]</span> - the solution you've been waiting for!
+
+WHAT'S NEW:
+<span class="placeholder-tag">[Product Name]</span> is designed to help you <span class="placeholder-tag">[main benefit]</span>. After months of development and testing with beta users, we're excited to bring this to you.
+
+KEY FEATURES:
+✨ <span class="placeholder-tag">[Feature 1]</span> - <span class="placeholder-tag">[benefit description]</span>
+✨ <span class="placeholder-tag">[Feature 2]</span> - <span class="placeholder-tag">[benefit description]</span>
+✨ <span class="placeholder-tag">[Feature 3]</span> - <span class="placeholder-tag">[benefit description]</span>
+
+EXCLUSIVE LAUNCH OFFER:
+As a valued member of our community, you get:
+• 30% OFF for the first 3 months
+• FREE setup and onboarding
+• Priority customer support
+
+LIMITED TIME: This offer expires in 7 days!
+
+🎯 TAKE ACTION NOW:
+Click here to claim your exclusive discount: <span class="placeholder-tag">[Link]</span>
+
+Have questions? Reply to this email and our team will be happy to help!
+
+Looking forward to having you on board!
+
+Best regards,
+<span class="placeholder-tag">[Your Name]</span>
+<span class="placeholder-tag">[Company Name]</span> Team
+
+P.S. Don't miss out - only <span class="placeholder-tag">[X]</span> spots remaining for this exclusive offer!</div>
+            </div>
+            
+            <div class="tips-section">
+                <h5><i class="bi bi-lightbulb-fill me-2"></i>Tips for Marketing Emails</h5>
+                <ul>
+                    <li><strong>Use Emojis Sparingly:</strong> One or two emojis in subject can increase open rates</li>
+                    <li><strong>Create Urgency:</strong> Limited time offers, countdown timers, scarcity tactics</li>
+                    <li><strong>Focus on Benefits:</strong> Don't just list features - explain what users gain</li>
+                    <li><strong>Clear CTA:</strong> Make it obvious what action you want them to take</li>
+                    <li><strong>Personalization:</strong> Use first name and segment your audience</li>
+                    <li><strong>Social Proof:</strong> Mention beta users, testimonials, or success stories</li>
+                    <li><strong>P.S. Works:</strong> Many readers scan to the end first</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- How to Use Section -->
+        <div class="template-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h2 class="template-title" style="color: white;"><i class="bi bi-question-circle-fill me-2"></i>How to Use These Templates</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+                <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 12px;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">1️⃣</div>
+                    <h5 style="color: white; margin-bottom: 0.5rem;">Choose Template</h5>
+                    <p style="opacity: 0.9; margin: 0;">Select the template that matches your need</p>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 12px;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">2️⃣</div>
+                    <h5 style="color: white; margin-bottom: 0.5rem;">Click Copy</h5>
+                    <p style="opacity: 0.9; margin: 0;">Use the copy button to copy the entire template</p>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 12px;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">3️⃣</div>
+                    <h5 style="color: white; margin-bottom: 0.5rem;">Customize</h5>
+                    <p style="opacity: 0.9; margin: 0;">Replace highlighted placeholders with your info</p>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 12px;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">4️⃣</div>
+                    <h5 style="color: white; margin-bottom: 0.5rem;">Send with JustMailIt</h5>
+                    <p style="opacity: 0.9; margin: 0;">Use our platform to send to multiple recipients</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function copyTemplate(button, templateName) {
+            const templateContent = button.parentElement;
+            const textToCopy = templateContent.innerText.replace('Copy', '').trim();
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // Change button text and style
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-check-lg me-1"></i> Copied!';
+                button.classList.add('copied');
+                
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+    </script>
+</body>
+</html>

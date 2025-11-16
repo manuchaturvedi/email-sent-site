@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}LinkedIn Automation{% endblock %}</title>
+  <title>{% block title %}JustMailIt{% endblock %}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
   
@@ -817,6 +817,8 @@
     /* Additional styles for specific pages can be added in blocks */
     {% block additional_styles %}{% endblock %}
   </style>
+  
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
   <!-- Top Navigation -->
@@ -852,6 +854,11 @@
           <li class="nav-item">
             <a class="nav-link {% if request.endpoint == 'sent_emails_page' %}active{% endif %}" href="/sent_emails">
               <i class="bi bi-clock-history"></i>Sent Emails
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'pricing_page' %}active{% endif %}" href="/pricing">
+              <i class="bi bi-star-fill"></i>Pricing
             </a>
           </li>
         </ul>

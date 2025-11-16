@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: justmailit-app
+    runtime: docker
+    dockerfilePath: ./Dockerfile.render
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: RAZORPAY_KEY_ID
+        value: rzp_live_RgNB6M60lUvK2l
+      - key: RAZORPAY_KEY_SECRET
+        sync: false  # Will be set manually for security
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false  # Will be set manually for security
+      - key: GOOGLE_APPLICATION_CREDENTIALS_JSON
+        sync: false  # Will be set manually for security
+      - key: CHROME_BIN
+        value: /usr/bin/google-chrome
+      - key: CHROMEDRIVER_PATH
+        value: /usr/local/bin/chromedriver
+      - key: PYTHONPATH
+        value: /app
+      - key: DISPLAY
+        value: :99
+    healthCheckPath: /
+    autoDeploy: true

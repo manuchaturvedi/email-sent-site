@@ -3,6 +3,8 @@ from functools import wraps
 import firebase_admin
 from firebase_admin import credentials, auth
 from job_analyzer import JobAnalyzer
+import uuid
+import hashlib
 # Firestore and Storage are optional; we'll import if available at runtime
 try:
     from firebase_admin import firestore, storage
@@ -76,6 +78,19 @@ def log(message: str):
 # Initialize job posts storage
 JOB_POSTS_FILE = 'job_posts.json'
 SENT_EMAILS_FILE = 'sent_emails.json'
+
+# Razorpay Payment Gateway Configuration
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_live_RgNB6M60lUvK2l")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "i4GM8FcOw34g438OMecg2z78")
+
+# Initialize Razorpay Client
+try:
+    import razorpay
+    razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+    print(f"✅ Razorpay Payment Gateway initialized")
+except ImportError:
+    print("⚠️ Razorpay SDK not installed. Payment features will be limited.")
+    razorpay_client = None
 
 # Optional persistent Chrome profile directory helps preserve LinkedIn login state.
 _env_profile = os.getenv("CHROME_PROFILE_DIR")
@@ -838,11 +853,31 @@ def home():
                 break
         recent_runs = list(runs.values())
     
+    # Get job posts stats
+    total_jobs = 0
+    try:
+        job_posts = load_job_posts()
+        total_jobs = len(job_posts)
+    except Exception as e:
+        print(f"Error loading job posts: {e}")
+    
+    # Calculate remaining jobs (jobs not yet emailed)
+    sent_count = stats.get('sent', 0)
+    remaining = max(0, total_jobs - sent_count)
+    
+    # Add job stats to stats dict
+    stats['total_jobs'] = total_jobs
+    stats['remaining'] = remaining
+    
+    # Get subscription data
+    subscription = profile_data.get('subscription', {'plan': 'free', 'status': 'active'})
+    
     return render_template(
         "home.html",
         user=user_email,
         stats=stats,
         profile=profile_data,
+        subscription=subscription,
         recent_runs=recent_runs
     )
 
@@ -922,6 +957,45 @@ def send_job_email():
                 return jsonify({"success": False, "message": "Please set up your profile first"}), 400
             
             profile_data = doc.to_dict()
+            
+            # CHECK DAILY EMAIL LIMIT FOR FREE USERS
+            user_subscription = profile_data.get('subscription', {})
+            user_plan = user_subscription.get('plan', 'free')
+            
+            if user_plan == 'free':
+                # Count emails sent today
+                from datetime import date
+                today = date.today()
+                
+                query = db.collection(FIRESTORE_COLLECTIONS['sent_emails']) \
+                    .where('user_email', '==', user_email)
+                
+                all_emails = list(query.stream())
+                emails_today = 0
+                
+                for email_doc in all_emails:
+                    email_data = email_doc.to_dict()
+                    sent_at = email_data.get('sent_at')
+                    if sent_at and isinstance(sent_at, datetime):
+                        if sent_at.date() == today:
+                            emails_today += 1
+                    elif sent_at and isinstance(sent_at, str):
+                        try:
+                            sent_date = datetime.strptime(sent_at.split()[0], '%Y-%m-%d').date()
+                            if sent_date == today:
+                                emails_today += 1
+                        except:
+                            pass
+                
+                if emails_today >= 10:
+                    return jsonify({
+                        "success": False, 
+                        "message": "Daily limit reached! Free users can send 10 emails per day. Upgrade to Pro for unlimited emails.",
+                        "limit_reached": True,
+                        "upgrade_url": "/pricing"
+                    }), 403
+            
+            print(f"✅ Email limit check passed. Plan: {user_plan}")
             
             # Get email content and subject from profile
             email_content = profile_data.get('emailContent', '')
@@ -2114,6 +2188,338 @@ def send_email():
 
     flash("🚀 Automation started in background. Check console logs for updates.", "success")
     return redirect(url_for("send_page"))
+
+
+# --- PRICING & PAYMENT ---
+@app.route("/pricing")
+@login_required
+def pricing_page():
+    """Display pricing plans"""
+    user_email = session.get("user")
+    subscription_data = {'plan': 'free', 'status': 'active'}
+    
+    if firestore is not None:
+        db = firestore.client()
+        user_ref = db.collection('user_profiles').document(user_email)
+        user_doc = user_ref.get()
+        
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            subscription_data = user_data.get('subscription', subscription_data)
+    
+    return render_template("pricing.html", subscription=subscription_data)
+
+
+@app.route("/create_payment", methods=["POST"])
+@login_required
+def create_payment():
+    """Create Razorpay payment order"""
+    try:
+        if not razorpay_client:
+            return jsonify({'success': False, 'error': 'Payment gateway not configured'})
+        
+        data = request.get_json()
+        plan = data.get('plan')
+        price = data.get('price')
+        user_email = session.get("user")
+        
+        if not plan or not price:
+            return jsonify({'success': False, 'error': 'Invalid payment data'})
+        
+        # Generate unique order ID
+        order_id = f"JMI_{int(time.time())}_{plan}"
+        
+        # Create Razorpay order
+        razorpay_order = razorpay_client.order.create({
+            'amount': int(float(price) * 100),  # Razorpay expects amount in paise (1 INR = 100 paise)
+            'currency': 'INR',
+            'receipt': order_id,
+            'notes': {
+                'plan': plan,
+                'user_email': user_email
+            }
+        })
+        
+        # Store pending payment in Firestore
+        if firestore is not None:
+            db = firestore.client()
+            payment_ref = db.collection('pending_payments').document(order_id)
+            payment_ref.set({
+                'orderId': order_id,
+                'userEmail': user_email,
+                'plan': plan,
+                'amount': price,
+                'status': 'pending',
+                'razorpay_order_id': razorpay_order['id'],
+                'createdAt': datetime.now(),
+                'expiresAt': datetime.now().replace(hour=datetime.now().hour + 1)
+            })
+        
+        return jsonify({
+            'success': True,
+            'razorpay_order_id': razorpay_order['id'],
+            'razorpay_key_id': RAZORPAY_KEY_ID,
+            'order_id': order_id,
+            'amount': int(float(price) * 100),  # Amount in paise for frontend
+            'currency': 'INR',
+            'name': 'JustMailIt',
+            'description': f'{plan} Plan Subscription',
+            'prefill': {
+                'email': user_email
+            }
+        })
+        
+    except Exception as e:
+        print(f"❌ Payment creation error: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Failed to create payment: {str(e)}'
+        })
+
+
+@app.route("/payment/webhook", methods=["POST"])
+def payment_webhook():
+    """Razorpay webhook for automatic payment verification"""
+    try:
+        # Get webhook data
+        webhook_data = request.get_json()
+        
+        # Verify webhook signature (important for security)
+        webhook_signature = request.headers.get('X-Razorpay-Signature')
+        webhook_secret = os.getenv('RAZORPAY_WEBHOOK_SECRET', '')
+        
+        # Verify signature if webhook secret is configured
+        if webhook_secret and razorpay_client:
+            try:
+                razorpay_client.utility.verify_webhook_signature(
+                    json.dumps(webhook_data, separators=(',', ':')),
+                    webhook_signature,
+                    webhook_secret
+                )
+            except Exception as e:
+                print(f"⚠️ Webhook signature verification failed: {e}")
+                return jsonify({'success': False, 'error': 'Invalid signature'}), 400
+        
+        # Handle payment.captured event
+        event = webhook_data.get('event')
+        
+        if event == 'payment.captured':
+            payment = webhook_data.get('payload', {}).get('payment', {}).get('entity', {})
+            razorpay_order_id = payment.get('order_id')  # Razorpay's order ID
+            razorpay_payment_id = payment.get('id')
+            amount = payment.get('amount') / 100  # Convert from paise to INR
+            
+            # Update payment and activate subscription
+            if firestore is not None and razorpay_order_id:
+                db = firestore.client()
+                
+                # Get pending payment by Razorpay order ID
+                payments = db.collection('pending_payments').where('razorpay_order_id', '==', razorpay_order_id).get()
+                
+                for payment_doc in payments:
+                    payment_data = payment_doc.to_dict()
+                    user_email = payment_data.get('userEmail')
+                    plan = payment_data.get('plan')
+                    doc_order_id = payment_data.get('orderId')
+                    
+                    # Update payment status
+                    db.collection('pending_payments').document(doc_order_id).update({
+                        'status': 'completed',
+                        'completedAt': datetime.now(),
+                        'razorpay_payment_id': razorpay_payment_id,
+                        'webhook_data': webhook_data
+                    })
+                    
+                    # Activate subscription
+                    activate_subscription(user_email, plan, payment_data.get('amount'), doc_order_id)
+                    
+                    print(f"✅ Payment webhook: {user_email} upgraded to {plan} (Payment ID: {razorpay_payment_id})")
+        
+        return jsonify({'success': True}), 200
+        
+    except Exception as e:
+        print(f"❌ Webhook error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route("/payment/callback")
+def payment_callback():
+    """Handle return URL after payment"""
+    order_id = request.args.get('order_id')
+    
+    # Redirect to pricing page with status
+    return redirect(url_for('pricing_page', order_id=order_id, status='success'))
+
+
+@app.route("/payment/success", methods=["POST"])
+@login_required
+def payment_success():
+    """Handle immediate payment success from Razorpay frontend"""
+    try:
+        data = request.get_json()
+        razorpay_payment_id = data.get('razorpay_payment_id')
+        razorpay_order_id = data.get('razorpay_order_id')
+        razorpay_signature = data.get('razorpay_signature')
+        our_order_id = data.get('order_id')
+        
+        # Verify payment signature
+        if razorpay_client:
+            try:
+                params_dict = {
+                    'razorpay_order_id': razorpay_order_id,
+                    'razorpay_payment_id': razorpay_payment_id,
+                    'razorpay_signature': razorpay_signature
+                }
+                razorpay_client.utility.verify_payment_signature(params_dict)
+                print(f"✅ Payment signature verified: {razorpay_payment_id}")
+            except Exception as e:
+                print(f"❌ Payment signature verification failed: {e}")
+                return jsonify({'success': False, 'error': 'Invalid payment signature'})
+        
+        # Get payment details from Firestore
+        if firestore is not None:
+            db = firestore.client()
+            payment_ref = db.collection('pending_payments').document(our_order_id)
+            payment_doc = payment_ref.get()
+            
+            if payment_doc.exists:
+                payment_data = payment_doc.to_dict()
+                user_email = payment_data.get('userEmail')
+                plan = payment_data.get('plan')
+                amount = payment_data.get('amount')
+                
+                # Update payment status
+                payment_ref.update({
+                    'status': 'completed',
+                    'completedAt': datetime.now(),
+                    'razorpay_payment_id': razorpay_payment_id,
+                    'razorpay_order_id': razorpay_order_id
+                })
+                
+                # Activate subscription
+                activate_subscription(user_email, plan, amount, our_order_id)
+                
+                print(f"✅ Payment success: {user_email} upgraded to {plan} (Payment ID: {razorpay_payment_id})")
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Successfully upgraded to {plan} plan!',
+                    'status': 'completed'
+                })
+            else:
+                return jsonify({'success': False, 'error': 'Payment record not found'})
+        
+        return jsonify({'success': False, 'error': 'Payment processing failed'})
+        
+    except Exception as e:
+        print(f"❌ Payment success handler error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+def activate_subscription(user_email, plan, price, order_id):
+    """Activate user subscription after successful payment"""
+    try:
+        if firestore is not None:
+            db = firestore.client()
+            user_ref = db.collection('user_profiles').document(user_email)
+            user_doc = user_ref.get()
+            current_data = user_doc.to_dict() if user_doc.exists else {}
+            
+            from datetime import timedelta
+            next_billing = datetime.now() + timedelta(days=30)
+            
+            subscription_data = {
+                'subscription': {
+                    'plan': plan,
+                    'price': price,
+                    'status': 'active',
+                    'startDate': datetime.now(),
+                    'nextBillingDate': next_billing,
+                    'paymentMethod': 'Razorpay'
+                },
+                'paymentHistory': current_data.get('paymentHistory', []) + [{
+                    'plan': plan,
+                    'amount': price,
+                    'date': datetime.now(),
+                    'status': 'completed',
+                    'orderId': order_id,
+                    'paymentMethod': 'Razorpay'
+                }]
+            }
+            
+            user_ref.set(subscription_data, merge=True)
+            print(f"✅ Subscription activated: {user_email} - {plan} plan")
+            
+    except Exception as e:
+        print(f"❌ Activate subscription error: {e}")
+
+
+@app.route("/check_payment_status/<order_id>", methods=["GET"])
+@login_required
+def check_payment_status(order_id):
+    """Check if payment has been completed"""
+    try:
+        user_email = session.get("user")
+        
+        if firestore is not None:
+            db = firestore.client()
+            
+            # Check if user has active subscription
+            user_ref = db.collection('user_profiles').document(user_email)
+            user_doc = user_ref.get()
+            
+            if user_doc.exists:
+                user_data = user_doc.to_dict()
+                subscription = user_data.get('subscription', {})
+                
+                # Check if subscription is active and recent
+                if subscription.get('status') == 'active':
+                    start_date = subscription.get('startDate')
+                    if start_date and isinstance(start_date, datetime):
+                        # If subscription started in last 5 minutes, consider it just activated
+                        if (datetime.now() - start_date).total_seconds() < 300:
+                            return jsonify({
+                                'success': True,
+                                'status': 'completed',
+                                'plan': subscription.get('plan'),
+                                'message': 'Payment verified and subscription activated!'
+                            })
+            
+            # Check pending payment status
+            payment_ref = db.collection('pending_payments').document(order_id)
+            payment_doc = payment_ref.get()
+            
+            if payment_doc.exists:
+                payment_data = payment_doc.to_dict()
+                status = payment_data.get('status', 'pending')
+                
+                # If payment marked as completed, return completed status
+                if status == 'completed':
+                    return jsonify({
+                        'success': True,
+                        'status': 'completed',
+                        'plan': payment_data.get('plan'),
+                        'message': 'Payment verified and subscription activated!'
+                    })
+                
+                return jsonify({
+                    'success': True,
+                    'status': status,
+                    'message': 'Waiting for payment confirmation...'
+                })
+        
+        return jsonify({
+            'success': True,
+            'status': 'pending',
+            'message': 'Payment pending'
+        })
+        
+    except Exception as e:
+        print(f"❌ Payment status check error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to check payment status'
+        })
 
 
 if __name__ == "__main__":

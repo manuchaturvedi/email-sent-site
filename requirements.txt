@@ -28,6 +28,9 @@ python-dotenv==1.0.0
 # Date/Time utilities
 python-dateutil==2.8.2
 
+# Payment Gateway
+razorpay==1.4.1
+
 # Requests for HTTP
 requests==2.31.0
 urllib3==2.1.0

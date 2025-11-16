@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Login - LinkedIn Automation</title>
+  <title>Login - JustMailIt</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
@@ -329,11 +329,11 @@
   <div class="split">
     <div class="left">
       <div class="logo">
-        <i class="bi bi-linkedin"></i>
-        LinkedIn Automation
+        <i class="bi bi-envelope-at"></i>
+        JustMailIt
       </div>
-      <h1>Smart Email Automation for Your Job Search</h1>
-      <p>Automate your LinkedIn job search outreach with intelligent email campaigns. Save time while maintaining personalized communication with hiring managers.</p>
+      <h1>Simplify Your Job Search</h1>
+      <p>Automate your job search outreach with intelligent email campaigns. Save time while maintaining personalized communication with hiring managers.</p>
       <div class="feature-slider" aria-label="Key Features" aria-live="polite">
         <div class="feature-slide active">
           <div class="icon">
@@ -375,7 +375,7 @@
         <div class="card">
           <div class="card-body">
             <h3 id="authHeading" style="margin:0 0 16px">Sign In</h3>
-            <div class="muted" style="margin-bottom:20px">New to LinkedIn Automation? <a href="#" onclick="showTab('signup')">Create Account</a></div>
+            <div class="muted" style="margin-bottom:20px">New to JustMailIt? <a href="#" onclick="showTab('signup')">Create Account</a></div>
 
             <div class="tabs" role="tablist">
               <button id="tab-login" class="active" onclick="showTab('login')">Sign In</button>
@@ -416,14 +416,14 @@
             </div>
 
             <div style="display:flex;flex-direction:column;gap:12px">
-              <div class="social-btn disabled" id="google-login" title="Coming soon">
+              <button class="social-btn" id="google-login" onclick="loginWithGoogle()" style="cursor: pointer;">
                 <i class="bi bi-google" style="font-size: 22px; color: #DB4437;"></i>
                 <div style="flex:1;text-align:center">Continue with Google</div>
-              </div>
-              <div class="social-btn disabled" id="linkedin-login" title="Coming soon">
+              </button>
+              <button class="social-btn" id="linkedin-login" onclick="loginWithLinkedIn()" style="cursor: pointer;">
                 <i class="bi bi-linkedin" style="font-size: 22px; color: #0A66C2;"></i>
                 <div style="flex:1;text-align:center">Continue with LinkedIn</div>
-              </div>
+              </button>
             </div>
 
             <div style="margin-top:18px;font-size:13px;color:#6b7280;text-align:center">
@@ -551,6 +551,51 @@
         msg.style.color = '#10b981';
         setTimeout(()=>{ showTab('login'); }, 1200);
       }catch(e){ msg.textContent = '❌ ' + e.message; }
+    }
+
+    async function loginWithGoogle(){
+      const msg = document.getElementById('loginMsg');
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const result = await firebase.auth().signInWithPopup(provider);
+        const idToken = await result.user.getIdToken();
+        const res = await fetch('/sessionLogin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken})});
+        if(res.ok){ 
+          msg.textContent = '✅ Google login successful! Redirecting...'; 
+          msg.style.color = '#10b981';
+          setTimeout(()=>window.location.href='/',800); 
+        }
+        else { 
+          msg.textContent = '❌ Authentication failed.'; 
+        }
+      } catch(e) {
+        msg.textContent = '❌ ' + e.message;
+      }
+    }
+
+    async function loginWithLinkedIn(){
+      const msg = document.getElementById('loginMsg');
+      try {
+        // LinkedIn OAuth using OAuthProvider
+        const provider = new firebase.auth.OAuthProvider('oidc.linkedin');
+        provider.addScope('r_emailaddress');
+        provider.addScope('r_liteprofile');
+        
+        const result = await firebase.auth().signInWithPopup(provider);
+        const idToken = await result.user.getIdToken();
+        const res = await fetch('/sessionLogin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken})});
+        if(res.ok){ 
+          msg.textContent = '✅ LinkedIn login successful! Redirecting...'; 
+          msg.style.color = '#10b981';
+          setTimeout(()=>window.location.href='/',800); 
+        }
+        else { 
+          msg.textContent = '❌ Authentication failed.'; 
+        }
+      } catch(e) {
+        msg.textContent = '❌ ' + e.message;
+        console.error('LinkedIn login error:', e);
+      }
     }
   </script>
 </body>

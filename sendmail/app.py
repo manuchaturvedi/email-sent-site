@@ -740,9 +740,44 @@ def login_required(f):
     return decorated_function
 
 
-@app.route("/login", methods=["GET"])
+@app.route("/login", methods=["POST"])
 def login():
-    return render_template("login.html")
+    # Handle Firebase authentication from modal
+    data = request.get_json()
+    id_token = data.get("idToken")
+    display_name = data.get("displayName", "")
+    
+    try:
+        decoded_token = auth.verify_id_token(id_token)
+        user_email = decoded_token["email"]
+        session["user"] = user_email
+        
+        # Store user info in Firestore if new user
+        try:
+            db = firestore.client()
+            user_ref = db.collection('user_profiles').document(user_email)
+            user_doc = user_ref.get()
+            
+            if not user_doc.exists:
+                # New user - create profile
+                user_ref.set({
+                    'email': user_email,
+                    'displayName': display_name or decoded_token.get('name', ''),
+                    'createdAt': datetime.now(),
+                    'plan': 'free',
+                    'emailsRemaining': 10
+                })
+                print(f"✅ New user profile created: {user_email}")
+            else:
+                print(f"✅ Existing user logged in: {user_email}")
+        except Exception as profile_error:
+            print(f"⚠️ Profile creation/check error: {profile_error}")
+        
+        print(f"✅ {user_email} logged in successfully!")
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        print(f"❌ Login failed: {e}")
+        return jsonify({"error": str(e)}), 401
 
 
 @app.route("/sessionLogin", methods=["POST"])
@@ -764,7 +799,7 @@ def session_login():
 def logout():
     session.pop("user", None)
     flash("Logged out successfully.", "info")
-    return redirect(url_for("login"))
+    return redirect(url_for("landing"))
 
 
 # --- MAIN PAGE ---
@@ -921,9 +956,78 @@ def save_profile():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/")
+def landing():
+    """Public landing page showcasing the platform."""
+    # If user is already logged in, redirect to dashboard
+    if "user" in session:
+        return redirect(url_for("home"))
+    return render_template("landing.html")
+
+# --- STATIC PAGES ---
+@app.route("/about")
+def about():
+    """About Us page"""
+    return render_template("about.html")
+
+@app.route("/careers")
+def careers():
+    """Careers page"""
+    return render_template("careers.html")
+
+@app.route("/blog")
+def blog():
+    """Blog page"""
+    return render_template("blog.html")
+
+@app.route("/contact")
+def contact():
+    """Contact page"""
+    return render_template("contact.html")
+
+@app.route("/documentation")
+def documentation():
+    """Documentation page"""
+    return render_template("documentation.html")
+
+@app.route("/help")
+def help_center():
+    """Help Center page"""
+    return render_template("help.html")
+
+@app.route("/api")
+def api_reference():
+    """API Reference page"""
+    return render_template("api.html")
+
+@app.route("/community")
+def community():
+    """Community page"""
+    return render_template("community.html")
+
+@app.route("/privacy")
+def privacy():
+    """Privacy Policy page"""
+    return render_template("privacy.html")
+
+@app.route("/terms")
+def terms():
+    """Terms of Service page"""
+    return render_template("terms.html")
+
+@app.route("/cookies")
+def cookies():
+    """Cookie Policy page"""
+    return render_template("cookies.html")
+
+@app.route("/gdpr")
+def gdpr():
+    """GDPR Compliance page"""
+    return render_template("gdpr.html")
+
+@app.route("/dashboard")
 @login_required
 def home():
-    """Home landing page after login with links to the main features."""
+    """Home dashboard after login with links to the main features."""
     user_email = session["user"]
     
     # Get user's email stats from Firestore
@@ -2392,6 +2496,22 @@ def create_payment():
         if not plan or not price:
             return jsonify({'success': False, 'error': 'Invalid payment data'})
         
+        # Get user profile for phone number
+        user_name = user_email.split('@')[0]  # Default name from email
+        user_contact = ''
+        
+        if firestore is not None:
+            try:
+                db = firestore.client()
+                user_doc = db.collection('user_profiles').document(user_email).get()
+                if user_doc.exists:
+                    user_data = user_doc.to_dict()
+                    user_contact = user_data.get('phone', user_data.get('contact', ''))
+                    if user_data.get('name'):
+                        user_name = user_data.get('name')
+            except Exception as e:
+                print(f"⚠️ Could not fetch user profile: {e}")
+        
         # Generate unique order ID
         order_id = f"JMI_{int(time.time())}_{plan}"
         
@@ -2421,6 +2541,16 @@ def create_payment():
                 'expiresAt': datetime.now().replace(hour=datetime.now().hour + 1)
             })
         
+        # Prepare prefill data
+        prefill_data = {
+            'email': user_email,
+            'name': user_name
+        }
+        
+        # Add contact only if available
+        if user_contact:
+            prefill_data['contact'] = user_contact
+        
         return jsonify({
             'success': True,
             'razorpay_order_id': razorpay_order['id'],
@@ -2430,9 +2560,7 @@ def create_payment():
             'currency': 'INR',
             'name': 'JustMailIt',
             'description': f'{plan} Plan Subscription',
-            'prefill': {
-                'email': user_email
-            }
+            'prefill': prefill_data
         })
         
     except Exception as e:

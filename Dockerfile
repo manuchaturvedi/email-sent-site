@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     unzip \
     xvfb \
     libxi6 \
-    libgconf-2-4 \
     libnss3 \
     libxss1 \
     libappindicator3-1 \
@@ -24,7 +23,7 @@ RUN apt-get update && apt-get install -y \
     libatk1.0-0 \
     libcups2 \
     libdbus-glib-1-2 \
-    libgdk-pixbuf2.0-0 \
+    libgdk-pixbuf-2.0-0 \
     libgtk-3-0 \
     libx11-xcb1 \
     libxcomposite1 \
@@ -36,10 +35,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Google Chrome
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
+RUN wget -q -O /tmp/google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
     && apt-get update \
-    && apt-get install -y google-chrome-stable \
+    && apt-get install -y /tmp/google-chrome-stable_current_amd64.deb \
+    && rm /tmp/google-chrome-stable_current_amd64.deb \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory

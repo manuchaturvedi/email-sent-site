@@ -8,7 +8,7 @@
   .welcome-card {
     background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
     border: none;
-    box-shadow: 0 8px 32px rgba(99,102,241,0.1);
+    box-shadow: 0 8px 32px rgba(168,230,207,0.1);
   }
 
   /* Stats cards */
@@ -20,7 +20,7 @@
 
   .stats-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(99,102,241,0.12);
+    box-shadow: 0 12px 24px rgba(168,230,207,0.12);
   }
 
   /* Action cards */
@@ -33,13 +33,13 @@
     text-decoration: none;
     color: inherit;
     transition: all 0.3s ease;
-    border: 1px solid rgba(99,102,241,0.1);
+    border: 1px solid rgba(168,230,207,0.1);
   }
 
   .action-link:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(99,102,241,0.15);
-    border-color: rgba(99,102,241,0.3);
+    box-shadow: 0 8px 24px rgba(168,230,207,0.15);
+    border-color: rgba(168,230,207,0.3);
     color: inherit;
   }
 
@@ -62,7 +62,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(99,102,241,0.2));
+    background: linear-gradient(135deg, rgba(168,230,207,0.1), rgba(168,230,207,0.2));
     margin: 0 auto;
   }
 
@@ -87,12 +87,12 @@
 
   .campaign-button:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 24px rgba(99,102,241,0.3);
+    box-shadow: 0 12px 24px rgba(168,230,207,0.3);
   }
 
   /* Feature section */
   .feature-section {
-    background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(129,140,248,0.05));
+    background: linear-gradient(135deg, rgba(168,230,207,0.05), rgba(200,245,224,0.05));
     border-radius: 16px;
     padding: 3rem 0;
   }
@@ -106,7 +106,7 @@
 
   .feature-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(99,102,241,0.15);
+    box-shadow: 0 12px 24px rgba(168,230,207,0.15);
   }
 
   .feature-icon {
@@ -130,8 +130,8 @@
 
   .user-guide-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 12px 32px rgba(74, 103, 65, 0.2) !important;
-    border-color: rgba(74, 103, 65, 0.3);
+    box-shadow: 0 12px 32px rgba(139, 159, 255, 0.2) !important;
+    border-color: rgba(139, 159, 255, 0.3);
   }
 
   .feature-image {
@@ -154,7 +154,7 @@
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, #5a7d4e 0%, #4a6741 100%);
+    background: linear-gradient(135deg, #a8e6cf 0%, #8b9fff 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -162,7 +162,7 @@
 
   /* Hero Section */
   .hero-section {
-    background: linear-gradient(135deg, rgba(90, 125, 78, 0.9) 0%, rgba(74, 103, 65, 0.9) 100%),
+    background: linear-gradient(135deg, rgba(168, 230, 207, 0.9) 0%, rgba(139, 159, 255, 0.9) 100%),
                 url("{{ url_for('static', filename='images/hero-bg.jpg') }}") center/cover no-repeat;
     border-radius: 20px;
     padding: 4rem 2rem;
@@ -171,7 +171,7 @@
     text-align: center;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(74, 103, 65, 0.3);
+    box-shadow: 0 20px 60px rgba(139, 159, 255, 0.3);
   }
 
   .hero-section::before {
@@ -413,7 +413,7 @@
             <p class="lead text-muted mb-4">
               Automate your job search outreach with AI-powered email campaigns
             </p>
-            <a href="/send" class="btn btn-primary campaign-button" style="--gradient-start: #6366f1; --gradient-end: #818cf8">
+            <a href="/send" class="btn btn-primary campaign-button" style="--gradient-start: #a8e6cf; --gradient-end: #8b9fff">
               <i class="bi bi-rocket-takeoff me-2"></i>
               Start New Campaign
             </a>
@@ -426,10 +426,10 @@
   <!-- User Guide Section -->
   <div class="row justify-content-center mb-4">
     <div class="col-lg-10">
-      <div class="card" style="background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(129,140,248,0.05)); border: none; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);">
+      <div class="card" style="background: linear-gradient(135deg, rgba(168,230,207,0.05), rgba(200,245,224,0.05)); border: none; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);">
         <div class="card-body p-4">
           <div class="text-center mb-4">
-            <div class="icon-circle-lg mb-3" style="background: linear-gradient(135deg, #5a7d4e, #4a6741);">
+            <div class="icon-circle-lg mb-3" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff);">
               <i class="bi bi-lightbulb-fill display-5 text-white"></i>
             </div>
             <h2 class="display-6 fw-bold mb-2 gradient-text">
@@ -448,14 +448,14 @@
                        class="feature-image"
                        onerror="this.style.display='none';">
                   <div class="card-body p-4 text-center" style="position: relative;">
-                    <div class="position-absolute top-0 start-0 m-3" style="background: linear-gradient(135deg, #5a7d4e, #4a6741); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(74, 103, 65, 0.4);">1</div>
-                    <div class="icon-circle mx-auto mb-3" style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(99,102,241,0.2)); width: 64px; height: 64px;">
+                    <div class="position-absolute top-0 start-0 m-3" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(139, 159, 255, 0.4);">1</div>
+                    <div class="icon-circle mx-auto mb-3" style="background: linear-gradient(135deg, rgba(168,230,207,0.1), rgba(168,230,207,0.2)); width: 64px; height: 64px;">
                       <i class="bi bi-person-circle text-primary" style="font-size: 2rem;"></i>
                     </div>
                     <h5 class="fw-bold mb-2">Profile Setup</h5>
                     <p class="text-muted small mb-0">Configure your email credentials, upload resume, and create email templates</p>
                     <div class="mt-3">
-                      <span class="badge" style="background: linear-gradient(135deg, #5a7d4e, #4a6741); color: white; padding: 0.5rem 1rem;">Get Started →</span>
+                      <span class="badge" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; padding: 0.5rem 1rem;">Get Started →</span>
                     </div>
                   </div>
                 </div>
@@ -467,14 +467,14 @@
               <a href="/email_templates" class="text-decoration-none">
                 <div class="card h-100 user-guide-card">
                   <div class="card-body p-4 text-center" style="position: relative;">
-                    <div class="position-absolute top-0 start-0 m-3" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);">💡</div>
+                    <div class="position-absolute top-0 start-0 m-3" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);">💡</div>
                     <div class="icon-circle mx-auto mb-3" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.2)); width: 64px; height: 64px;">
-                      <i class="bi bi-file-text-fill" style="font-size: 2rem; color: #8b5cf6;"></i>
+                      <i class="bi bi-file-text-fill" style="font-size: 2rem; color: #a8e6cf;"></i>
                     </div>
                     <h5 class="fw-bold mb-2">Email Templates</h5>
                     <p class="text-muted small mb-0">Learn from professional templates and write effective emails that get responses</p>
                     <div class="mt-3">
-                      <span class="badge" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; padding: 0.5rem 1rem;">Learn →</span>
+                      <span class="badge" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; padding: 0.5rem 1rem;">Learn →</span>
                     </div>
                   </div>
                 </div>
@@ -490,12 +490,12 @@
                        class="feature-image"
                        onerror="this.style.display='none';">
                   <div class="card-body p-4 text-center" style="position: relative;">
-                    <div class="position-absolute top-0 start-0 m-3" style="background: linear-gradient(135deg, #5a7d4e, #4a6741); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(74, 103, 65, 0.4);">2</div>
+                    <div class="position-absolute top-0 start-0 m-3" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(139, 159, 255, 0.4);">2</div>
                     <div class="icon-circle mx-auto mb-3" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.2)); width: 64px; height: 64px;">
                       <i class="bi bi-rocket-takeoff text-success" style="font-size: 2rem;"></i>
                     </div>
                     <h5 class="fw-bold mb-2">Run Campaign</h5>
-                    <p class="text-muted small mb-0">Launch automated LinkedIn scraping and AI-powered email campaigns</p>
+                    <p class="text-muted small mb-0">Launch automated Job Scraping and AI-powered email campaigns</p>
                     <div class="mt-3">
                       <span class="badge" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.5rem 1rem;">Launch →</span>
                     </div>
@@ -513,7 +513,7 @@
                        class="feature-image"
                        onerror="this.style.display='none';">
                   <div class="card-body p-4 text-center" style="position: relative;">
-                    <div class="position-absolute top-0 start-0 m-3" style="background: linear-gradient(135deg, #5a7d4e, #4a6741); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(74, 103, 65, 0.4);">3</div>
+                    <div class="position-absolute top-0 start-0 m-3" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(139, 159, 255, 0.4);">3</div>
                     <div class="icon-circle mx-auto mb-3" style="background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(245,158,11,0.2)); width: 64px; height: 64px;">
                       <i class="bi bi-briefcase-fill text-warning" style="font-size: 2rem;"></i>
                     </div>
@@ -536,7 +536,7 @@
                        class="feature-image"
                        onerror="this.style.display='none';">
                   <div class="card-body p-4 text-center" style="position: relative;">
-                    <div class="position-absolute top-0 start-0 m-3" style="background: linear-gradient(135deg, #5a7d4e, #4a6741); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(74, 103, 65, 0.4);">4</div>
+                    <div class="position-absolute top-0 start-0 m-3" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(139, 159, 255, 0.4);">4</div>
                     <div class="icon-circle mx-auto mb-3" style="background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.2)); width: 64px; height: 64px;">
                       <i class="bi bi-clock-history text-danger" style="font-size: 2rem;"></i>
                     </div>
@@ -552,14 +552,14 @@
           </div>
 
           <!-- Quick Tips -->
-          <div class="mt-4 pt-4" style="border-top: 2px dashed rgba(74,103,65,0.2);">
-            <h5 class="fw-bold mb-3 text-center" style="color: #4a6741;">
+          <div class="mt-4 pt-4" style="border-top: 2px dashed rgba(139,159,255,0.2);">
+            <h5 class="fw-bold mb-3 text-center" style="color: #8b9fff;">
               <i class="bi bi-stars me-2"></i>Quick Tips
             </h5>
             <div class="row g-3">
               <div class="col-md-4">
                 <div class="d-flex align-items-start">
-                  <div class="me-2" style="color: #4a6741; font-size: 1.5rem;">
+                  <div class="me-2" style="color: #8b9fff; font-size: 1.5rem;">
                     <i class="bi bi-check-circle-fill"></i>
                   </div>
                   <div>
@@ -570,7 +570,7 @@
               </div>
               <div class="col-md-4">
                 <div class="d-flex align-items-start">
-                  <div class="me-2" style="color: #4a6741; font-size: 1.5rem;">
+                  <div class="me-2" style="color: #8b9fff; font-size: 1.5rem;">
                     <i class="bi bi-check-circle-fill"></i>
                   </div>
                   <div>
@@ -581,7 +581,7 @@
               </div>
               <div class="col-md-4">
                 <div class="d-flex align-items-start">
-                  <div class="me-2" style="color: #4a6741; font-size: 1.5rem;">
+                  <div class="me-2" style="color: #8b9fff; font-size: 1.5rem;">
                     <i class="bi bi-check-circle-fill"></i>
                   </div>
                   <div>
@@ -604,7 +604,7 @@
         <div class="col-md-4">
           <div class="card stats-card h-100">
             <div class="card-body p-4 text-center">
-              <div class="icon-circle mb-3" style="background: rgba(99,102,241,0.1);">
+              <div class="icon-circle mb-3" style="background: rgba(168,230,207,0.1);">
                 <i class="bi bi-send-check-fill text-primary"></i>
               </div>
               <h3 class="display-6 fw-bold mb-1" id="stat-sent">{{ stats.sent }}</h3>
@@ -615,7 +615,7 @@
         <div class="col-md-4">
           <div class="card stats-card h-100">
             <div class="card-body p-4 text-center">
-              <div class="icon-circle mb-3" style="background: rgba(99,102,241,0.1);">
+              <div class="icon-circle mb-3" style="background: rgba(168,230,207,0.1);">
                 <i class="bi bi-skip-forward-fill text-primary"></i>
               </div>
               <h3 class="display-6 fw-bold mb-1" id="stat-skipped">{{ stats.skipped }}</h3>
@@ -626,7 +626,7 @@
         <div class="col-md-4">
           <div class="card stats-card h-100">
             <div class="card-body p-4 text-center">
-              <div class="icon-circle mb-3" style="background: rgba(99,102,241,0.1);">
+              <div class="icon-circle mb-3" style="background: rgba(168,230,207,0.1);">
                 <i class="bi bi-exclamation-circle-fill text-primary"></i>
               </div>
               <h3 class="display-6 fw-bold mb-1" id="stat-failed">{{ stats.failed }}</h3>
@@ -649,7 +649,7 @@
               <a href="/jobs" class="card action-link h-100">
                 <div class="card-body p-4">
                   <div class="d-flex align-items-center">
-                    <div class="icon-circle me-3" style="background: rgba(99,102,241,0.1);">
+                    <div class="icon-circle me-3" style="background: rgba(168,230,207,0.1);">
                       <i class="bi bi-briefcase-fill text-primary"></i>
                     </div>
                     <div>
@@ -665,7 +665,7 @@
               <a href="/sent_emails" class="card action-link h-100">
                 <div class="card-body p-4">
                   <div class="d-flex align-items-center">
-                    <div class="icon-circle me-3" style="background: rgba(99,102,241,0.1);">
+                    <div class="icon-circle me-3" style="background: rgba(168,230,207,0.1);">
                       <i class="bi bi-clock-history text-primary"></i>
                     </div>
                     <div>
@@ -697,11 +697,11 @@
             <div class="col-md-4">
               <div class="card feature-card h-100">
                 <div class="card-body p-4 text-center">
-                  <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(99,102,241,0.2));">
+                  <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, rgba(168,230,207,0.1), rgba(168,230,207,0.2));">
                     <i class="bi bi-search text-primary"></i>
                   </div>
                   <h4 class="mb-3">Smart Discovery</h4>
-                  <p class="text-muted mb-0">Automatically scan LinkedIn for job postings that match your target roles and extract contact information from hiring managers.</p>
+                  <p class="text-muted mb-0">Automatically scan jobs for job postings that match your target roles and extract contact information from hiring managers.</p>
                 </div>
               </div>
             </div>
@@ -709,7 +709,7 @@
             <div class="col-md-4">
               <div class="card feature-card h-100">
                 <div class="card-body p-4 text-center">
-                  <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(99,102,241,0.2));">
+                  <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, rgba(168,230,207,0.1), rgba(168,230,207,0.2));">
                     <i class="bi bi-pencil-square text-primary"></i>
                   </div>
                   <h4 class="mb-3">AI-Powered Outreach</h4>
@@ -721,7 +721,7 @@
             <div class="col-md-4">
               <div class="card feature-card h-100">
                 <div class="card-body p-4 text-center">
-                  <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(99,102,241,0.2));">
+                  <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, rgba(168,230,207,0.1), rgba(168,230,207,0.2));">
                     <i class="bi bi-graph-up text-primary"></i>
                   </div>
                   <h4 class="mb-3">Track & Optimize</h4>
@@ -804,3 +804,4 @@
   })();
 </script>
 {% endblock %}
+

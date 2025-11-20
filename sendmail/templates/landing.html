@@ -1,0 +1,3793 @@
+﻿<!DOCTYPE html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JustMailIt - Automate Your Job Search</title>
+  
+  <!-- Preconnect to external domains for faster loading -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com">
+  
+  <!-- Critical CSS only - loads first -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Non-critical CSS - can load async -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #e8f8f3 0%, #f0f5ff 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+    
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .animate-fade-in {
+      animation: fadeInUp 0.8s ease-out forwards;
+    }
+    
+    .animate-delay-1 { animation-delay: 0.2s; opacity: 0; }
+    .animate-delay-2 { animation-delay: 0.4s; opacity: 0; }
+    .animate-delay-3 { animation-delay: 0.6s; opacity: 0; }
+    
+    /* Navigation */
+    .landing-nav {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1rem 0;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+      border-bottom: 1px solid rgba(168,230,207,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+    
+    .landing-nav.scrolled {
+      padding: 0.5rem 0;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    }
+    
+    .nav-logo {
+      height: 110px;
+      width: auto;
+      transition: transform 0.3s ease;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.2));
+    }
+
+    .nav-logo:hover { 
+      transform: scale(1.05);
+      filter: drop-shadow(0 8px 16px rgba(139,159,255,0.5));
+    }
+    
+    .nav-brand {
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: #8b9fff;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .navbar-toggler {
+      border: 2px solid #a8e6cf;
+    }
+    
+    .navbar-toggler-icon {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(168, 230, 207, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    }
+    
+    .nav-link {
+      transition: all 0.2s ease;
+      border-radius: 10px;
+    }
+    
+    .nav-link:hover {
+      background: rgba(168,230,207,0.1) !important;
+      color: #8b9fff !important;
+    }
+    
+    .nav-link i {
+      margin-right: 0.4rem;
+      font-size: 1.1em;
+    }
+    
+    .btn-get-started {
+      background: linear-gradient(135deg, #a8e6cf 0%, #8b9fff 100%);
+      color: white;
+      padding: 0.85rem 2.1rem;
+      border-radius: 9999px;
+      border: none;
+      font-weight: 700;
+      text-decoration: none;
+      letter-spacing: .2px;
+      transition: all 0.25s ease;
+      box-shadow: 0 10px 24px rgba(139, 159, 255, 0.25);
+      cursor: pointer;
+    }
+    
+    .btn-get-started:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(139, 159, 255, 0.35);
+      color: white;
+    }
+    
+    /* Login Modal */
+    .login-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .login-modal.show {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .login-modal-content {
+      background: white;
+      border-radius: 20px;
+      padding: 0;
+      max-width: 1000px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.4s ease;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+    }
+    
+    @keyframes slideUp {
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      font-size: 1.3rem;
+      color: #2d3748;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 10;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-close:hover {
+      background: white;
+      transform: scale(1.1);
+    }
+    
+    .modal-left {
+      flex: 1;
+      background: linear-gradient(135deg, #7c88ff 0%, #8b9fff 100%);
+      padding: 3rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .modal-left::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    
+    .modal-hero-content {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .modal-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      color: white;
+    }
+    
+    .modal-logo i {
+      font-size: 1.8rem;
+    }
+    
+    .modal-hero-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+    
+    .modal-hero-subtitle {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.95);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    
+    .modal-feature-box {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    
+    .modal-feature-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .modal-feature-text {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.5;
+    }
+    
+    .modal-right {
+      flex: 1;
+      padding: 3rem;
+      overflow-y: auto;
+      background: white;
+      border-radius: 0 20px 20px 0;
+    }
+    
+    .modal-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 0.5rem;
+    }
+    
+    .modal-subtitle {
+      color: #718096;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+    
+    .modal-subtitle a {
+      color: #7c88ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .modal-subtitle a:hover {
+      text-decoration: underline;
+    }
+    
+    .auth-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-radius: 12px;
+      background: #f5f5f5;
+      padding: 0.4rem;
+    }
+    
+    .auth-tab {
+      flex: 1;
+      padding: 0.8rem;
+      background: none;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #718096;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 8px;
+    }
+    
+    .auth-tab.active {
+      color: white;
+      background: #7c88ff;
+    }
+    
+    .auth-tab:hover {
+      color: #2d3748;
+    }
+    
+    .auth-form {
+      display: none;
+    }
+    
+    .auth-form.active {
+      display: block;
+    }
+    
+    .login-form .form-label {
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    
+    .login-form .form-control {
+      padding: 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      width: 100%;
+      background: #f8f9fa;
+    }
+    
+    .login-form .form-control:focus {
+      border-color: #7c88ff;
+      box-shadow: 0 0 0 4px rgba(124, 136, 255, 0.1);
+      outline: none;
+      background: white;
+    }
+    
+    .login-form .btn-submit {
+      background: #7c88ff;
+      color: white;
+      padding: 1rem;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      font-size: 1.05rem;
+      width: 100%;
+      margin-top: 1.5rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .login-form .btn-submit:hover {
+      background: #6b78ee;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(124, 136, 255, 0.3);
+    }
+    
+    .login-form .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .social-login {
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    .social-login-text {
+      color: #718096;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    
+    .btn-social {
+      background: white;
+      border: 2px solid #e2e8f0;
+      padding: 0.85rem;
+      border-radius: 12px;
+      font-weight: 600;
+      color: #2d3748;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 0.75rem;
+    }
+    
+    .btn-social:hover {
+      border-color: #7c88ff;
+      background: #f7fafc;
+    }
+    
+    .btn-social i {
+      font-size: 1.3rem;
+    }
+    
+    .btn-google i {
+      color: #DB4437;
+    }
+    
+    .btn-linkedin i {
+      color: #0077B5;
+    }
+    
+    .form-text-small {
+      font-size: 0.875rem;
+      color: #718096;
+      margin-top: 0.5rem;
+    }
+    
+    .forgot-password {
+      text-align: right;
+      margin-top: 0.5rem;
+    }
+    
+    .forgot-password a {
+      color: #718096;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    
+    .forgot-password a:hover {
+      color: #7c88ff;
+      text-decoration: underline;
+    }
+    
+    .divider {
+      text-align: center;
+      margin: 1.5rem 0;
+      color: #718096;
+      font-size: 0.9rem;
+      position: relative;
+    }
+    
+    .divider::before,
+    .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background: #e2e8f0;
+    }
+    
+    .divider::before {
+      left: 0;
+    }
+    
+    .divider::after {
+      right: 0;
+    }
+    
+    .terms-text {
+      font-size: 0.85rem;
+      color: #718096;
+      text-align: center;
+      margin-top: 1.5rem;
+      line-height: 1.5;
+    }
+    
+    .terms-text a {
+      color: #7c88ff;
+      text-decoration: none;
+    }
+    
+    .terms-text a:hover {
+      text-decoration: underline;
+    }
+    
+    .error-message {
+      background: #fee;
+      border: 1px solid #fcc;
+      color: #c33;
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      display: none;
+    }
+    
+    .error-message.show {
+      display: block;
+    }
+    
+    .success-message {
+      background: #efe;
+      border: 1px solid #cfc;
+      color: #3c3;
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      display: none;
+    }
+    
+    .success-message.show {
+      display: block;
+    }
+    
+    /* Notification Modal */
+    .notification-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .notification-modal.show {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .notification-content {
+      background: white;
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.4s ease;
+      text-align: center;
+    }
+    
+    .notification-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+    }
+    
+    .notification-icon.success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+    
+    .notification-icon.error {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+    
+    .notification-icon.warning {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+    
+    .notification-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 1rem;
+    }
+    
+    .notification-message {
+      font-size: 1.05rem;
+      color: #4a5568;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    
+    .notification-close {
+      background: linear-gradient(135deg, #7c88ff, #667eea);
+      color: white;
+      padding: 0.85rem 2rem;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    
+    .notification-close:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(124, 136, 255, 0.3);
+    }
+    
+    /* Confirmation Modal */
+    .confirm-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 10001;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .confirm-modal.show {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .confirm-content {
+      background: white;
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.4s ease;
+      text-align: center;
+    }
+    
+    .confirm-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: white;
+    }
+    
+    .confirm-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 1rem;
+    }
+    
+    .confirm-message {
+      font-size: 1.05rem;
+      color: #4a5568;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    
+    .confirm-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .confirm-btn {
+      flex: 1;
+      padding: 0.85rem 2rem;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .confirm-btn-yes {
+      background: linear-gradient(135deg, #7c88ff, #667eea);
+      color: white;
+    }
+    
+    .confirm-btn-yes:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(124, 136, 255, 0.3);
+    }
+    
+    .confirm-btn-no {
+      background: white;
+      color: #4a5568;
+      border: 2px solid #e2e8f0;
+    }
+    
+    .confirm-btn-no:hover {
+      background: #f7fafc;
+      border-color: #cbd5e0;
+    }
+    
+    /* Password Reset Modal */
+    .password-reset-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 10002;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .password-reset-modal.show {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .password-reset-content {
+      background: white;
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.4s ease;
+    }
+    
+    .password-reset-content h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    
+    .password-reset-content p {
+      color: #4a5568;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    .password-reset-content .form-control {
+      padding: 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1rem;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    
+    .password-reset-content .form-control:focus {
+      border-color: #7c88ff;
+      box-shadow: 0 0 0 4px rgba(124, 136, 255, 0.1);
+      outline: none;
+    }
+    
+    .password-reset-content .btn-reset {
+      background: linear-gradient(135deg, #7c88ff, #667eea);
+      color: white;
+      padding: 1rem;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      font-size: 1.05rem;
+      width: 100%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .password-reset-content .btn-reset:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(124, 136, 255, 0.3);
+    }
+    
+    .password-reset-content .btn-reset:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    /* Hero Section */
+    .hero-section {
+      padding: 6rem 0 4rem;
+      text-align: center;
+      background: linear-gradient(135deg, #a8e6cf 0%, #8b9fff 100%);
+      border-radius: 24px;
+      margin: 1rem auto;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.2) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(168,230,207,0.3) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    
+    .hero-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #2d3748;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+    
+    .hero-subtitle {
+      font-size: 1.125rem;
+      color: #4a5568;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    
+    .hero-highlight {
+      background: linear-gradient(135deg, #a8e6cf 0%, #c8f5e0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 4rem;
+    }
+    
+    .btn-primary-hero {
+      background: linear-gradient(135deg, #a8e6cf 0%, #8b9fff 100%);
+      color: white;
+      padding: 0.875rem 2rem;
+      border-radius: 50px;
+      border: none;
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(168, 230, 207, 0.3);
+      cursor: pointer;
+    }
+    
+    .btn-primary-hero:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(168, 230, 207, 0.5);
+      color: white;
+    }
+    
+    .btn-secondary-hero {
+      background: white;
+      color: #8b9fff;
+      padding: 0.875rem 2rem;
+      border-radius: 50px;
+      border: 2px solid #a8e6cf;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-secondary-hero:hover {
+      background: #f0f7ed;
+      color: #8b9fff;
+    }
+    
+    .hero-feature {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .hero-feature-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .hero-feature-text {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.6;
+    }
+    
+    /* Auth Container */
+    .auth-container {
+      max-width: 450px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      padding: 3rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    }
+    
+    .auth-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 0.5rem;
+    }
+    
+    .auth-subtitle {
+      color: #718096;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+    
+    .auth-subtitle a {
+      color: #7c88ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .auth-subtitle a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Stats Section */
+    .stats-section {
+      background: white;
+      border-radius: 20px;
+      padding: 3rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+      margin: 4rem auto;
+      max-width: 1100px;
+    }
+    
+    .stat-item {
+      text-align: center;
+      position: relative;
+    }
+    
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #a8e6cf;
+      margin-bottom: 0.5rem;
+      display: inline-block;
+    }
+    
+    .stat-number.counting {
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .stat-label {
+      font-size: 1rem;
+      color: #718096;
+      font-weight: 500;
+    }
+    
+    .stat-chart {
+      margin-top: 1rem;
+      height: 60px;
+    }
+    
+    /* Data Visualization Section */
+    .data-viz-section {
+      padding: 6rem 0;
+      background: linear-gradient(135deg, rgba(168, 230, 207, 0.05) 0%, rgba(139, 159, 255, 0.05) 100%);
+    }
+    
+    .chart-container {
+      background: linear-gradient(145deg, #ffffff 0%, #f8fcff 100%);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 60px rgba(139, 159, 255, 0.15),
+                  0 8px 16px rgba(0, 0, 0, 0.05);
+      margin-bottom: 2rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(139, 159, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .chart-container::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(168, 230, 207, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    
+    .chart-container:hover {
+      transform: translateY(-8px) scale(1.01);
+      box-shadow: 0 25px 80px rgba(139, 159, 255, 0.25),
+                  0 12px 24px rgba(0, 0, 0, 0.08);
+      border-color: rgba(139, 159, 255, 0.2);
+    }
+    
+    .chart-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+    
+    .chart-subtitle {
+      font-size: 0.95rem;
+      color: #718096;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    canvas {
+      max-height: 300px !important;
+      max-width: 100% !important;
+      height: auto !important;
+    }
+    
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    
+    .comparison-card {
+      background: white;
+      border-radius: 15px;
+      padding: 2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+    }
+    
+    .comparison-card.traditional {
+      border: 3px solid #ef4444;
+    }
+    
+    .comparison-card.justmailit {
+      border: 3px solid #a8e6cf;
+      background: linear-gradient(135deg, rgba(168, 230, 207, 0.03) 0%, rgba(168, 230, 207, 0.03) 100%);
+    }
+    
+    .comparison-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+    }
+    
+    .traditional .comparison-icon {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.2));
+      color: #ef4444;
+    }
+    
+    .justmailit .comparison-icon {
+      background: linear-gradient(135deg, rgba(168, 230, 207, 0.1), rgba(168, 230, 207, 0.2));
+      color: #a8e6cf;
+    }
+    
+    .comparison-label {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    
+    .comparison-value {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+    
+    .traditional .comparison-value {
+      color: #ef4444;
+    }
+    
+    .justmailit .comparison-value {
+      color: #a8e6cf;
+    }
+    
+    .comparison-metric {
+      color: #718096;
+      font-size: 1rem;
+    }
+    
+    /* Features Section */
+    .features-section {
+      padding: 6rem 0;
+    }
+    
+    .section-title {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #2d3748;
+      margin-bottom: 1rem;
+    }
+    
+    .section-subtitle {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #718096;
+      margin-bottom: 4rem;
+    }
+    
+    .feature-card {
+      background: white;
+      border-radius: 20px;
+      padding: 2.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+      height: 100%;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    }
+    
+    .feature-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, rgba(168, 230, 207, 0.1), rgba(168, 230, 207, 0.2));
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 2rem;
+      color: #a8e6cf;
+    }
+    
+    .feature-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 1rem;
+    }
+    
+    .feature-description {
+      font-size: 1rem;
+      color: #718096;
+      line-height: 1.8;
+    }
+    
+    /* How It Works Section */
+    .how-it-works-section {
+      padding: 6rem 0;
+      background: white;
+    }
+    
+    .step-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    
+    .step-number {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, #a8e6cf 0%, #8b9fff 100%);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      box-shadow: 0 5px 20px rgba(168, 230, 207, 0.3);
+    }
+    
+    .step-content h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 0.75rem;
+    }
+    
+    .step-content p {
+      font-size: 1.1rem;
+      color: #718096;
+      line-height: 1.8;
+    }
+    
+    /* Benefits Section */
+    .benefits-section {
+      padding: 6rem 0;
+    }
+    
+    .benefit-item {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    .benefit-item:hover {
+      transform: translateX(10px);
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .benefit-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, rgba(168, 230, 207, 0.1), rgba(168, 230, 207, 0.2));
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: #a8e6cf;
+      flex-shrink: 0;
+    }
+    
+    .benefit-text h4 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 0.5rem;
+    }
+    
+    .benefit-text p {
+      font-size: 1rem;
+      color: #718096;
+      margin: 0;
+    }
+    
+    /* CTA Section */
+    .cta-section {
+      padding: 6rem 0;
+      background: linear-gradient(135deg, #a8e6cf 0%, #8b9fff 100%);
+      color: white;
+      text-align: center;
+    }
+    
+    .cta-title {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+    }
+    
+    .cta-subtitle {
+      font-size: 1.3rem;
+      margin-bottom: 3rem;
+      opacity: 0.95;
+    }
+    
+    .btn-cta {
+      background: white;
+      color: #8b9fff;
+      padding: 1.2rem 3.5rem;
+      border-radius: 50px;
+      border: none;
+      font-weight: 700;
+      font-size: 1.2rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-cta:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      color: #8b9fff;
+    }
+    
+    /* Footer styles */
+    .site-footer {
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      border-top: 1px solid #e2e8f0;
+      padding: 4rem 0 0;
+      margin-top: 6rem;
+    }
+
+    .footer-logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .footer-logo i {
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .footer-description {
+      color: #64748b;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+      max-width: 320px;
+    }
+
+    .footer-link {
+      color: #64748b;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: block;
+      margin-bottom: 0.65rem;
+      font-size: 0.925rem;
+      font-weight: 500;
+    }
+
+    .footer-link:hover {
+      color: #a8e6cf;
+      transform: translateX(4px);
+    }
+
+    .footer-heading {
+      color: #1e293b;
+      font-weight: 700;
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .social-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: white;
+      color: #a8e6cf;
+      margin-right: 0.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      font-size: 1.1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border: 1px solid #e2e8f0;
+    }
+
+    .social-icon:hover {
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
+      color: white;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(168,230,207,0.2);
+    }
+
+    .footer-bottom {
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      padding: 2rem 0;
+      margin-top: 3.5rem;
+    }
+
+    .footer-copyright {
+      color: #64748b;
+      font-size: 0.875rem;
+      margin: 0;
+    }
+
+    .footer-credits {
+      color: #64748b;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+    }
+
+    .footer-credits a {
+      color: #a8e6cf;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .footer-credits a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 100px;
+      color: #64748b;
+      font-size: 0.8rem;
+      margin-top: 0.75rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .footer-badge i {
+      color: #10b981;
+    }
+    
+    /* Email Sender Slider */
+    .email-slider-section {
+      padding: 6rem 0;
+      background: linear-gradient(135deg, rgba(139, 159, 255, 0.03) 0%, rgba(168, 230, 207, 0.03) 100%);
+    }
+    
+    .slider-container {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+    }
+    
+    .swiper-slide {
+      background: white;
+      border-radius: 24px;
+      padding: 3rem;
+      box-shadow: 0 20px 60px rgba(139, 159, 255, 0.15);
+      min-height: 420px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .slide-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2rem;
+      font-size: 2.5rem;
+      color: white;
+      box-shadow: 0 8px 24px rgba(139, 159, 255, 0.3);
+    }
+    
+    .slide-step {
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+    }
+    
+    .slide-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1a1f36;
+      margin-bottom: 1.5rem;
+    }
+    
+    .slide-description {
+      font-size: 1.1rem;
+      color: #64748b;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+    
+    .slide-features {
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0 0 0;
+      text-align: left;
+      width: 100%;
+    }
+    
+    .slide-features li {
+      padding: 0.6rem 0;
+      color: #64748b;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .slide-features li i {
+      color: #a8e6cf;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    
+    .swiper-button-next, .swiper-button-prev {
+      color: #8b9fff;
+      width: 50px;
+      height: 50px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 4px 16px rgba(139, 159, 255, 0.2);
+    }
+    
+    .swiper-button-next:after, .swiper-button-prev:after {
+      font-size: 1.5rem;
+    }
+    
+    .swiper-pagination-bullet {
+      background: #8b9fff;
+      opacity: 0.3;
+      width: 12px;
+      height: 12px;
+    }
+    
+    .swiper-pagination-bullet-active {
+      opacity: 1;
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
+    }
+    
+    @media (max-width: 768px) {
+      .landing-nav {
+        padding: 0.5rem 0;
+      }
+      
+      .nav-logo {
+        height: 60px;
+      }
+      
+      .navbar-toggler {
+        padding: 0.4rem 0.6rem;
+        border-width: 2px;
+      }
+      
+      .navbar-collapse {
+        background: linear-gradient(135deg, rgba(168, 230, 207, 0.95), rgba(139, 159, 255, 0.95));
+        backdrop-filter: blur(10px);
+        margin-top: 1rem;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+      
+      .navbar-nav {
+        gap: 0.5rem;
+      }
+      
+      .nav-link {
+        padding: 0.75rem 1rem !important;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.1) !important;
+        color: white !important;
+      }
+      
+      .nav-link:hover {
+        background: rgba(255,255,255,0.2) !important;
+      }
+      
+      .btn-get-started {
+        width: 100%;
+        margin-top: 0.5rem;
+      }
+      
+      .login-modal-content {
+        flex-direction: column;
+        max-height: 95vh;
+        overflow-y: auto;
+        width: 95%;
+      }
+      
+      .modal-left,
+      .modal-right {
+        padding: 2rem 1.5rem;
+      }
+      
+      .modal-right {
+        border-radius: 0 0 20px 20px;
+      }
+      
+      .modal-hero-title {
+        font-size: 1.6rem;
+      }
+      
+      .hero-section {
+        flex-direction: column;
+        min-height: auto;
+        padding: 3rem 1rem;
+      }
+      
+      .hero-left,
+      .hero-right {
+        padding: 2rem 1.5rem;
+      }
+      
+      .hero-title {
+        font-size: 1.75rem;
+        line-height: 1.3;
+      }
+      
+      .hero-subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      .hero-cta {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .btn-primary-hero, .btn-secondary-hero {
+        width: 100%;
+        max-width: 100%;
+      }
+      
+      .stat-number {
+        font-size: 1.75rem;
+      }
+      
+      .stat-label {
+        font-size: 0.875rem;
+      }
+      
+      .section-title {
+        font-size: 1.75rem;
+      }
+      
+      .step-card {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .cta-title {
+        font-size: 1.75rem;
+      }
+      
+      .container {
+        padding: 0 1rem;
+      }
+      
+      section {
+        padding: 3rem 0;
+      }
+      
+      .chart-container {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      .chart-title {
+        font-size: 1.125rem;
+      }
+      
+      .chart-subtitle {
+        font-size: 0.875rem;
+      }
+      
+      canvas {
+        max-height: 220px !important;
+      }
+      
+      .comparison-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      
+      .comparison-card {
+        padding: 1.5rem;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .nav-logo {
+        height: 50px;
+      }
+      
+      .hero-title {
+        font-size: 1.5rem;
+      }
+      
+      .hero-subtitle {
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+      }
+      
+      .btn-primary-hero, .btn-secondary-hero {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+      }
+      
+      .section-title {
+        font-size: 1.25rem;
+      }
+      
+      .cta-title {
+        font-size: 1.25rem;
+      }
+      
+      .stat-number {
+        font-size: 1.5rem;
+      }
+      
+      .chart-container {
+        padding: 1rem;
+      }
+      
+      .chart-title {
+        font-size: 1rem;
+      }
+      
+      canvas {
+        max-height: 180px !important;
+      }
+      
+      .modal-left {
+        display: none !important;
+      }
+      
+      .modal-right {
+        padding: 1.5rem 1rem;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+  
+  <!-- Notification Modal -->
+  <div class="notification-modal" id="notificationModal">
+    <div class="notification-content">
+      <div class="notification-icon" id="notificationIcon">
+        <i class="bi bi-check-circle-fill" id="notificationIconSymbol"></i>
+      </div>
+      <h3 class="notification-title" id="notificationTitle">Success!</h3>
+      <p class="notification-message" id="notificationMessage">Operation completed successfully.</p>
+      <button class="notification-close" onclick="closeNotification()">Got It</button>
+    </div>
+  </div>
+  
+  <!-- Confirmation Modal -->
+  <div class="confirm-modal" id="confirmModal">
+    <div class="confirm-content">
+      <div class="confirm-icon">
+        <i class="bi bi-question-circle-fill"></i>
+      </div>
+      <h3 class="confirm-title" id="confirmTitle">Confirm Action</h3>
+      <p class="confirm-message" id="confirmMessage">Are you sure?</p>
+      <div class="confirm-buttons">
+        <button class="confirm-btn confirm-btn-no" id="confirmNo">Cancel</button>
+        <button class="confirm-btn confirm-btn-yes" id="confirmYes">Confirm</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Password Reset Modal -->
+  <div class="password-reset-modal" id="passwordResetModal">
+    <div class="password-reset-content">
+      <h2>🔐 Reset Your Password</h2>
+      <p id="resetEmailDisplay">Enter your new password below</p>
+      <form id="passwordResetForm" onsubmit="completePasswordReset(event)">
+        <input type="password" class="form-control" id="newPassword" placeholder="New Password (min. 6 characters)" required minlength="6">
+        <input type="password" class="form-control" id="confirmNewPassword" placeholder="Confirm New Password" required minlength="6">
+        <button type="submit" class="btn-reset" id="resetBtn">Reset Password</button>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Login Modal -->
+  <div class="login-modal" id="loginModal">
+    <div class="login-modal-content">
+      <button class="modal-close" onclick="closeLoginModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+      
+      <!-- Left Side - Hero -->
+      <div class="modal-left">
+        <div class="modal-hero-content">
+          <div class="modal-logo">
+            <i class="bi bi-envelope-heart"></i>
+            <span>JustMailIt</span>
+          </div>
+          <h2 class="modal-hero-title">Simplify Your Job Search</h2>
+          <p class="modal-hero-subtitle">
+            Automate your job search outreach with intelligent email automation. Save time while maintaining personalized communication with hiring managers.
+          </p>
+          <div class="modal-feature-box">
+            <div class="modal-feature-title">
+              <i class="bi bi-robot"></i>
+              AI-Powered Email Generation
+            </div>
+            <p class="modal-feature-text">
+              Creates personalized emails for each opportunity using intelligent analysis of job posts and company information.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Right Side - Auth Form -->
+      <div class="modal-right">
+        <h2 class="modal-title">Sign In</h2>
+        <p class="modal-subtitle">
+          New to JustMailIt? <a href="#" onclick="switchAuthTab('signup'); return false;">Create Account</a>
+        </p>
+        
+        
+        <!-- Messages -->
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+        
+        <!-- Sign In Form -->
+        <form class="login-form auth-form active" id="signinForm" onsubmit="handleSignIn(event)">
+          <div class="mb-3">
+            <input type="email" class="form-control" id="signinEmail" placeholder="Enter your email" required>
+          </div>
+          <div class="mb-2">
+            <input type="password" class="form-control" id="signinPassword" placeholder="******" required>
+          </div>
+          <div class="forgot-password">
+            <a href="#" onclick="handleForgotPassword(); return false;">Forgot Password?</a>
+          </div>
+          <button type="submit" class="btn-submit" id="signinBtn">
+            Sign In
+          </button>
+          <div style='text-align:center; margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #e5e7eb;'>
+            <p style='color:#6b7280; font-size:0.9rem; margin:0;'>
+              Don't have an account? <a href='#' onclick='switchAuthTab("signup"); return false;' style='color:#667eea; font-weight:600; text-decoration:none;'>Sign Up</a>
+            </p>
+          </div>
+        </form>
+        
+        <!-- Sign Up Form -->
+        <form class="login-form auth-form" id="signupForm" onsubmit="handleSignUp(event)">
+          <div class="mb-3">
+            <input type="text" class="form-control" id="signupName" placeholder="Full Name" required>
+          </div>
+          <div class="mb-3">
+            <input type="email" class="form-control" id="signupEmail" placeholder="Email Address" required>
+          </div>
+          <div class="mb-3">
+            <input type="password" class="form-control" id="signupPassword" placeholder="Password (min. 6 characters)" required minlength="6">
+          </div>
+          <div class="mb-3">
+            <input type="password" class="form-control" id="signupConfirmPassword" placeholder="Confirm Password" required>
+          </div>
+          <button type="submit" class="btn-submit" id="signupBtn">
+            Sign Up
+          </button>
+          <div style='text-align:center; margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #e5e7eb;'>
+            <p style='color:#6b7280; font-size:0.9rem; margin:0;'>
+              Already a member? <a href='#' onclick='switchAuthTab("signin"); return false;' style='color:#667eea; font-weight:600; text-decoration:none;'>Sign In</a>
+            </p>
+          </div>
+        </form>
+        
+        <!-- Divider -->
+        <div class="divider">Or continue with</div>
+        
+        <!-- Social Login -->
+        <button class="btn-social btn-google" onclick="handleGoogleAuth()">
+          <i class="bi bi-google"></i>
+          Continue with Google
+        </button>
+        
+        <!-- Terms -->
+        <p class="terms-text">
+          By continuing you agree to our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg landing-nav">
+    <div class="container">
+      <a class="navbar-brand" href="/" style="display:flex;align-items:center;gap:.75rem;">
+        <img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" alt="JustMailIt Logo" class="nav-logo" onerror="this.src='{{ url_for('static', filename='images/logo.svg') }}'">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarMain">
+        <ul class="navbar-nav mx-auto">
+          <li class="nav-item"><a class="nav-link" href="/" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-house-fill"></i> Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/about" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-info-circle-fill"></i> About</a></li>
+          <li class="nav-item"><a class="nav-link" href="/blog" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-newspaper"></i> Blog</a></li>
+          <li class="nav-item"><a class="nav-link" href="/documentation" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-book-fill"></i> Docs</a></li>
+          <li class="nav-item"><a class="nav-link" href="/contact" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-envelope-fill"></i> Contact</a></li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="#" onclick="openLoginModal('signin'); return false;" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
+          <li class="nav-item"><a class="nav-link btn" href="#" onclick="openLoginModal('signup'); return false;" style="background:linear-gradient(135deg,#a8e6cf,#8b9fff);color:white;font-weight:600;padding:0.8rem 1.5rem;border-radius:10px;margin-left:0.5rem;"><i class="bi bi-person-plus-fill"></i> Sign Up</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <h1 class="hero-title">
+        Land Your Dream Job<br>
+        <span class="hero-highlight">10x Faster</span>
+      </h1>
+      <p class="hero-subtitle">
+        Automate your job applications and email outreach.<br>
+        Save hours every day with intelligent automation.
+      </p>
+      <div class="hero-cta">
+        <button class="btn-primary-hero" onclick="openLoginModal()">
+          <i class="bi bi-rocket-takeoff me-2"></i>Start Free Today
+        </button>
+        <a href="#how-it-works" class="btn-secondary-hero">
+          <i class="bi bi-play-circle me-2"></i>See How It Works
+        </a>
+      </div>
+      
+      <!-- Stats -->
+      <div class="stats-section">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="stat-item animate-fade-in">
+              <div class="stat-number" data-count="10">0</div>
+              <div class="stat-label">Emails Per Day</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-item animate-fade-in animate-delay-1">
+              <div class="stat-number" data-count="5">0</div>
+              <div class="stat-label">Hours Saved Daily</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-item animate-fade-in animate-delay-2">
+              <div class="stat-number" data-count="3">0</div>
+              <div class="stat-label">Times More Responses</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Promotional Video/Animation Section -->
+  <section class="promo-video-section" style="padding: 6rem 0; background: white; position: relative; overflow: hidden;">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6 mb-5 mb-lg-0">
+          <!-- Video/Animation Container -->
+          <div class="video-container" style="position: relative; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+            <!-- Animated Demo -->
+            <div class="demo-animation" style="background: linear-gradient(135deg, #e8f8f3 0%, #f0f5ff 100%); padding: 3rem; min-height: 500px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+              <!-- Manual vs Automated Comparison -->
+              <div class="comparison-demo" style="width: 100%; max-width: 480px;">
+                <!-- Manual Way -->
+                <div class="manual-way" style="background: white; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-left: 4px solid #ef4444;">
+                  <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(220,38,38,0.2)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 1.5rem;">
+                      Ã°Å¸ËœÂ©
+                    </div>
+                    <div>
+                      <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #2d3748;">Manual Job Search</h4>
+                      <p style="margin: 0; font-size: 0.875rem; color: #718096;">The Old Way</p>
+                    </div>
+                  </div>
+                  <ul style="list-style: none; padding: 0; margin: 0; color: #4a5568; font-size: 0.95rem;">
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0;"><i class="bi bi-x-circle-fill" style="color: #ef4444; margin-right: 0.5rem;"></i> Manually search LinkedIn posts</li>
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0;"><i class="bi bi-x-circle-fill" style="color: #ef4444; margin-right: 0.5rem;"></i> Copy-paste each recruiter email</li>
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0;"><i class="bi bi-x-circle-fill" style="color: #ef4444; margin-right: 0.5rem;"></i> Write individual emails</li>
+                    <li style="padding: 0.5rem 0;"><i class="bi bi-x-circle-fill" style="color: #ef4444; margin-right: 0.5rem;"></i> Send only 2-3 emails/day</li>
+                  </ul>
+                  <div style="margin-top: 1rem; padding: 1rem; background: rgba(239,68,68,0.05); border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 800; color: #ef4444;">5+ Hours</div>
+                    <div style="font-size: 0.875rem; color: #718096;">Wasted Daily</div>
+                  </div>
+                </div>
+
+                <!-- Arrow -->
+                <div style="text-align: center; margin: 1.5rem 0;">
+                  <div style="display: inline-block; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #a8e6cf, #8b9fff); border-radius: 50px; color: white; font-weight: 700; font-size: 1rem; box-shadow: 0 4px 15px rgba(168,230,207,0.4); animation: pulse 2s infinite;">
+                    <i class="bi bi-arrow-down" style="font-size: 1.5rem; display: block;"></i>
+                    Automate Now
+                  </div>
+                </div>
+
+                <!-- JustMailIt Way -->
+                <div class="justmailit-way" style="background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-left: 4px solid #10b981;">
+                  <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(168,230,207,0.2), rgba(139,159,255,0.2)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.5rem;">
+                      Ã°Å¸Å¡â‚¬
+                    </div>
+                    <div>
+                      <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #2d3748;">JustMailIt</h4>
+                      <p style="margin: 0; font-size: 0.875rem; color: #718096;">One-Click Automation</p>
+                    </div>
+                  </div>
+                  <ul style="list-style: none; padding: 0; margin: 0; color: #4a5568; font-size: 0.95rem;">
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0;"><i class="bi bi-check-circle-fill" style="color: #10b981; margin-right: 0.5rem;"></i> Auto-find job posts</li>
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0;"><i class="bi bi-check-circle-fill" style="color: #10b981; margin-right: 0.5rem;"></i> Extract recruiter emails</li>
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0;"><i class="bi bi-check-circle-fill" style="color: #10b981; margin-right: 0.5rem;"></i> Send unlimited personalized emails</li>
+                    <li style="padding: 0.5rem 0;"><i class="bi bi-check-circle-fill" style="color: #10b981; margin-right: 0.5rem;"></i> Direct to recruiter inbox</li>
+                  </ul>
+                  <div style="margin-top: 1rem; padding: 1rem; background: rgba(16,185,129,0.05); border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 800; color: #10b981;">5 Minutes</div>
+                    <div style="font-size: 0.875rem; color: #718096;">Setup & Run</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="promo-content" style="padding-left: 2rem;">
+            <span style="display: inline-block; padding: 0.5rem 1rem; background: linear-gradient(135deg, rgba(168,230,207,0.1), rgba(139,159,255,0.1)); color: #8b9fff; border-radius: 50px; font-weight: 600; font-size: 0.875rem; margin-bottom: 1rem;">
+              <i class="bi bi-lightning-charge-fill me-1"></i> Game-Changing Automation
+            </span>
+            <h2 style="font-size: 2.75rem; font-weight: 800; color: #2d3748; line-height: 1.2; margin-bottom: 1.5rem;">
+              Stop Wasting Time.<br>
+              <span style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Start Getting Results.</span>
+            </h2>
+            <p style="font-size: 1.15rem; color: #4a5568; line-height: 1.8; margin-bottom: 2rem;">
+              While you're manually sending 2-3 emails per day, smart job seekers are using <strong>JustMailIt</strong> to send <strong>unlimited personalized emails</strong> directly to recruiters with just one click.
+            </p>
+
+            <!-- Key Benefits -->
+            <div class="benefits-list" style="margin-bottom: 2rem;">
+              <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; padding: 1.5rem; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="flex-shrink: 0; width: 60px; height: 60px; background: linear-gradient(135deg, #a8e6cf, #8b9fff); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem;">
+                  <i class="bi bi-envelope-heart-fill"></i>
+                </div>
+                <div>
+                  <h4 style="font-size: 1.1rem; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem;">Personal Email = Better Results</h4>
+                  <p style="margin: 0; color: #718096; font-size: 0.95rem;">Send from your Gmail directly to recruiter's inbox. <strong>Higher open rates</strong> than Naukri or job portals!</p>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; padding: 1.5rem; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="flex-shrink: 0; width: 60px; height: 60px; background: linear-gradient(135deg, #8b9fff, #a8e6cf); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem;">
+                  <i class="bi bi-rocket-takeoff-fill"></i>
+                </div>
+                <div>
+                  <h4 style="font-size: 1.1rem; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem;">One-Click Setup</h4>
+                  <p style="margin: 0; color: #718096; font-size: 0.95rem;">Just update your <strong>profile, email subject, body, and resume</strong>. That's it! Click start and watch the magic happen.</p>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 1rem; padding: 1.5rem; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="flex-shrink: 0; width: 60px; height: 60px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem;">
+                  <i class="bi bi-infinity"></i>
+                </div>
+                <div>
+                  <h4 style="font-size: 1.1rem; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem;">Unlimited Emails Daily</h4>
+                  <p style="margin: 0; color: #718096; font-size: 0.95rem;">No limits! Send as many personalized emails as you want. <strong>More applications = More interviews.</strong></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- CTA -->
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <button onclick="openLoginModal()" style="flex: 1; min-width: 200px; padding: 1.25rem 2rem; background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 8px 20px rgba(168,230,207,0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 30px rgba(168,230,207,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(168,230,207,0.3)'">
+                <i class="bi bi-play-circle-fill me-2"></i>Start Free Now
+              </button>
+              <a href="#how-it-works" style="flex: 1; min-width: 200px; padding: 1.25rem 2rem; background: white; color: #8b9fff; border: 2px solid #8b9fff; border-radius: 12px; font-weight: 700; font-size: 1.1rem; text-decoration: none; text-align: center; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#8b9fff'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#8b9fff'">
+                <i class="bi bi-info-circle-fill me-2"></i>Learn More
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Background Decoration -->
+    <div style="position: absolute; top: -100px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(168,230,207,0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+    <div style="position: absolute; bottom: -100px; left: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(139,159,255,0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+  </section>
+
+  <!-- Data Visualization Section -->
+  <section class="data-viz-section">
+    <div class="container">
+      <h2 class="section-title">See The Difference</h2>
+      <p class="section-subtitle">Data-driven results that speak for themselves</p>
+      
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="chart-container">
+            <h3 class="chart-title">Time Investment Comparison</h3>
+            <p class="chart-subtitle">Hours per week spent on job applications</p>
+            <canvas id="timeComparisonChart"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="chart-container">
+            <h3 class="chart-title">Response Rate Growth</h3>
+            <p class="chart-subtitle">Average interview callbacks per 100 applications</p>
+            <canvas id="responseRateChart"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row mt-4">
+        <div class="col-lg-12">
+          <div class="chart-container">
+            <h3 class="chart-title">Weekly Success Metrics</h3>
+            <p class="chart-subtitle">Applications sent, emails delivered, and interviews secured</p>
+            <canvas id="weeklyMetricsChart"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <div class="comparison-grid">
+        <div class="comparison-card traditional">
+          <div class="comparison-icon">
+            <i class="bi bi-person-workspace"></i>
+          </div>
+          <h3 class="comparison-label">Traditional Method</h3>
+          <div class="comparison-value">20hrs</div>
+          <p class="comparison-metric">Per Week</p>
+        </div>
+        
+        <div class="comparison-card justmailit">
+          <div class="comparison-icon">
+            <i class="bi bi-rocket-takeoff-fill"></i>
+          </div>
+          <h3 class="comparison-label">With JustMailIt</h3>
+          <div class="comparison-value">2hrs</div>
+          <p class="comparison-metric">Per Week</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section">
+    <div class="container">
+      <h2 class="section-title">Powerful Features to Accelerate Your Job Search</h2>
+      <p class="section-subtitle">Everything you need to land interviews faster</p>
+      
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-briefcase"></i>
+            </div>
+            <h3 class="feature-title">Job Scraping</h3>
+            <p class="feature-description">
+              Automatically extract hiring manager emails from Job Posts. No more manual searching.
+            </p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-envelope-check"></i>
+            </div>
+            <h3 class="feature-title">Smart Email Sender</h3>
+            <p class="feature-description">
+              Send personalized emails to hiring managers with your resume attached automatically.
+            </p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-briefcase"></i>
+            </div>
+            <h3 class="feature-title">Job Post Manager</h3>
+            <p class="feature-description">
+              Track all your job applications, emails sent, and follow-ups in one beautiful dashboard.
+            </p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-file-text"></i>
+            </div>
+            <h3 class="feature-title">Email Templates</h3>
+            <p class="feature-description">
+              Professional, proven email templates that get responses. Customize them to your style.
+            </p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-graph-up"></i>
+            </div>
+            <h3 class="feature-title">Analytics Dashboard</h3>
+            <p class="feature-description">
+              Track your success rate, emails sent, and optimize your job search strategy.
+            </p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-shield-check"></i>
+            </div>
+            <h3 class="feature-title">Safe & Secure</h3>
+            <p class="feature-description">
+              Your data is encrypted and secure. We never share your information with anyone.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-it-works-section" id="how-it-works">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-subtitle">Get started in 3 simple steps</p>
+      
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>Enter Job Search Criteria</h3>
+              <p>
+                Tell us what job you're looking for, your location, and when the jobs were posted. 
+                We'll search jobs for matching opportunities.
+              </p>
+            </div>
+          </div>
+          
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>We Find Hiring Managers</h3>
+              <p>
+                Our smart automation scrapes job posts, extracts company details, and finds 
+                hiring manager emails automatically. No manual work required.
+              </p>
+            </div>
+          </div>
+          
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>Personalized Emails Sent</h3>
+              <p>
+                We send professional, personalized emails with your resume to each hiring manager. 
+                Track all emails and responses from your dashboard.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="benefits-section">
+    <div class="container">
+      <h2 class="section-title">Why Job Seekers Love JustMailIt</h2>
+      <p class="section-subtitle">Transform your job search today</p>
+      
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="bi bi-clock"></i>
+            </div>
+            <div class="benefit-text">
+              <h4>Save 5+ Hours Every Day</h4>
+              <p>Stop wasting time manually finding emails and sending messages. Automate it all.</p>
+            </div>
+          </div>
+          
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div class="benefit-text">
+              <h4>Get 3x More Interview Calls</h4>
+              <p>Direct outreach to hiring managers gets you noticed faster than portal applications.</p>
+            </div>
+          </div>
+          
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="benefit-text">
+              <h4>Professional Email Templates</h4>
+              <p>Use our proven templates or customize your own. Every email looks polished.</p>
+            </div>
+          </div>
+          
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="bi bi-bar-chart"></i>
+            </div>
+            <div class="benefit-text">
+              <h4>Track Everything in One Place</h4>
+              <p>See all your applications, sent emails, and responses in a beautiful dashboard.</p>
+            </div>
+          </div>
+          
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="bi bi-currency-rupee"></i>
+            </div>
+            <div class="benefit-text">
+              <h4>Affordable Pricing - Just Ã¢â€šÂ¹100/Month</h4>
+              <p>Get unlimited emails and all features for less than the price of a coffee.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <h2 class="cta-title">Ready to Land Your Dream Job?</h2>
+      <p class="cta-subtitle">
+        Join hundreds of job seekers who are already getting more interviews<br>
+        Start your free trial today - no credit card required
+      </p>
+      <button class="btn-cta" onclick="openLoginModal()">
+        <i class="bi bi-rocket-takeoff me-2"></i>Get Started Free
+      </button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="row g-5 justify-content-center">
+        <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+          <div class="footer-logo">
+            <i class="bi bi-envelope-heart"></i>
+            JustMailIt
+          </div>
+          <p class="footer-description">Smart AI-powered email automation for job search. Connect with hiring managers and land your dream job faster.</p>
+          <div class="d-flex flex-wrap">
+            <a href="https://facebook.com" class="social-icon" aria-label="Facebook" target="_blank">
+              <i class="bi bi-facebook"></i>
+            </a>
+            <a href="https://twitter.com" class="social-icon" aria-label="Twitter" target="_blank">
+              <i class="bi bi-twitter"></i>
+            </a>
+            <a href="mailto:mail@justmailit.in" class="social-icon" aria-label="Email" target="_blank">
+              <i class="bi bi-envelope-heart"></i>
+            </a>
+
+          </div>
+          <div class="footer-badge">
+            <i class="bi bi-shield-check-fill"></i>
+            <span>Open Source Project</span>
+          </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
+          <h5 class="footer-heading">Product</h5>
+          <a href="/dashboard" class="footer-link">Email Sender</a>
+          <a href="/jobs" class="footer-link">Job Posts</a>
+          <a href="/sent_emails" class="footer-link">Email History</a>
+          <a href="/profile" class="footer-link">Profile Settings</a>
+        </div>
+        
+        <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
+          <h5 class="footer-heading">Company</h5>
+          <a href="/about" class="footer-link">About Us</a>
+          <a href="/careers" class="footer-link">Careers</a>
+          <a href="/blog" class="footer-link">Blog</a>
+          <a href="/contact" class="footer-link">Contact</a>
+        </div>
+        
+        <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
+          <h5 class="footer-heading">Resources</h5>
+          <a href="/documentation" class="footer-link">Documentation</a>
+          <a href="/help" class="footer-link">Help Center</a>
+          <a href="/api" class="footer-link">API Reference</a>
+          <a href="/community" class="footer-link">Community</a>
+        </div>
+        
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5 class="footer-heading">Legal</h5>
+          <a href="/privacy" class="footer-link">Privacy Policy</a>
+          <a href="/terms" class="footer-link">Terms of Service</a>
+          <a href="/cookies" class="footer-link">Cookie Policy</a>
+          <a href="/gdpr" class="footer-link">GDPR Compliance</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+            <p class="footer-copyright">
+              Ã‚Â© 2001-2025 JustMailIt. All rights reserved.
+            </p>
+          </div>
+          <div class="col-md-6 text-center text-md-end">
+            <p class="footer-credits">
+              Built with ÂÂ¤Ã¢Ã¯Â¸Â by JustMailIt Team
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Load scripts at the end for better performance -->
+  <!-- Bootstrap JS - defer to not block page load -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+  
+  <!-- Chart.js - load synchronously to ensure charts render -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- Swiper JS - defer -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
+  
+  <!-- Firebase SDKs - async loading -->
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js" async></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js" async></script>
+  
+  <script>
+    // Wait for Firebase to load before initializing
+    let auth;
+    
+    function initializeFirebase() {
+      if (typeof firebase === 'undefined') {
+        // Firebase not loaded yet, wait a bit
+        setTimeout(initializeFirebase, 100);
+        return;
+      }
+      
+      // Firebase Configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyAqEkQOtCzx7rOf5pbHlDBHN-Cc_uOnRQw",
+        authDomain: "justmailit-d6f2d.firebaseapp.com",
+        projectId: "justmailit-d6f2d"
+      };
+      
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      auth = firebase.auth();
+      console.log('Firebase initialized');
+      
+      // Check for password reset mode
+      if (handlePasswordReset()) return;
+      
+      if (firebase.auth().isSignInWithEmailLink(window.location.href)) { completeEmailLinkSignIn(); }
+    } // End of initializeFirebase function
+    // Start initialization when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeFirebase);
+    } else {
+      initializeFirebase();
+    }
+    
+    // Handle Password Reset
+    function handlePasswordReset() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const mode = urlParams.get('mode');
+      const oobCode = urlParams.get('oobCode');
+      
+      if (mode === 'resetPassword' && oobCode) {
+        console.log('Password reset mode detected');
+        showPasswordResetModal(oobCode);
+        return true;
+      }
+      return false;
+    }
+    
+    // Show Password Reset Modal
+    async function showPasswordResetModal(oobCode) {
+      try {
+        // Verify the password reset code is valid
+        const email = await firebase.auth().verifyPasswordResetCode(oobCode);
+        console.log('Valid reset code for:', email);
+        
+        // Store the code for later use
+        window.passwordResetCode = oobCode;
+        
+        // Show modal with email
+        document.getElementById('resetEmailDisplay').textContent = `Reset password for ${email}`;
+        document.getElementById('passwordResetModal').classList.add('show');
+        document.body.style.overflow = 'hidden';
+      } catch (error) {
+        console.error('Invalid or expired reset code:', error);
+        showNotification(
+          'Invalid Reset Link',
+          'This password reset link is invalid or has expired. Please request a new password reset link.',
+          'error'
+        );
+        // Clean URL and redirect to home
+        setTimeout(() => {
+          window.history.replaceState({}, document.title, '/');
+        }, 3000);
+      }
+    }
+    
+    // Complete Password Reset
+    async function completePasswordReset(event) {
+      event.preventDefault();
+      
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmNewPassword').value;
+      const btn = document.getElementById('resetBtn');
+      
+      if (newPassword !== confirmPassword) {
+        showNotification('Password Mismatch', 'The passwords you entered do not match.', 'error');
+        return;
+      }
+      
+      if (newPassword.length < 6) {
+        showNotification('Weak Password', 'Password must be at least 6 characters long.', 'warning');
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = 'Resetting Password...';
+      
+      try {
+        // Confirm the password reset
+        await firebase.auth().confirmPasswordReset(window.passwordResetCode, newPassword);
+        
+        // Close modal
+        document.getElementById('passwordResetModal').classList.remove('show');
+        document.body.style.overflow = 'auto';
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, '/');
+        
+        // Show success and open login modal
+        showNotification(
+          'Password Reset Successful! 🎉',
+          'Your password has been updated successfully. You can now sign in with your new password.',
+          'success'
+        );
+        
+        // Open login modal after a short delay
+        setTimeout(() => {
+          openLoginModal('signin');
+        }, 2000);
+      } catch (error) {
+        console.error('Password reset error:', error);
+        let errorMessage = 'Failed to reset password. ';
+        
+        if (error.code === 'auth/weak-password') {
+          errorMessage = 'Password is too weak. Please use a stronger password.';
+        } else if (error.code === 'auth/expired-action-code') {
+          errorMessage = 'This reset link has expired. Please request a new one.';
+        } else if (error.code === 'auth/invalid-action-code') {
+          errorMessage = 'This reset link is invalid. Please request a new one.';
+        } else {
+          errorMessage += error.message;
+        }
+        
+        showNotification('Reset Failed', errorMessage, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Reset Password';
+      }
+    }
+    
+    // Complete Email Link Sign-In
+    async function completeEmailLinkSignIn() {
+      console.log(' Completing email link sign-in...');
+      let email = window.localStorage.getItem('emailForSignIn');
+      if (!email) { email = window.prompt('Please provide your email for confirmation'); }
+      if (!email) { showError('Email required'); return; }
+      try {
+        const result = await firebase.auth().signInWithEmailLink(email, window.location.href);
+        window.localStorage.removeItem('emailForSignIn');
+        const idToken = await result.user.getIdToken();
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken: idToken, displayName: result.user.displayName || result.user.email.split('@')[0] })
+        });
+        if (response.ok) {
+          showSuccess('Sign in successful! Redirecting...');
+          window.history.replaceState({}, document.title, '/landing');
+          setTimeout(() => { window.location.href = '/dashboard'; }, 1500);
+        } else { throw new Error('Backend auth failed'); }
+      } catch (error) {
+        console.error('Email link error:', error);
+        showError('Sign-in link invalid or expired. Please request a new one.');
+        window.history.replaceState({}, document.title, '/landing');
+      }
+    }
+
+    // Login Modal Functions
+    function openLoginModal(tab = 'signin') {
+      document.getElementById('loginModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+      switchAuthTab(tab);
+    }
+    
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('show');
+      document.body.style.overflow = 'auto';
+      clearMessages();
+    }
+    
+    // Close modal on outside click
+    document.getElementById('loginModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeLoginModal();
+      }
+    });
+    
+    // Switch between Sign In and Sign Up tabs
+    function switchAuthTab(tab) {
+      const forms = document.querySelectorAll('.auth-form');
+      const modalTitle = document.querySelector('.modal-title');
+      
+      forms.forEach(f => f.classList.remove('active'));
+      
+      if (tab === 'signin') {
+        document.getElementById('signinForm').classList.add('active');
+        if(modalTitle) modalTitle.textContent = 'Sign In';
+      } else {
+        document.getElementById('signupForm').classList.add('active');
+        if(modalTitle) modalTitle.textContent = 'Sign Up';
+      }
+      
+      clearMessages();
+    }
+    
+    // Show Notification Modal
+    function showNotification(title, message, type = 'success') {
+      const modal = document.getElementById('notificationModal');
+      const icon = document.getElementById('notificationIcon');
+      const iconSymbol = document.getElementById('notificationIconSymbol');
+      const titleEl = document.getElementById('notificationTitle');
+      const messageEl = document.getElementById('notificationMessage');
+      
+      // Set content
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+      
+      // Set icon based on type
+      icon.className = 'notification-icon ' + type;
+      if (type === 'success') {
+        iconSymbol.className = 'bi bi-check-circle-fill';
+      } else if (type === 'error') {
+        iconSymbol.className = 'bi bi-x-circle-fill';
+      } else if (type === 'warning') {
+        iconSymbol.className = 'bi bi-exclamation-triangle-fill';
+      }
+      
+      // Show modal
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeNotification() {
+      const modal = document.getElementById('notificationModal');
+      modal.classList.remove('show');
+      document.body.style.overflow = 'auto';
+    }
+    
+    // Custom Confirm Dialog
+    function showConfirm(title, message) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('confirmModal');
+        const titleEl = document.getElementById('confirmTitle');
+        const messageEl = document.getElementById('confirmMessage');
+        const yesBtn = document.getElementById('confirmYes');
+        const noBtn = document.getElementById('confirmNo');
+        
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        
+        const closeModal = (result) => {
+          modal.classList.remove('show');
+          document.body.style.overflow = 'auto';
+          yesBtn.onclick = null;
+          noBtn.onclick = null;
+          resolve(result);
+        };
+        
+        yesBtn.onclick = () => closeModal(true);
+        noBtn.onclick = () => closeModal(false);
+      });
+    }
+    
+    // Show error message (inline)
+    function showError(message) {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = message;
+      errorEl.classList.add('show');
+      setTimeout(() => errorEl.classList.remove('show'), 5000);
+    }
+    
+    // Show success message (inline)
+    function showSuccess(message) {
+      const successEl = document.getElementById('successMessage');
+      successEl.textContent = message;
+      successEl.classList.add('show');
+      setTimeout(() => successEl.classList.remove('show'), 5000);
+    }
+    
+    // Clear messages
+    function clearMessages() {
+      document.getElementById('errorMessage').classList.remove('show');
+      document.getElementById('successMessage').classList.remove('show');
+    }
+ 
+    // Success Modal Functions
+    function showSuccessModal(emailData) {
+      const modal = document.getElementById('successModal');
+      
+      // Update summary
+      document.getElementById('summaryRecipient').textContent = emailData.recipient || '-';
+      document.getElementById('summaryCompany').textContent = emailData.company || '-';
+      document.getElementById('summarySentAt').textContent = new Date().toLocaleString();
+      
+      // Load recent emails and stats
+      loadRecentSentEmails();
+      loadEmailStats();
+      
+      // Show modal
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+      
+      // Trigger confetti
+      createConfetti();
+    }
+    
+    function closeSuccessModal() {
+      const modal = document.getElementById('successModal');
+      modal.classList.remove('show');
+      document.body.style.overflow = 'auto';
+    }
+    
+    // Confetti Animation
+    function createConfetti() {
+      const colors = ['#667eea', '#764ba2', '#84fab0', '#8fd3f4', '#fa709a', '#fee140'];
+      const confettiCount = 50;
+      const modal = document.querySelector('.success-modal-content');
+      
+      for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 0.5 + 's';
+        confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        modal.appendChild(confetti);
+        
+        setTimeout(() => confetti.remove(), 3000);
+      }
+    }
+    
+    // Load Recent Sent Emails
+    async function loadRecentSentEmails() {
+      try {
+        const response = await fetch('/api/recent_sent_emails?limit=3');
+        if (!response.ok) throw new Error('Failed to fetch');
+        
+        const data = await response.json();
+        const listContainer = document.getElementById('recentEmailsList');
+        
+        if (data.emails && data.emails.length > 0) {
+          listContainer.innerHTML = data.emails.map(email => `
+            <div class=\"email-preview-item\">
+              <div class=\"preview-recipient\">{email.recipient_email || 'Unknown'}</div>
+              <div class=\"preview-subject\">{email.subject || 'No subject'}  {formatTimeAgo(email.sent_at)}</div>
+            </div>
+          `).join('');
+        } else {
+          listContainer.innerHTML = '<p style=\"text-align:center;color:#718096;font-size:0.85rem;padding:1rem;\">No recent emails</p>';
+        }
+      } catch (error) {
+        console.error('Error loading recent emails:', error);
+        document.getElementById('recentEmailsList').innerHTML = '<p style=\"text-align:center;color:#718096;font-size:0.85rem;\">Unable to load</p>';
+      }
+    }
+    
+    // Load Email Stats
+    async function loadEmailStats() {
+      try {
+        const response = await fetch('/api/email_stats');
+        if (!response.ok) throw new Error('Failed to fetch stats');
+        
+        const data = await response.json();
+        
+        document.getElementById('statToday').textContent = data.today || 0;
+        document.getElementById('statWeek').textContent = data.week || 0;
+        document.getElementById('statTotal').textContent = data.total || 0;
+      } catch (error) {
+        console.error('Error loading stats:', error);
+        document.getElementById('statToday').textContent = '-';
+        document.getElementById('statWeek').textContent = '-';
+        document.getElementById('statTotal').textContent = '-';
+      }
+    }
+    
+    // Format time ago
+    function formatTimeAgo(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const seconds = Math.floor((now - date) / 1000);
+      
+      if (seconds < 60) return 'Just now';
+      if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+      if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+      return Math.floor(seconds / 86400) + 'd ago';
+    }
+    
+    function scheduleFollowUp() {
+      showToast('Follow-up reminder feature coming soon! ', 'info', 'Coming Soon');
+    }
+    
+    // Handle Sign In
+    async function handleSignIn(event) {
+      event.preventDefault();
+      clearMessages();
+      
+      console.log('Sign in initiated');
+      
+      const email = document.getElementById('signinEmail').value;
+      const password = document.getElementById('signinPassword').value;
+      const btn = document.getElementById('signinBtn');
+      
+      console.log('Ã°Å¸â€œÂ§ Email:', email);
+      console.log('Ã°Å¸â€â€˜ Password length:', password.length);
+      
+      if (!email || !password) {
+        showError('Please enter both email and password');
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Signing In...';
+      
+      try {
+        console.log('Attempting Firebase authentication...');
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        console.log('Firebase auth successful:', userCredential.user.email);
+        console.log('✓ Email verified status:', userCredential.user.emailVerified);
+        
+        // CRITICAL: Check if email is verified
+        if (!userCredential.user.emailVerified) {
+          await firebase.auth().signOut();
+          
+          // Offer to resend verification email
+          const resendOption = await showConfirm(
+            'Email Not Verified',
+            'Your email is not verified yet. Would you like us to resend the verification email?'
+          );
+          if (resendOption) {
+            try {
+              await userCredential.user.sendEmailVerification();
+              showNotification(
+                'Verification Email Sent ✉️',
+                `A new verification email has been sent to ${email}. Please check your inbox and spam folder, then click the verification link.`,
+                'success'
+              );
+            } catch (resendError) {
+              showNotification(
+                'Email Not Verified',
+                'Unable to resend verification email. Please check your email inbox and spam folder for the original verification link, or try signing up again.',
+                'error'
+              );
+            }
+          } else {
+            showNotification(
+              'Email Not Verified ⚠️',
+              'You must verify your email before signing in. Please check your inbox (and spam folder) and click the verification link.',
+              'warning'
+            );
+          }
+          
+          btn.disabled = false;
+          btn.innerHTML = 'Sign In';
+          console.log('⚠ Login blocked: Email not verified');
+          return;
+        }
+        
+        console.log('✓ Email verified - proceeding');
+        
+        const idToken = await userCredential.user.getIdToken();
+        console.log('🎫 ID Token obtained, length:', idToken.length);
+        
+        // Send token to backend
+        console.log('📤 Sending token to backend /login endpoint...');
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ idToken: idToken })
+        });
+        
+        console.log('Ã°Å¸â€œÂ¥ Backend response status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Backend response:', data);
+          showSuccess('Sign in successful! Redirecting...');
+          setTimeout(() => {
+            console.log('Ã°Å¸â€â€ž Redirecting to dashboard...');
+            window.location.href = '/dashboard';
+          }, 1000);
+        } else {
+          const errorData = await response.json();
+          console.error('Ã¢ÂÅ’ Backend error:', errorData);
+          throw new Error(errorData.error || 'Authentication failed');
+        }
+      } catch (error) {
+        console.error('Sign in error:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        
+        // Special handling for wrong password - check if user exists and email verification status
+        if (error.code === 'auth/wrong-password') {
+          try {
+            // Try to get sign-in methods to check if user exists
+            const methods = await firebase.auth().fetchSignInMethodsForEmail(email);
+            if (methods && methods.length > 0) {
+              // User exists, but we need to check verification status
+              // We'll provide a helpful message that covers both scenarios
+              const checkVerification = await showConfirm(
+                'Login Failed',
+                'Incorrect password. Note: If your email is not verified, you must verify it first. Would you like to receive a new verification email?'
+              );
+              
+              if (checkVerification) {
+                // Create a temporary account to send verification (Firebase limitation workaround)
+                showNotification(
+                  'Password Required',
+                  'To resend verification email, please use the "Forgot Password" option to reset your password, or sign in with the correct password first.',
+                  'warning'
+                );
+              } else {
+                showNotification(
+                  'Incorrect Password',
+                  'The password you entered is incorrect. Please try again or use the "Forgot Password" option.',
+                  'error'
+                );
+              }
+              btn.disabled = false;
+              btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Sign In';
+              return;
+            }
+          } catch (checkError) {
+            console.error('Error checking user:', checkError);
+          }
+        }
+        
+        let errorTitle = 'Sign In Failed';
+        let errorMessage = '';
+        
+        switch (error.code) {
+          case 'auth/user-not-found':
+            errorTitle = 'Account Not Found';
+            errorMessage = 'No account exists with this email address. Please check your email or sign up for a new account.';
+            break;
+          case 'auth/wrong-password':
+            errorTitle = 'Incorrect Password';
+            errorMessage = 'The password you entered is incorrect. Please try again or use the "Forgot Password" option.';
+            break;
+          case 'auth/invalid-email':
+            errorTitle = 'Invalid Email';
+            errorMessage = 'The email address format is invalid. Please check and try again.';
+            break;
+          case 'auth/user-disabled':
+            errorTitle = 'Account Disabled';
+            errorMessage = 'This account has been disabled. Please contact support for assistance.';
+            break;
+          case 'auth/invalid-credential':
+            errorTitle = 'Sign In Failed';
+            errorMessage = 'Invalid email or password. If you recently signed up, please verify your email first by clicking the link sent to your inbox (check spam folder too), then sign in with the correct password.';
+            break;
+          case 'auth/network-request-failed':
+            errorTitle = 'Network Error';
+            errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+            break;
+          case 'auth/too-many-requests':
+            errorTitle = 'Too Many Attempts';
+            errorMessage = 'Too many failed login attempts. Please wait a few minutes and try again, or reset your password.';
+            break;
+          default:
+            errorMessage = error.message || 'An unexpected error occurred. Please try again.';
+        }
+        
+        showNotification(errorTitle, errorMessage, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Sign In';
+      }
+    }
+    
+    // Validate email format and domain
+    function validateEmailFormat(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return { valid: false, message: 'Invalid email format.' };
+      }
+      
+      // Check for common typos in popular domains
+      const commonDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'];
+      const domain = email.split('@')[1]?.toLowerCase();
+      const similarDomain = commonDomains.find(d => {
+        const distance = levenshteinDistance(domain, d);
+        return distance === 1 || distance === 2;
+      });
+      
+      if (similarDomain && domain !== similarDomain) {
+        return { valid: false, message: `Did you mean ${email.split('@')[0]}@${similarDomain}?` };
+      }
+      
+      return { valid: true };
+    }
+    
+    // Simple Levenshtein distance for typo detection
+    function levenshteinDistance(a, b) {
+      if (!a || !b) return 999;
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++) {
+        matrix[i] = [i];
+      }
+      for (let j = 0; j <= a.length; j++) {
+        matrix[0][j] = j;
+      }
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j - 1] + 1,
+              matrix[i][j - 1] + 1,
+              matrix[i - 1][j] + 1
+            );
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+    
+    // Handle Sign Up
+    async function handleSignUp(event) {
+      event.preventDefault();
+      clearMessages();
+      
+      const name = document.getElementById('signupName').value;
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      const confirmPassword = document.getElementById('signupConfirmPassword').value;
+      const btn = document.getElementById('signupBtn');
+      
+      // Validate email format
+      const emailValidation = validateEmailFormat(email);
+      if (!emailValidation.valid) {
+        showNotification('Invalid Email', emailValidation.message, 'error');
+        return;
+      }
+      
+      // Validate password match
+      if (password !== confirmPassword) {
+        showNotification('Password Mismatch', 'The passwords you entered do not match. Please try again.', 'error');
+        return;
+      }
+      
+      // Validate password strength
+      if (password.length < 6) {
+        showNotification('Weak Password', 'Password must be at least 6 characters long for security.', 'warning');
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Creating Account...';
+      
+      try {
+        // Create account with email and password
+        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        
+        // Update display name first
+        await user.updateProfile({ displayName: name });
+        
+        // Send email verification with enhanced action code settings
+        const actionCodeSettings = {
+          url: window.location.origin + '/?verified=true',
+          handleCodeInApp: false,
+          // iOS and Android deep linking (optional)
+          iOS: {
+            bundleId: 'com.justmailit.app'
+          },
+          android: {
+            packageName: 'com.justmailit.app',
+            installApp: true,
+            minimumVersion: '12'
+          },
+          // Continue URL after verification
+          dynamicLinkDomain: window.location.hostname
+        };
+        
+        try {
+          await user.sendEmailVerification(actionCodeSettings);
+          console.log('✓ Verification email sent to:', email);
+          
+          // Sign out immediately - user MUST verify email before signing in
+          await firebase.auth().signOut();
+          
+          // Show success modal with detailed instructions
+          showNotification(
+            'Welcome to JustMailIt! 🎉',
+            `Thank you for signing up, ${name}! We've sent a verification email to ${email}. Please check your inbox (and spam/junk folder) and click the "Verify Email" button to activate your account. Once verified, you can sign in and start sending unlimited job application emails!`,
+            'success'
+          );
+          
+          document.getElementById('signupForm').reset();
+          btn.disabled = false;
+          btn.innerHTML = 'Sign Up';
+          
+          // Switch to sign-in form after user closes notification
+          setTimeout(() => {
+            switchAuthTab('signin');
+            // Pre-fill the email
+            document.getElementById('signinEmail').value = email;
+          }, 1000);
+          
+        } catch (emailError) {
+          console.error('Email verification send error:', emailError);
+          
+          // Delete the created account if email couldn't be sent
+          await user.delete();
+          
+          let emailErrorMsg = 'Unable to send verification email. ';
+          
+          if (emailError.code === 'auth/invalid-email') {
+            emailErrorMsg += 'The email address appears to be invalid or does not exist.';
+          } else if (emailError.code === 'auth/quota-exceeded') {
+            emailErrorMsg += 'Email quota exceeded. Please try again later.';
+          } else {
+            emailErrorMsg += 'Please verify your email address is correct and try again.';
+          }
+          
+          showNotification(
+            'Email Delivery Failed',
+            emailErrorMsg + ' The account was not created.',
+            'error'
+          );
+          
+          btn.disabled = false;
+          btn.innerHTML = 'Sign Up';
+        }
+        
+      } catch (error) {
+        console.error('Sign up error:', error);
+        let errorTitle = 'Signup Failed';
+        let errorMessage = '';
+        
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            errorTitle = 'Email Already Registered';
+            errorMessage = 'An account with this email already exists. Please sign in or use a different email.';
+            break;
+          case 'auth/invalid-email':
+            errorTitle = 'Invalid Email';
+            errorMessage = 'The email address format is invalid. Please check and try again.';
+            break;
+          case 'auth/weak-password':
+            errorTitle = 'Weak Password';
+            errorMessage = 'Password is too weak. Use at least 6 characters with a mix of letters and numbers.';
+            break;
+          case 'auth/operation-not-allowed':
+            errorTitle = 'Service Unavailable';
+            errorMessage = 'Email/password accounts are not enabled. Please contact support.';
+            break;
+          case 'auth/network-request-failed':
+            errorTitle = 'Network Error';
+            errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+            break;
+          default:
+            errorMessage = error.message || 'An unexpected error occurred. Please try again.';
+        }
+        
+        showNotification(errorTitle, errorMessage, 'error');
+        btn.disabled = false;
+        btn.innerHTML = 'Sign Up';
+      }
+    }
+    
+    // Handle Facebook Authentication
+    async function handleFacebookAuth() {
+      clearMessages();
+      
+      try {
+        const provider = new firebase.auth.FacebookAuthProvider();
+        const result = await auth.signInWithPopup(provider);
+        const idToken = await result.user.getIdToken();
+        
+        // Send token to backend
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            idToken: idToken,
+            displayName: result.user.displayName 
+          })
+        });
+        
+        if (response.ok) {
+          showSuccess('Sign in successful! Redirecting...');
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1000);
+        } else {
+          throw new Error('Authentication failed');
+        }
+      } catch (error) {
+        console.error('Facebook auth error:', error);
+        if (error.code !== 'auth/popup-closed-by-user') {
+          showError('Failed to sign in with Facebook. Please try again.');
+        }
+      }
+    }
+    
+    // Show Phone Login Form
+    function showPhoneLogin() {
+      showError('Phone authentication will be available soon. Please use email or social login for now.');
+    }
+        // Handle Google Authentication
+    async function handleGoogleAuth() {
+      clearMessages();
+      
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const result = await auth.signInWithPopup(provider);
+        const idToken = await result.user.getIdToken();
+        
+        // Send token to backend
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            idToken: idToken,
+            displayName: result.user.displayName 
+          })
+        });
+        
+        if (response.ok) {
+          showSuccess('Sign in successful! Redirecting...');
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1000);
+        } else {
+          throw new Error('Authentication failed');
+        }
+      } catch (error) {
+        console.error('Google auth error:', error);
+        if (error.code !== 'auth/popup-closed-by-user') {
+          showError('Failed to sign in with Google. Please try again.');
+        }
+      }
+    }
+    
+    // Handle Forgot Password
+    async function handleForgotPassword() {
+      const email = document.getElementById('signinEmail').value.trim();
+      
+      if (!email) {
+        showNotification(
+          'Email Required',
+          'Please enter your email address in the email field above, then click "Forgot Password" again.',
+          'warning'
+        );
+        return;
+      }
+      
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showNotification(
+          'Invalid Email',
+          'Please enter a valid email address.',
+          'error'
+        );
+        return;
+      }
+      
+      // Confirm action
+      const confirmReset = await showConfirm(
+        'Reset Password?',
+        `We'll send a password reset link to ${email}. Click Confirm to proceed.`
+      );
+      
+      if (!confirmReset) {
+        return;
+      }
+      
+      clearMessages();
+      
+      try {
+        // Configure password reset email with action code settings
+        const actionCodeSettings = {
+          url: window.location.origin + '/?reset=success',
+          handleCodeInApp: false
+        };
+        
+        await auth.sendPasswordResetEmail(email, actionCodeSettings);
+        
+        showNotification(
+          'Password Reset Email Sent! ✉️',
+          `We've sent a password reset link to ${email}. Please check your inbox (and spam folder). Click the link in the email to create a new password. The link will expire in 1 hour.`,
+          'success'
+        );
+      } catch (error) {
+        console.error('Password reset error:', error);
+        let errorTitle = 'Password Reset Failed';
+        let errorMessage = '';
+        
+        if (error.code === 'auth/user-not-found') {
+          errorTitle = 'Account Not Found';
+          errorMessage = `No account exists with the email ${email}. Please check your email or sign up for a new account.`;
+        } else if (error.code === 'auth/invalid-email') {
+          errorTitle = 'Invalid Email';
+          errorMessage = 'The email address format is invalid. Please check and try again.';
+        } else if (error.code === 'auth/too-many-requests') {
+          errorTitle = 'Too Many Requests';
+          errorMessage = 'Too many password reset attempts. Please wait a few minutes and try again.';
+        } else if (error.code === 'auth/network-request-failed') {
+          errorTitle = 'Network Error';
+          errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+        } else {
+          errorMessage = 'Failed to send password reset email. Please try again or contact support.';
+        }
+        
+        showNotification(errorTitle, errorMessage, 'error');
+      }
+    }
+    
+    // Counter Animation
+    function animateCounter(element) {
+      const target = parseInt(element.getAttribute('data-count'));
+      const suffix = element.textContent.includes('x') ? 'x' : 
+                    element.textContent.includes('hrs') ? 'hrs' : '+';
+      const duration = 2000;
+      const increment = target / (duration / 16);
+      let current = 0;
+      
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          element.textContent = target + suffix;
+          clearInterval(timer);
+        } else {
+          element.textContent = Math.floor(current) + suffix;
+        }
+      }, 16);
+    }
+    
+    // Intersection Observer for animations
+    const observerOptions = {
+      threshold: 0.3,
+      rootMargin: '0px 0px -100px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const counters = entry.target.querySelectorAll('.stat-number');
+          counters.forEach(counter => {
+            if (!counter.classList.contains('counted')) {
+              counter.classList.add('counted', 'counting');
+              animateCounter(counter);
+            }
+          });
+        }
+      });
+    }, observerOptions);
+    
+    document.querySelectorAll('.stats-section').forEach(section => {
+      observer.observe(section);
+    });
+    
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+    
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      const nav = document.querySelector('.landing-nav');
+      if (window.scrollY > 50) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+    
+    // Chart.js Visualizations - Wait for DOM and Chart.js to load
+    // Initialize charts when DOM is ready and Chart.js is loaded
+    function initCharts() {
+      // Check if Chart is available
+      if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded, retrying...');
+        setTimeout(initCharts, 100);
+        return;
+      }
+    
+    // Time Comparison Chart
+    const timeCtx = document.getElementById('timeComparisonChart')?.getContext('2d');
+    if (!timeCtx) {
+      console.error('timeComparisonChart canvas not found');
+      return;
+    }
+    
+    // Create gradient for traditional method
+    const traditionalGradient = timeCtx.createLinearGradient(0, 0, 0, 400);
+    traditionalGradient.addColorStop(0, 'rgba(255, 107, 107, 0.8)');
+    traditionalGradient.addColorStop(1, 'rgba(239, 68, 68, 0.5)');
+    
+    // Create gradient for JustMailIt
+    const justmailitGradient = timeCtx.createLinearGradient(0, 0, 0, 400);
+    justmailitGradient.addColorStop(0, 'rgba(139, 159, 255, 0.8)');
+    justmailitGradient.addColorStop(1, 'rgba(168, 230, 207, 0.5)');
+    
+    new Chart(timeCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Finding Jobs', 'Researching', 'Writing Emails', 'Sending', 'Follow-ups'],
+        datasets: [{
+          label: 'Traditional Method (hours)',
+          data: [5, 4, 6, 3, 2],
+          backgroundColor: traditionalGradient,
+          borderColor: 'rgba(255, 107, 107, 1)',
+          borderWidth: 2,
+          borderRadius: 8,
+          borderSkipped: false
+        }, {
+          label: 'With JustMailIt (hours)',
+          data: [0.5, 0.3, 0.2, 0.5, 0.5],
+          backgroundColor: justmailitGradient,
+          borderColor: 'rgba(139, 159, 255, 1)',
+          borderWidth: 2,
+          borderRadius: 8,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              font: { size: 13, weight: '600', family: 'Inter' },
+              padding: 20,
+              usePointStyle: true,
+              pointStyle: 'rectRounded',
+              boxWidth: 12,
+              boxHeight: 12
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(139, 159, 255, 0.1)',
+              drawBorder: false
+            },
+            ticks: {
+              font: { size: 12, family: 'Inter' },
+              callback: function(value) {
+                return value + ' hrs';
+              }
+            }
+          },
+          x: {
+            grid: {
+              display: false,
+              drawBorder: false
+            },
+            ticks: {
+              font: { size: 11, family: 'Inter' }
+            }
+          }
+        }
+      }
+    });
+    
+    // Response Rate Chart
+    const responseCtx = document.getElementById('responseRateChart')?.getContext('2d');
+    if (!responseCtx) {
+      console.error('responseRateChart canvas not found');
+      return;
+    }
+    new Chart(responseCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Traditional (3%)', 'JustMailIt (12%)'],
+        datasets: [{
+          data: [3, 12],
+          backgroundColor: [
+            'rgba(255, 107, 107, 0.75)',
+            'rgba(139, 159, 255, 0.85)'
+          ],
+          borderColor: [
+            'rgba(255, 107, 107, 1)',
+            'rgba(139, 159, 255, 1)'
+          ],
+          borderWidth: 3,
+          hoverOffset: 15,
+          hoverBorderWidth: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: '60%',
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              font: { size: 13, weight: '600', family: 'Inter' },
+              padding: 20,
+              usePointStyle: true,
+              pointStyle: 'rectRounded',
+              boxWidth: 12,
+              boxHeight: 12
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            titleColor: '#2d3748',
+            bodyColor: '#4a5568',
+            borderColor: 'rgba(139, 159, 255, 0.3)',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: true,
+            boxPadding: 6,
+            callbacks: {
+              label: function(context) {
+                return context.label + ': ' + context.parsed + '% response rate';
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    // Weekly Metrics Chart
+    const weeklyCtx = document.getElementById('weeklyMetricsChart')?.getContext('2d');
+    if (!weeklyCtx) {
+      console.error('weeklyMetricsChart canvas not found');
+      return;
+    }
+    
+    // Create gradients for each line
+    const appsGradient = weeklyCtx.createLinearGradient(0, 0, 0, 400);
+    appsGradient.addColorStop(0, 'rgba(139, 159, 255, 0.3)');
+    appsGradient.addColorStop(1, 'rgba(139, 159, 255, 0.01)');
+    
+    const emailsGradient = weeklyCtx.createLinearGradient(0, 0, 0, 400);
+    emailsGradient.addColorStop(0, 'rgba(168, 230, 207, 0.35)');
+    emailsGradient.addColorStop(1, 'rgba(168, 230, 207, 0.01)');
+    
+    const interviewsGradient = weeklyCtx.createLinearGradient(0, 0, 0, 400);
+    interviewsGradient.addColorStop(0, 'rgba(255, 182, 193, 0.35)');
+    interviewsGradient.addColorStop(1, 'rgba(255, 182, 193, 0.01)');
+    
+    new Chart(weeklyCtx, {
+      type: 'line',
+      data: {
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        datasets: [{
+          label: 'Applications Sent',
+          data: [45, 52, 58, 65],
+          borderColor: 'rgba(139, 159, 255, 1)',
+          backgroundColor: appsGradient,
+          tension: 0.4,
+          fill: true,
+          borderWidth: 3,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#8b9fff',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointHoverBackgroundColor: '#8b9fff',
+          pointHoverBorderColor: '#fff'
+        }, {
+          label: 'Emails Delivered',
+          data: [42, 50, 56, 63],
+          borderColor: 'rgba(168, 230, 207, 1)',
+          backgroundColor: emailsGradient,
+          tension: 0.4,
+          fill: true,
+          borderWidth: 3,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#a8e6cf',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointHoverBackgroundColor: '#a8e6cf',
+          pointHoverBorderColor: '#fff'
+        }, {
+          label: 'Interviews Secured',
+          data: [5, 8, 10, 14],
+          borderColor: 'rgba(255, 182, 193, 1)',
+          backgroundColor: interviewsGradient,
+          tension: 0.4,
+          fill: true,
+          borderWidth: 3,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#ffb6c1',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointHoverBackgroundColor: '#ffb6c1',
+          pointHoverBorderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              font: { size: 13, weight: '600', family: 'Inter' },
+              padding: 20,
+              usePointStyle: true,
+              pointStyle: 'rectRounded',
+              boxWidth: 12,
+              boxHeight: 12
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            titleColor: '#2d3748',
+            bodyColor: '#4a5568',
+            borderColor: 'rgba(139, 159, 255, 0.3)',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: true,
+            boxPadding: 6
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(139, 159, 255, 0.1)',
+              drawBorder: false
+            },
+            ticks: {
+              font: { size: 12, family: 'Inter' }
+            }
+          },
+          x: {
+            grid: {
+              display: false,
+              drawBorder: false
+            },
+            ticks: {
+              font: { size: 12, family: 'Inter' }
+            }
+          }
+        }
+      }
+    });
+    
+    console.log('Charts initialized successfully');
+    } // End of initCharts function
+    
+    // Start chart initialization when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initCharts);
+    } else {
+      initCharts();
+    }
+    
+  </script>
+</body>
+</html>
+
+
+
+
+
+

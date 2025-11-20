@@ -16,7 +16,7 @@
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(12px);
     border-radius: 24px;
-    border: 1px solid rgba(99,102,241,0.1);
+    border: 1px solid rgba(168,230,207,0.1);
     box-shadow: var(--card-shadow);
     color: var(--text-dark);
     padding: 2rem;
@@ -55,13 +55,13 @@
     padding: 1.5rem;
     text-align: center;
     flex: 1;
-    border: 1px solid rgba(99,102,241,0.1);
+    border: 1px solid rgba(168,230,207,0.1);
     transition: all 0.3s ease;
   }
 
   .stat-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(99,102,241,0.12);
+    box-shadow: 0 12px 24px rgba(168,230,207,0.12);
   }
 
   /* Form group styling */
@@ -85,7 +85,7 @@
   }
 
   .input-group-text {
-    background: rgba(99,102,241,0.1);
+    background: rgba(168,230,207,0.1);
     border: 2px solid #e5e7eb;
     border-right: none;
     color: var(--text-dark);
@@ -111,7 +111,7 @@
   .form-control:focus {
     background: #ffffff;
     border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+    box-shadow: 0 0 0 4px rgba(168,230,207,0.1);
   }
 
   /* Helper text */
@@ -135,7 +135,7 @@
   .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(0, 114, 255, 0.4);
-    background: linear-gradient(135deg, #0081ff 0%, #00d4ff 100%);
+    background: linear-gradient(135deg, #a8e6cf 0%, #7ba366 100%);
   }
 
   .btn-primary:active {
@@ -157,7 +157,7 @@
 
   .alert-info {
     background: rgba(0, 114, 255, 0.1);
-    border-left: 4px solid #0072ff;
+    border-left: 4px solid #8b9fff;
   }
 
   .alert-light {
@@ -174,7 +174,7 @@
   }
 
   .progress-bar {
-    background: linear-gradient(90deg, #00c6ff, #0072ff);
+    background: linear-gradient(90deg, #c8f5e0, #8b9fff);
     height: 100%;
     width: 0%;
     border-radius: 10px;
@@ -189,7 +189,7 @@
     overflow-y: auto;
     font-family: "Fira Code", monospace;
     font-size: 14px;
-    color: #b9dfff;
+    color: #d4e8d0;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
     white-space: pre-wrap;
   }
@@ -325,10 +325,10 @@
   <div class="row mb-5">
     <div class="col-lg-10 mx-auto">
       <div class="campaign-header">
-        <div class="campaign-icon" style="--gradient-start: #6366f1; --gradient-end: #818cf8">
+        <div class="campaign-icon" style="--gradient-start: #a8e6cf; --gradient-end: #c8f5e0">
           <i class="bi bi-rocket"></i>
         </div>
-        <h1 class="display-5 fw-bold mb-3">LinkedIn Email Campaign</h1>
+        <h1 class="display-5 fw-bold mb-3">Email Campaign</h1>
         <p class="lead text-muted mb-5">
           Streamline your job search with automated, personalized email outreach
         </p>
@@ -336,7 +336,7 @@
         <!-- Stats Row -->
         <div class="stats-row">
           <div class="stat-card">
-            <div class="icon-circle mb-3" style="background: rgba(99,102,241,0.1);">
+            <div class="icon-circle mb-3" style="background: rgba(168,230,207,0.1);">
               <i class="bi bi-envelope-fill text-primary"></i>
             </div>
             <h3 class="display-6 fw-bold mb-1" id="total-emails">0</h3>
@@ -344,7 +344,7 @@
           </div>
           
           <div class="stat-card">
-            <div class="icon-circle mb-3" style="background: rgba(99,102,241,0.1);">
+            <div class="icon-circle mb-3" style="background: rgba(168,230,207,0.1);">
               <i class="bi bi-send-check-fill text-primary"></i>
             </div>
             <h3 class="display-6 fw-bold mb-1" id="sent-emails">0</h3>
@@ -352,7 +352,7 @@
           </div>
           
           <div class="stat-card">
-            <div class="icon-circle mb-3" style="background: rgba(99,102,241,0.1);">
+            <div class="icon-circle mb-3" style="background: rgba(168,230,207,0.1);">
               <i class="bi bi-graph-up text-primary"></i>
             </div>
             <h3 class="display-6 fw-bold mb-1" id="success-rate">0%</h3>
@@ -374,16 +374,16 @@
         <div class="row g-4">
           <div class="col-md-4">
             <div class="stat-card text-center">
-              <div class="icon-circle mb-3" style="background: rgba(99,102,241,0.1);">
+              <div class="icon-circle mb-3" style="background: rgba(168,230,207,0.1);">
                 <i class="bi bi-search-heart text-primary"></i>
               </div>
               <h6 class="fw-bold mb-2">1. Search & Find</h6>
-              <p class="text-muted small mb-0">System searches LinkedIn for relevant job posts from the past week</p>
+              <p class="text-muted small mb-0">System searches jobs for relevant job posts from the past week</p>
             </div>
           </div>
           <div class="col-md-4">
             <div class="stat-card text-center">
-              <div class="icon-circle mb-3" style="background: rgba(99,102,241,0.1);">
+              <div class="icon-circle mb-3" style="background: rgba(168,230,207,0.1);">
                 <i class="bi bi-envelope-paper text-primary"></i>
               </div>
               <h6 class="fw-bold mb-2">2. Extract & Prepare</h6>
@@ -392,7 +392,7 @@
           </div>
           <div class="col-md-4">
             <div class="stat-card text-center">
-              <div class="icon-circle mb-3" style="background: rgba(99,102,241,0.1);">
+              <div class="icon-circle mb-3" style="background: rgba(168,230,207,0.1);">
                 <i class="bi bi-send-check text-primary"></i>
               </div>
               <h6 class="fw-bold mb-2">3. Send & Track</h6>
@@ -410,7 +410,7 @@
       <form id="automationForm" enctype="multipart/form-data">
         <!-- Config Alert -->
         <div class="alert alert-info d-flex align-items-center mb-4 border-0" 
-             style="background: rgba(99,102,241,0.1);">
+             style="background: rgba(168,230,207,0.1);">
           <i class="bi bi-info-circle-fill fs-4 me-3 text-primary"></i>
           <div>
             <h6 class="mb-1 fw-bold">Email Configuration</h6>
@@ -507,6 +507,10 @@
           <div class="d-flex align-items-center mt-2">
             <a href="/profile" class="text-primary text-decoration-none small">
               <i class="bi bi-gear me-1"></i>Load template from profile
+            </a>
+            <span class="text-muted mx-2">•</span>
+            <a href="/email_templates" target="_blank" class="text-primary text-decoration-none small">
+              <i class="bi bi-stars me-1"></i>Browse professional templates
             </a>
             <span class="text-muted mx-2">•</span>
             <span class="text-muted small">Use {company} placeholder for company name</span>
@@ -702,14 +706,109 @@ document.addEventListener('DOMContentLoaded', () => {
       emailList: new Set()
     };
     
+    // Restore progress state if user returns to page
+    restoreProgressState();
+    
     // Initialize event handlers
     automationForm.addEventListener('submit', handleSubmit);
+    
+    // Check if there's an active automation running
+    checkActiveAutomation();
   });
+
+  // Save progress state to sessionStorage
+  function saveProgressState() {
+    try {
+      const state = {
+        stats: {
+          emailsFound: window.stats.emailsFound,
+          emailsSent: window.stats.emailsSent,
+          emailsFailed: window.stats.emailsFailed,
+          emailList: Array.from(window.stats.emailList)
+        },
+        progressBox: document.getElementById('progressBox')?.innerHTML || '',
+        progressBar: document.getElementById('progressBar')?.style.width || '0%',
+        progressBarColor: document.getElementById('progressBar')?.style.backgroundColor || '#8b9fff',
+        progressStatus: document.getElementById('progressStatus')?.textContent || 'Initializing...',
+        progressStatusClass: document.getElementById('progressStatus')?.className || 'badge bg-secondary',
+        isRunning: document.getElementById('runBtn')?.disabled || false,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem('emailAutomationState', JSON.stringify(state));
+    } catch (err) {
+      console.warn('Failed to save progress state:', err);
+    }
+  }
+
+  // Restore progress state from sessionStorage
+  function restoreProgressState() {
+    try {
+      const saved = sessionStorage.getItem('emailAutomationState');
+      if (!saved) return;
+
+      const state = JSON.parse(saved);
+      
+      // Don't restore if state is too old (more than 1 hour)
+      if (Date.now() - state.timestamp > 3600000) {
+        sessionStorage.removeItem('emailAutomationState');
+        return;
+      }
+
+      // Restore stats
+      if (state.stats) {
+        window.stats.emailsFound = state.stats.emailsFound || 0;
+        window.stats.emailsSent = state.stats.emailsSent || 0;
+        window.stats.emailsFailed = state.stats.emailsFailed || 0;
+        window.stats.emailList = new Set(state.stats.emailList || []);
+        updateStats();
+      }
+
+      // Restore UI elements
+      if (state.progressBox) {
+        document.getElementById('progressBox').innerHTML = state.progressBox;
+      }
+      
+      const progressBar = document.getElementById('progressBar');
+      if (progressBar && state.progressBar) {
+        progressBar.style.width = state.progressBar;
+        if (state.progressBarColor) {
+          progressBar.style.backgroundColor = state.progressBarColor;
+        }
+      }
+
+      const progressStatus = document.getElementById('progressStatus');
+      if (progressStatus && state.progressStatus) {
+        progressStatus.textContent = state.progressStatus;
+        progressStatus.className = state.progressStatusClass;
+      }
+
+      // If automation was running, reconnect to progress stream
+      if (state.isRunning) {
+        listenProgress();
+      }
+    } catch (err) {
+      console.warn('Failed to restore progress state:', err);
+      sessionStorage.removeItem('emailAutomationState');
+    }
+  }
+
+  // Check if there's an active automation running on the server
+  async function checkActiveAutomation() {
+    try {
+      // This will be connected via the SSE stream if automation is running
+      listenProgress();
+    } catch (err) {
+      console.warn('Failed to check active automation:', err);
+    }
+  }
 
   function updateStats() {
     document.getElementById('emailsFound').textContent = window.stats.emailsFound;
     document.getElementById('emailsSent').textContent = window.stats.emailsSent;
     document.getElementById('emailsFailed').textContent = window.stats.emailsFailed;
+    
+    // Save state to sessionStorage
+    saveProgressState();
     
     const emailList = Array.from(window.stats.emailList);
     document.getElementById('emailListContent').innerHTML = emailList.length ? `
@@ -786,6 +885,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBox = document.getElementById('progressBox');
     const progressBar = document.getElementById('progressBar');
     
+    // Clear old saved state when starting new automation
+    sessionStorage.removeItem('emailAutomationState');
+    
     // Reset stats
     window.stats.emailsFound = 0;
     window.stats.emailsSent = 0;
@@ -796,11 +898,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reset progress display
     progressBox.innerHTML = '';
     progressBar.style.width = '0%';
-    progressBar.style.backgroundColor = '#0072ff';
+    progressBar.style.backgroundColor = '#8b9fff';
 
     // Show loading state
     runBtn.disabled = true;
     runBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Running...';
+    
+    // Save initial state
+    saveProgressState();
 
     try {
       const formData = new FormData(e.target);
@@ -887,6 +992,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateStats();
 
+    // Save state after each update
+    saveProgressState();
+
     // Check for completion message
     if (msg.includes("✅ Automation completed successfully")) {
       const runBtn = document.getElementById('runBtn');
@@ -901,6 +1009,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (window.stats.emailsFailed === 0) {
         progressBar.style.backgroundColor = "#28a745";
       }
+      
+      // Save final state
+      saveProgressState();
 
       // Create completion toast
       const toastContainer = document.createElement('div');
@@ -1022,6 +1133,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.startsWith("PROGRESS:")) {
         const percent = data.replace("PROGRESS:", "");
         progressBar.style.width = percent + "%";
+        saveProgressState();  // Save progress bar state
         return;
       }
 
@@ -1032,7 +1144,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const runBtn = document.getElementById('runBtn');
         runBtn.disabled = false;
         runBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Run Again';
+        saveProgressState();  // Save final state
       }
+    };
+    
+    // Handle connection errors
+    evtSource.onerror = function(err) {
+      console.warn('EventSource error:', err);
+      // Don't close connection immediately - SSE will auto-reconnect
     };
   }
 </script>

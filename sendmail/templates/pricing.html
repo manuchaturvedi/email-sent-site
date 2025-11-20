@@ -10,7 +10,7 @@
 
 <style>
     .pricing-hero {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #a8e6cf 0%, #8b9fff 100%);
         color: white;
         padding: 60px 20px;
         text-align: center;
@@ -56,7 +56,7 @@
     }
     
     .pricing-card.popular {
-        border: 3px solid #667eea;
+        border: 3px solid #a8e6cf;
         transform: scale(1.05);
     }
     
@@ -65,7 +65,7 @@
         top: -15px;
         left: 50%;
         transform: translateX(-50%);
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #a8e6cf 0%, #8b9fff 100%);
         color: white;
         padding: 8px 20px;
         border-radius: 20px;
@@ -83,7 +83,7 @@
     .plan-price {
         font-size: 3rem;
         font-weight: 800;
-        color: #667eea;
+        color: #a8e6cf;
         margin: 20px 0;
     }
     
@@ -139,7 +139,7 @@
     }
     
     .select-plan-btn.primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #a8e6cf 0%, #8b9fff 100%);
         color: white;
     }
     
@@ -155,6 +155,15 @@
     
     .select-plan-btn.secondary:hover {
         background: #e5e7eb;
+    }
+    
+    .select-plan-btn:disabled {
+        background: linear-gradient(135deg, #a8e6cf 0%, #8b9fff 100%);
+        color: white;
+        opacity: 0.9;
+        cursor: not-allowed;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 15px rgba(139, 159, 255, 0.3);
     }
     
     .payment-methods {
@@ -206,10 +215,10 @@
     <h1>Choose Your Plan</h1>
     <p>Simple, transparent pricing that grows with you</p>
     {% if subscription and subscription.plan %}
-    <div class="alert alert-info d-inline-block mt-3">
-        <i class="bi bi-info-circle"></i> Current Plan: <strong>{{ subscription.plan|upper }}</strong>
+    <div class="alert d-inline-block mt-3" style="background: rgba(255, 255, 255, 0.25); border: 2px solid white; color: white; font-weight: 600; padding: 12px 24px; border-radius: 50px;">
+        <i class="bi bi-star-fill me-2"></i> Current Plan: <strong>{{ subscription.plan|upper }}</strong>
         {% if subscription.status == 'active' and subscription.plan != 'free' %}
-        <span class="badge bg-success ms-2">Active</span>
+        <span class="badge ms-2" style="background: #22c55e; color: white; padding: 6px 12px;">Active</span>
         {% endif %}
     </div>
     {% endif %}
@@ -243,8 +252,43 @@
         <div class="pricing-card popular">
             <div class="popular-badge">MOST POPULAR</div>
             <h2 class="plan-name">Pro</h2>
-            <div class="plan-price">₹1<span>/month</span></div>
+            <div class="plan-price" id="pro-price-display">
+                ₹100<span>/month</span>
+            </div>
             <p class="plan-description">For serious job seekers</p>
+            
+            <!-- Coupon Code Section -->
+            <div class="mb-3 p-3 rounded position-relative" style="background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(249,115,22,0.08)); border: 3px solid #ef4444; box-shadow: 0 0 20px rgba(239,68,68,0.3); animation: pulse 2s ease-in-out infinite;">
+                <div class="position-absolute" style="top: -12px; right: 10px; background: #ef4444; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; box-shadow: 0 2px 8px rgba(239,68,68,0.4);">
+                    🎁 SPECIAL OFFER
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-gift-fill" style="color: #ef4444; font-size: 1.3rem;"></i>
+                    <strong style="color: #1a202c; font-size: 0.95rem;">Get 50% OFF!</strong>
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="coupon-input-pro" placeholder="Enter coupon code" style="border: 2px solid #ef4444; font-weight: 600; font-size: 0.95rem;">
+                    <button class="btn" onclick="applyCoupon()" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; font-weight: 700; border: none; padding: 0 20px;">Apply</button>
+                </div>
+                <div class="mt-2 p-2 rounded" style="background: rgba(255,255,255,0.6); border: 1px dashed #ef4444;">
+                    <small id="coupon-message" class="d-block" style="font-size: 0.8rem; color: #1a202c;">
+                        <span style="background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 2px 8px; border-radius: 6px; font-weight: 700; color: #92400e; display: inline-block;">
+                            💎 Use Code: <span style="color: #ef4444; font-size: 1.1em; letter-spacing: 1px;">SAVE50</span>
+                        </span>
+                    </small>
+                </div>
+            </div>
+            
+            <style>
+                @keyframes pulse {
+                    0%, 100% {
+                        box-shadow: 0 0 20px rgba(239,68,68,0.3);
+                    }
+                    50% {
+                        box-shadow: 0 0 30px rgba(239,68,68,0.6), 0 0 40px rgba(239,68,68,0.3);
+                    }
+                }
+            </style>
             
             <ul class="plan-features">
                 <li><i class="bi bi-check-circle-fill"></i> Unlimited emails</li>
@@ -265,7 +309,9 @@
         <!-- Enterprise Plan -->
         <div class="pricing-card">
             <h2 class="plan-name">Enterprise</h2>
-            <div class="plan-price">$49<span>/month</span></div>
+            <div class="plan-price">
+                <span style="font-size: 1.8rem; color: #6b7280; font-weight: 600;">Custom</span>
+            </div>
             <p class="plan-description">For teams and agencies</p>
             
             <ul class="plan-features">
@@ -301,63 +347,93 @@
 <div class="modal fade" id="paymentModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Complete Payment</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white;">
+                <h5 class="modal-title">
+                    <i class="bi bi-shield-check me-2"></i>
+                    Secure Payment
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <div id="payment-form-container">
-                    <h6 class="mb-3">Selected Plan: <span id="selected-plan-name" style="color: #667eea; font-weight: 700;"></span></h6>
-                    <h4 class="mb-4">Amount: <span id="selected-plan-price" style="color: #667eea;"></span></h4>
-                    
-                    <!-- UPI Payment Info -->
-                    <div class="upi-payment-container">
-                        <div class="alert alert-success">
-                            <h6 class="mb-3">
-                                <i class="bi bi-shield-check"></i> <strong>100% FREE UPI Payment</strong>
-                            </h6>
-                            <p class="mb-2">✓ No transaction fees - Save 2-3% on every payment!</p>
-                            <p class="mb-2">✓ Works with all UPI apps:</p>
-                            <div class="d-flex gap-3 mt-3 justify-content-center flex-wrap">
-                                <div class="text-center">
-                                    <i class="bi bi-phone-fill" style="font-size: 2rem; color: #5f259f;"></i>
-                                    <div><small>PhonePe</small></div>
-                                </div>
-                                <div class="text-center">
-                                    <i class="bi bi-google" style="font-size: 2rem; color: #4285f4;"></i>
-                                    <div><small>Google Pay</small></div>
-                                </div>
-                                <div class="text-center">
-                                    <i class="bi bi-wallet2" style="font-size: 2rem; color: #00b9f5;"></i>
-                                    <div><small>Paytm</small></div>
-                                </div>
-                                <div class="text-center">
-                                    <i class="bi bi-bank2" style="font-size: 2rem; color: #ff6b00;"></i>
-                                    <div><small>Any UPI</small></div>
-                                </div>
+                    <!-- Plan Summary -->
+                    <div class="mb-4 p-3 rounded" style="background: linear-gradient(135deg, rgba(168,230,207,0.1), rgba(139,159,255,0.1));">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">Selected Plan</small>
+                                <h5 class="mb-0 mt-1" id="selected-plan-name" style="color: #1a1f36; font-weight: 700;"></h5>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">Amount</small>
+                                <h3 class="mb-0 mt-1" id="selected-plan-price" style="color: #8b9fff; font-weight: 800;"></h3>
                             </div>
                         </div>
-                        
-                        <div class="alert alert-info mt-3">
-                            <i class="bi bi-info-circle"></i> <strong>How it works:</strong><br>
-                            1. Click "Pay via UPI"<br>
-                            2. Choose your UPI app (PhonePe, GPay, Paytm, etc.)<br>
-                            3. Complete payment - No fees deducted!<br>
-                            4. Come back and click "I've Paid" to activate subscription
+                    </div>
+                    
+                    <!-- Payment Features -->
+                    <div class="alert alert-success border-0 mb-3" style="background: rgba(16, 185, 129, 0.1);">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-shield-check text-success fs-4 me-3"></i>
+                            <div>
+                                <h6 class="mb-2 fw-bold">Secure Payment via Razorpay</h6>
+                                <small class="text-muted">
+                                    ✓ Supports UPI, Cards, NetBanking & Wallets<br>
+                                    ✓ SSL encrypted & PCI DSS compliant<br>
+                                    ✓ Instant activation after payment
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- OTP Info -->
+                    <div class="alert alert-info border-0 mb-3" style="background: rgba(59, 130, 246, 0.1);">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-info-circle text-primary fs-5 me-2"></i>
+                            <div>
+                                <small class="text-muted">
+                                    <strong>Note:</strong> Razorpay may send an OTP to your phone for verification. This is a standard security measure.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Methods Preview -->
+                    <div class="text-center mb-3">
+                        <small class="text-muted d-block mb-2">Payment Options Available:</small>
+                        <div class="d-flex gap-3 justify-content-center align-items-center flex-wrap">
+                            <div class="text-center">
+                                <i class="bi bi-phone-fill" style="font-size: 1.5rem; color: #5f259f;"></i>
+                                <div><small>UPI</small></div>
+                            </div>
+                            <div class="text-center">
+                                <i class="bi bi-credit-card" style="font-size: 1.5rem; color: #4285f4;"></i>
+                                <div><small>Cards</small></div>
+                            </div>
+                            <div class="text-center">
+                                <i class="bi bi-bank" style="font-size: 1.5rem; color: #00b9f5;"></i>
+                                <div><small>NetBanking</small></div>
+                            </div>
+                            <div class="text-center">
+                                <i class="bi bi-wallet2" style="font-size: 1.5rem; color: #ff6b00;"></i>
+                                <div><small>Wallets</small></div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Success Message -->
                 <div id="payment-success" style="display: none; text-align: center;">
-                    <i class="bi bi-check-circle-fill" style="font-size: 4rem; color: #10b981;"></i>
-                    <h4 class="mt-3">Payment Successful!</h4>
-                    <p>Your subscription has been activated.</p>
+                    <div class="py-4">
+                        <i class="bi bi-check-circle-fill" style="font-size: 4rem; color: #10b981;"></i>
+                        <h4 class="mt-3 text-success">Payment Successful!</h4>
+                        <p class="text-muted mb-0">Your subscription has been activated.</p>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer border-0 pt-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="process-payment-btn" onclick="initiateUPIPayment()">
-                    <i class="bi bi-phone-fill"></i> Pay via UPI (FREE)
+                <button type="button" class="btn btn-primary btn-lg px-4" id="process-payment-btn" onclick="initiatePayment()" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); border: none;">
+                    <i class="bi bi-lock-fill me-2"></i>Proceed to Pay
                 </button>
             </div>
         </div>
@@ -370,6 +446,27 @@
         price: 0,
         name: ''
     };
+    let couponApplied = false;
+    
+    function applyCoupon() {
+        const couponInput = document.getElementById('coupon-input-pro');
+        const couponMessage = document.getElementById('coupon-message');
+        const priceDisplay = document.getElementById('pro-price-display');
+        const couponCode = couponInput.value.trim().toUpperCase();
+        
+        if (couponCode === 'SAVE50') {
+            couponApplied = true;
+            priceDisplay.innerHTML = '<span style="font-size: 1.5rem; text-decoration: line-through; opacity: 0.5; color: #6b7280;">₹100</span><br>₹50<span>/month</span><div style="display: inline-block; background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: 700; margin-top: 8px;">✓ 50% OFF Applied</div>';
+            couponMessage.innerHTML = '<span style="color: #10b981;">✓ Coupon applied successfully!</span>';
+            couponInput.disabled = true;
+            couponInput.style.background = '#f0fdf4';
+        } else {
+            couponMessage.innerHTML = '<span style="color: #ef4444;">✗ Invalid coupon code</span>';
+            setTimeout(() => {
+                couponMessage.innerHTML = '💡 Hint: Use code <strong>SAVE50</strong>';
+            }, 3000);
+        }
+    }
     
     function selectPlan(plan) {
         if (plan === 'free') {
@@ -385,120 +482,46 @@
         // Set plan data
         selectedPlanData = {
             plan: plan,
-            price: plan === 'pro' ? 1 : 49,
+            price: plan === 'pro' ? (couponApplied ? 50 : 100) : 100,
             name: plan.charAt(0).toUpperCase() + plan.slice(1)
         };
         
         // Update modal
         document.getElementById('selected-plan-name').textContent = selectedPlanData.name;
-        document.getElementById('selected-plan-price').textContent = '₹' + selectedPlanData.price;
+        
+        // Show discount for Pro plan only if coupon applied
+        const priceElement = document.getElementById('selected-plan-price');
+        if (plan === 'pro' && couponApplied) {
+            priceElement.innerHTML = '<span style="font-size: 1.2rem; text-decoration: line-through; opacity: 0.5; color: #6b7280;">₹100</span> <span style="color: #8b9fff; font-weight: 800;">₹' + selectedPlanData.price + '</span> <span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: 5px;">50% OFF</span>';
+        } else {
+            priceElement.textContent = '₹' + selectedPlanData.price;
+        }
         
         // Show payment modal
         const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
         modal.show();
     }
     
-    // UPI payment tracking
-    let currentTxnId = null;
-    let paymentCheckInterval = null;
-    
-    // Auto-check payment status every 2 seconds
-    function startPaymentPolling(txnId) {
-        if (paymentCheckInterval) {
-            clearInterval(paymentCheckInterval);
-        }
-        
-        let attempts = 0;
-        const maxAttempts = 150; // Check for 5 minutes max (150 * 2 seconds)
-        
-        paymentCheckInterval = setInterval(async () => {
-            attempts++;
-            
-            try {
-                const response = await fetch(`/check_payment_status/${txnId}`);
-                const result = await response.json();
-                
-                if (result.success && result.status === 'completed') {
-                    clearInterval(paymentCheckInterval);
-                    showSuccessMessage();
-                }
-                
-                // Stop after max attempts
-                if (attempts >= maxAttempts) {
-                    clearInterval(paymentCheckInterval);
-                    console.log('Payment check timeout');
-                }
-                
-            } catch (error) {
-                console.error('Payment check error:', error);
-            }
-        }, 2000); // Check every 2 seconds
-    }
-    
     function showSuccessMessage() {
         const container = document.getElementById('payment-form-container');
-        container.innerHTML = `
-            <div class="text-center py-4">
-                <div class="mb-4">
-                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
-                </div>
-                <h4 class="text-success mb-3">Payment Confirmed! 🎉</h4>
-                <h5 class="text-primary mb-3">You're Upgraded to Pro Plan!</h5>
-                <p class="mb-3">Payment verified successfully</p>
-                <p class="text-muted">You now have unlimited email sending!</p>
-                <div class="spinner-border text-primary mt-3" role="status">
-                    <span class="visually-hidden">Redirecting...</span>
-                </div>
-                <p class="mt-2"><small>Redirecting to dashboard...</small></p>
-            </div>
-        `;
+        const successDiv = document.getElementById('payment-success');
         
-        // Redirect after 2 seconds
+        container.style.display = 'none';
+        successDiv.style.display = 'block';
+        
+        // Redirect after 3 seconds
         setTimeout(() => {
             window.location.href = '/';
-        }, 2000);
+        }, 3000);
     }
     
-    async function markPaymentDone() {
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
-        btn.disabled = true;
-        
-        try {
-            const response = await fetch(`/mark_payment_done/${currentTxnId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success && result.status === 'completed') {
-                // Stop polling
-                if (paymentCheckInterval) {
-                    clearInterval(paymentCheckInterval);
-                }
-                showSuccessMessage();
-            } else {
-                alert('Could not verify payment. Please try again or contact support.');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        } catch (error) {
-            console.error('Mark payment error:', error);
-            alert('Failed to verify payment. Please try again.');
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }
-    }
-    
-    async function initiateUPIPayment() {
+    async function initiatePayment() {
         const btn = document.getElementById('process-payment-btn');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
         btn.disabled = true;
+        
+        console.log('Starting payment for:', selectedPlanData);
         
         try {
             // Create Razorpay payment order
@@ -514,21 +537,27 @@
             });
             
             const result = await response.json();
+            console.log('Payment creation response:', result);
             
             if (!result.success) {
-                alert('Failed to create payment: ' + (result.error || 'Please try again'));
+                showPaymentError('Unable to Process Payment', result.error || 'Please try again or contact support.');
                 btn.innerHTML = originalText;
                 btn.disabled = false;
                 return;
             }
             
-            // Store order ID
-            currentTxnId = result.order_id;
+            console.log('Opening Razorpay checkout...');
             
-            // Start payment polling
-            startPaymentPolling(result.order_id);
+            // Check if Razorpay is loaded
+            if (typeof Razorpay === 'undefined') {
+                console.error('Razorpay SDK not loaded!');
+                showPaymentError('Payment Gateway Error', 'Please refresh the page and try again.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
             
-            // Initialize Razorpay Checkout
+            // Initialize Razorpay Checkout with standard configuration
             const options = {
                 key: result.razorpay_key_id,
                 amount: result.amount,
@@ -538,11 +567,42 @@
                 order_id: result.razorpay_order_id,
                 prefill: result.prefill,
                 theme: {
-                    color: '#4f46e5'
+                    color: '#8b9fff'
+                },
+                config: {
+                    display: {
+                        blocks: {
+                            banks: {
+                                name: 'All payment methods',
+                                instruments: [
+                                    {
+                                        method: 'upi'
+                                    },
+                                    {
+                                        method: 'card'
+                                    },
+                                    {
+                                        method: 'netbanking'
+                                    },
+                                    {
+                                        method: 'wallet'
+                                    }
+                                ]
+                            }
+                        },
+                        sequence: ['block.banks'],
+                        preferences: {
+                            show_default_blocks: true
+                        }
+                    }
                 },
                 handler: function(response) {
                     console.log('Payment successful:', response);
-                    // Send payment success to backend immediately
+                    
+                    // Hide modal and show success
+                    btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Verifying...';
+                    
+                    // Send payment success to backend for verification
                     fetch('/payment/success', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -552,139 +612,89 @@
                             razorpay_signature: response.razorpay_signature,
                             order_id: result.order_id
                         })
-                    }).then(res => res.json()).then(data => {
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log('Payment verification response:', data);
                         if (data.success) {
-                            clearInterval(paymentCheckInterval);
                             showSuccessMessage();
+                        } else {
+                            showPaymentError('Verification Failed', 'Your payment needs verification. Please contact support with Order ID: ' + result.order_id);
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
                         }
-                    }).catch(err => console.error('Payment verification error:', err));
+                    })
+                    .catch(err => {
+                        console.error('Payment verification error:', err);
+                        showPaymentError('Verification Error', 'Unable to verify your payment. Please contact support with your transaction details.');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    });
                 },
                 modal: {
                     ondismiss: function() {
-                        console.log('Payment cancelled');
+                        console.log('Payment cancelled by user');
                         btn.innerHTML = originalText;
                         btn.disabled = false;
-                        clearInterval(paymentCheckInterval);
                     }
                 }
             };
             
             const rzp = new Razorpay(options);
-            rzp.open();
             
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            // Handle payment errors
+            rzp.on('payment.failed', function (response){
+                console.error('Payment failed:', response.error);
+                let errorMsg = 'Your transaction could not be completed. Please try again.';
+                if (response.error.reason === 'payment_cancelled') {
+                    errorMsg = 'Payment was cancelled. No charges were made.';
+                } else if (response.error.description) {
+                    errorMsg = response.error.description;
+                }
+                showPaymentError('Payment Failed', errorMsg);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+            
+            rzp.open();
             
         } catch (error) {
             console.error('Payment error:', error);
-            alert('Failed to create payment. Please try again.');
+            showPaymentError('Payment Error', 'Unable to process your request. Please try again or contact support.');
             btn.innerHTML = originalText;
             btn.disabled = false;
         }
     }
     
-    function openUPIApp(upiLink) {
-        // Detect mobile devices
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        
-        if (isMobile) {
-            // On mobile, attempt to open UPI app directly
-            try {
-                window.location.href = upiLink;
-                
-                // After 30 seconds, assume payment might be done and mark it
-                setTimeout(async () => {
-                    try {
-                        await fetch(`/mark_payment_done/${currentTxnId}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' }
-                        });
-                    } catch (e) {
-                        console.log('Auto-mark payment:', e);
-                    }
-                }, 30000); // 30 seconds - enough time to complete UPI payment
-                
-            } catch (error) {
-                console.error('Failed to open UPI app:', error);
-                alert('Could not open UPI app. Please scan the QR code or copy the UPI ID to pay manually.');
-            }
-        } else {
-            // On desktop, show instructions
-            alert('On desktop? Please scan the QR code below with your mobile phone using any UPI app (PhonePe, GPay, Paytm, etc.)');
+    function showPaymentError(title, message) {
+        // Remove any existing error message
+        const existingError = document.querySelector('.payment-error-alert');
+        if (existingError) {
+            existingError.remove();
         }
-    }
-    
-    function copyUPIID(upiId) {
-        navigator.clipboard.writeText(upiId).then(() => {
-            alert('UPI ID copied to clipboard! Open your PhonePe app and paste it to pay.');
-        }).catch(err => {
-            console.error('Copy failed:', err);
-            prompt('Copy this UPI ID:', upiId);
-        });
-    }
-    
-    async function confirmPayment() {
-        const utrNumber = prompt('Optional: Enter UTR/Transaction Reference Number from your UPI app (or leave blank):');
         
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Confirming...';
-        btn.disabled = true;
+        // Create error alert
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger payment-error-alert d-flex align-items-start mb-3';
+        errorDiv.innerHTML = `
+            <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+            <div class="flex-grow-1">
+                <strong class="d-block mb-1">${title}</strong>
+                <span>${message}</span>
+            </div>
+            <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+        `;
         
-        try {
-            const response = await fetch('/confirm_upi_payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    txn_id: currentTxnId,
-                    utr_number: utrNumber || '',
-                    plan: selectedPlanData.plan,
-                    price: selectedPlanData.price
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // Stop polling
-                if (paymentCheckInterval) {
-                    clearInterval(paymentCheckInterval);
-                }
-                
-                // Show success message
-                const container = document.getElementById('payment-form-container');
-                container.innerHTML = `
-                    <div class="text-center py-4">
-                        <div class="mb-4">
-                            <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
-                        </div>
-                        <h4 class="text-success mb-3">Payment Confirmed! 🎉</h4>
-                        <p class="mb-3">${result.message}</p>
-                        <p class="text-muted">You now have unlimited email sending!</p>
-                        <div class="spinner-border text-primary mt-3" role="status">
-                            <span class="visually-hidden">Redirecting...</span>
-                        </div>
-                        <p class="mt-2"><small>Redirecting to dashboard...</small></p>
-                    </div>
-                `;
-                
-                // Redirect after 2 seconds
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 2000);
-            } else {
-                alert('Payment confirmation failed: ' + (result.error || 'Please try again'));
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+        // Insert at the top of payment form container
+        const container = document.getElementById('payment-form-container');
+        container.insertBefore(errorDiv, container.firstChild);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (errorDiv.parentElement) {
+                errorDiv.remove();
             }
-        } catch (error) {
-            console.error('Confirmation error:', error);
-            alert('Failed to confirm payment. Please contact support.');
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }
+        }, 10000);
     }
 </script>
 

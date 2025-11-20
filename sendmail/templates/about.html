@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us - JustMailIt</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #e8f8f3 0%, #f0f5ff 100%);
+    }
+    .hero-section {
+      background: linear-gradient(135deg, #a8e6cf 0%, #8b9fff 100%);
+      padding: 80px 0 60px;
+      color: white;
+      text-align: center;
+    }
+    .hero-title {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+    .hero-subtitle {
+      font-size: 1.25rem;
+      opacity: 0.95;
+    }
+    .content-section {
+      padding: 60px 0;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+    }
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #8b9fff;
+    }
+    .stat-label {
+      color: #4a5568;
+      font-size: 1rem;
+    }
+    .team-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .team-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a8e6cf 0%, #8b9fff 100%);
+      margin: 0 auto 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      color: white;
+    }
+    .site-footer{background:linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%);border-top:1px solid #e2e8f0;padding:4rem 0 0;margin-top:6rem}.footer-logo{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#a8e6cf,#8b9fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}.footer-logo i{background:linear-gradient(135deg,#a8e6cf,#8b9fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}.footer-description{color:#64748b;font-size:.95rem;line-height:1.7;margin-bottom:1.5rem;max-width:320px}.footer-link{color:#64748b;text-decoration:none;transition:all .2s ease;display:block;margin-bottom:.65rem;font-size:.925rem;font-weight:500}.footer-link:hover{color:#a8e6cf;transform:translateX(4px)}.footer-heading{color:#1e293b;font-weight:700;font-size:.875rem;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:1px}.social-icon{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;background:#fff;color:#a8e6cf;margin-right:.5rem;transition:all .3s cubic-bezier(.4,0,.2,1);text-decoration:none;font-size:1.1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e2e8f0}.social-icon:hover{background:linear-gradient(135deg,#a8e6cf,#8b9fff);color:#fff;transform:translateY(-4px);box-shadow:0 8px 16px rgba(168,230,207,.2)}.footer-bottom{background:#fff;border-top:1px solid #e2e8f0;padding:2rem 0;margin-top:3.5rem}.footer-copyright{color:#64748b;font-size:.875rem;margin:0}.footer-credits{color:#64748b;font-size:.875rem;margin-top:.5rem}.footer-credits a{color:#a8e6cf;text-decoration:none;font-weight:600}.footer-credits a:hover{text-decoration:underline}.footer-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;background:#fff;border:1px solid #e2e8f0;border-radius:100px;color:#64748b;font-size:.8rem;margin-top:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.05)}.footer-badge i{color:#10b981}
+    .login-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(5px);z-index:9999;align-items:center;justify-content:center}.login-modal.show{display:flex;animation:fadeIn 0.3s ease}@keyframes fadeIn{from{opacity:0}to{opacity:1}}.login-modal-content{background:white;border-radius:20px;padding:0;max-width:1000px;width:90%;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp 0.4s ease;max-height:90vh;overflow:hidden;display:flex}@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}.modal-close{position:absolute;top:1.5rem;right:1.5rem;background:rgba(255,255,255,0.9);border:none;font-size:1.3rem;color:#2d3748;cursor:pointer;transition:all 0.2s ease;z-index:10;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center}.modal-close:hover{background:white;transform:scale(1.1)}.modal-left{flex:1;background:linear-gradient(135deg,#7c88ff 0%,#8b9fff 100%);padding:3rem;display:flex;flex-direction:column;justify-content:center;color:white;position:relative;overflow:hidden}.modal-left::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at 20% 50%,rgba(255,255,255,0.1) 0%,transparent 50%);pointer-events:none}.modal-hero-content{position:relative;z-index:1}.modal-logo{display:flex;align-items:center;gap:0.5rem;font-size:1.5rem;font-weight:700;margin-bottom:2rem;color:white}.modal-logo i{font-size:1.8rem}.modal-hero-title{font-size:2rem;font-weight:800;margin-bottom:1rem;line-height:1.2}.modal-hero-subtitle{font-size:1rem;color:rgba(255,255,255,0.95);line-height:1.6;margin-bottom:2rem}.modal-feature-box{background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-radius:12px;padding:1.5rem}.modal-feature-title{font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem}.modal-feature-text{font-size:0.9rem;color:rgba(255,255,255,0.9);line-height:1.5}.modal-right{flex:1;padding:3rem;overflow-y:auto;background:white;border-radius:0 20px 20px 0}.modal-title{font-size:1.8rem;font-weight:700;color:#2d3748;margin-bottom:0.5rem}.modal-subtitle{color:#718096;margin-bottom:2rem;font-size:0.95rem}.modal-subtitle a{color:#7c88ff;text-decoration:none;font-weight:600}.modal-subtitle a:hover{text-decoration:underline}.auth-tabs{display:flex;gap:1rem;margin-bottom:2rem;border-radius:12px;background:#f5f5f5;padding:0.4rem}.auth-tab{flex:1;padding:0.8rem;background:none;border:none;font-size:1rem;font-weight:600;color:#718096;cursor:pointer;transition:all 0.3s ease;border-radius:8px}.auth-tab.active{color:white;background:#7c88ff}.auth-tab:hover{color:#2d3748}.auth-form{display:none}.auth-form.active{display:block}.login-form .form-control{padding:1rem;border:2px solid #e2e8f0;border-radius:12px;font-size:1rem;transition:all 0.3s ease;width:100%;background:#f8f9fa}.login-form .form-control:focus{border-color:#7c88ff;box-shadow:0 0 0 4px rgba(124,136,255,0.1);outline:none;background:white}.btn-submit{background:#7c88ff;color:white;padding:1rem;border-radius:12px;border:none;font-weight:700;font-size:1.05rem;width:100%;margin-top:1.5rem;transition:all 0.3s ease;cursor:pointer}.btn-submit:hover{background:#6b78ee;transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,136,255,0.3)}.btn-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none}.btn-social{background:white;border:2px solid #e2e8f0;padding:0.85rem;border-radius:12px;font-weight:600;color:#2d3748;transition:all 0.3s ease;display:flex;align-items:center;justify-content:center;gap:0.75rem;cursor:pointer;width:100%;margin-bottom:0.75rem}.btn-social:hover{border-color:#7c88ff;background:#f7fafc}.btn-social i{font-size:1.3rem}.btn-google i{color:#DB4437}.btn-linkedin i{color:#0077B5}.forgot-password{text-align:right;margin-top:0.5rem}.forgot-password a{color:#718096;text-decoration:none;font-size:0.9rem}.forgot-password a:hover{color:#7c88ff;text-decoration:underline}.divider{text-align:center;margin:1.5rem 0;color:#718096;font-size:0.9rem;position:relative}.divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:#e2e8f0}.divider::before{left:0}.divider::after{right:0}.terms-text{font-size:0.85rem;color:#718096;text-align:center;margin-top:1.5rem;line-height:1.5}.terms-text a{color:#7c88ff;text-decoration:none}.terms-text a:hover{text-decoration:underline}.error-message{background:#fee;border:1px solid #fcc;color:#c33;padding:0.75rem;border-radius:8px;margin-bottom:1rem;font-size:0.9rem;display:none}.error-message.show{display:block}.success-message{background:#efe;border:1px solid #cfc;color:#3c3;padding:0.75rem;border-radius:8px;margin-bottom:1rem;font-size:0.9rem;display:none}.success-message.show{display:block}
+  </style>
+</head>
+<body>
+  <!-- Login Modal -->
+  <div class="login-modal" id="loginModal">
+    <div class="login-modal-content">
+      <button class="modal-close" onclick="closeLoginModal()"><i class="bi bi-x-lg"></i></button>
+      <div class="modal-left">
+        <div class="modal-hero-content">
+          <div class="modal-logo"><i class="bi bi-envelope-heart"></i><span>JustMailIt</span></div>
+          <h2 class="modal-hero-title">Simplify Your Job Search</h2>
+          <p class="modal-hero-subtitle">Automate your job search outreach with intelligent email campaigns. Save time while maintaining personalized communication with hiring managers.</p>
+          <div class="modal-feature-box">
+            <div class="modal-feature-title"><i class="bi bi-robot"></i>AI-Powered Email Generation</div>
+            <p class="modal-feature-text">Creates personalized emails for each opportunity using intelligent analysis of job posts and company information.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-right">
+        <h2 class="modal-title">Sign In</h2>
+        <p class="modal-subtitle">New to JustMailIt? <a href="#" onclick="switchAuthTab('signup'); return false;">Create Account</a></p>
+        <div class="auth-tabs">
+          <button class="auth-tab active" onclick="switchAuthTab('signin')">Sign In</button>
+          <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+        </div>
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+        <form class="login-form auth-form active" id="signinForm" onsubmit="handleSignIn(event)">
+          <div class="mb-3"><input type="email" class="form-control" id="signinEmail" placeholder="admin@gmail.com" required></div>
+          <div class="mb-2"><input type="password" class="form-control" id="signinPassword" placeholder="••••••••" required></div>
+          <div class="forgot-password"><a href="#" onclick="handleForgotPassword(); return false;">Forgot Password?</a></div>
+          <button type="submit" class="btn-submit" id="signinBtn">Sign In</button>
+        </form>
+        <form class="login-form auth-form" id="signupForm" onsubmit="handleSignUp(event)">
+          <div class="mb-3"><input type="text" class="form-control" id="signupName" placeholder="Full Name" required></div>
+          <div class="mb-3"><input type="email" class="form-control" id="signupEmail" placeholder="Email Address" required></div>
+          <div class="mb-3"><input type="password" class="form-control" id="signupPassword" placeholder="Password (min. 6 characters)" required minlength="6"></div>
+          <div class="mb-3"><input type="password" class="form-control" id="signupConfirmPassword" placeholder="Confirm Password" required></div>
+          <button type="submit" class="btn-submit" id="signupBtn">Sign Up</button>
+        </form>
+        <div class="divider">Or continue with</div>
+        <button class="btn-social btn-google" onclick="handleGoogleAuth()"><i class="bi bi-google"></i>Continue with Google</button>
+        <button class="btn-social btn-linkedin" onclick="alert('LinkedIn login coming soon!'); return false;"><i class="bi bi-linkedin"></i>Continue with LinkedIn</button>
+        <p class="terms-text">By continuing you agree to our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</p>
+      </div>
+    </div>
+  </div>
+  
+  <nav class="navbar navbar-expand-lg sticky-top" style="background:white;box-shadow:0 2px 10px rgba(0,0,0,0.08);padding:1rem 0;border-bottom:1px solid #e5e7eb;">
+    <div class="container">
+      <a class="navbar-brand" href="/" style="display:flex;align-items:center;gap:.75rem;">
+        <img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" alt="JustMailIt Logo" style="height:45px;width:auto;transition:transform 0.3s ease;" onerror="this.src='{{ url_for('static', filename='images/logo.svg') }}'">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarMain">
+        <ul class="navbar-nav mx-auto">
+          <li class="nav-item"><a class="nav-link" href="/" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/about" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="/blog" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;">Blog</a></li>
+          <li class="nav-item"><a class="nav-link" href="/documentation" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;">Docs</a></li>
+          <li class="nav-item"><a class="nav-link" href="/contact" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;">Contact</a></li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="#" onclick="openLoginModal('signin'); return false;" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;">Login</a></li>
+          <li class="nav-item"><a class="nav-link btn" href="#" onclick="openLoginModal('signup'); return false;" style="background:linear-gradient(135deg,#a8e6cf,#8b9fff);color:white;font-weight:600;padding:0.8rem 1.5rem;border-radius:10px;margin-left:0.5rem;">Sign Up</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Page Header -->
+  <section style="background:white;padding:3rem 0 2rem;">
+    <div class="container">
+      <h1 style="color:#2d3748;font-size:2.5rem;font-weight:800;margin-bottom:0.5rem;">About JustMailIt</h1>
+      <p style="color:#6b7280;font-size:1.25rem;">Revolutionizing job search with AI-powered email automation</p>
+    </div>
+  </section>  <!-- Mission Section -->
+  <section class="content-section">
+    <div class="container">
+      <div class="row align-items-center mb-5">
+        <div class="col-lg-6">
+          <h2 class="mb-4" style="color: #2d3748; font-weight: 700;">Our Mission</h2>
+          <p class="lead" style="color: #4a5568;">
+            We believe finding your dream job shouldn't be a full-time job itself. JustMailIt empowers job seekers 
+            with intelligent automation tools that save time, increase response rates, and help you land interviews faster.
+          </p>
+          <p style="color: #4a5568;">
+            Founded in 2024, we've helped thousands of professionals streamline their job search process, 
+            turning hours of repetitive work into minutes of focused effort. Our platform combines cutting-edge 
+            AI with intuitive design to make job hunting more efficient and less stressful.
+          </p>
+        </div>
+        <div class="col-lg-6">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="stat-card">
+                <div class="stat-number">10K+</div>
+                <div class="stat-label">Active Users</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="stat-card">
+                <div class="stat-number">500K+</div>
+                <div class="stat-label">Emails Sent</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="stat-card">
+                <div class="stat-number">95%</div>
+                <div class="stat-label">Satisfaction Rate</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="stat-card">
+                <div class="stat-number">4.5x</div>
+                <div class="stat-label">Faster Response</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Values Section -->
+      <div class="row mt-5">
+        <div class="col-12 text-center mb-4">
+          <h2 style="color: #2d3748; font-weight: 700;">Our Values</h2>
+        </div>
+        <div class="col-md-4">
+          <div class="team-card">
+            <i class="bi bi-lightbulb-fill" style="font-size: 3rem; color: #8b9fff;"></i>
+            <h4 class="mt-3">Innovation</h4>
+            <p class="text-muted">Constantly improving our platform with the latest AI technology</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="team-card">
+            <i class="bi bi-shield-check" style="font-size: 3rem; color: #a8e6cf;"></i>
+            <h4 class="mt-3">Privacy</h4>
+            <p class="text-muted">Your data is encrypted and never shared with third parties</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="team-card">
+            <i class="bi bi-heart-fill" style="font-size: 3rem; color: #ffb6c1;"></i>
+            <h4 class="mt-3">User-First</h4>
+            <p class="text-muted">Every feature is designed with your success in mind</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team Section -->
+      <div class="row mt-5">
+        <div class="col-12 text-center mb-4">
+          <h2 style="color: #2d3748; font-weight: 700;">Meet the Team</h2>
+          <p class="lead text-muted">Built by job seekers, for job seekers</p>
+        </div>
+        <div class="col-md-6 offset-md-3">
+          <div class="team-card">
+            <div class="team-avatar">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <h4>JustMailIt Team</h4>
+            <p class="text-muted">Developers & Innovators</p>
+            <p>Built by job seekers, for job seekers. Our dedicated team is passionate about helping you land your dream role faster.</p>
+            <div class="mt-3">
+              <a href="https://github.com/manuchaturvedi/email-sent-site" target="_blank" class="btn btn-sm btn-outline-primary me-2">
+                <i class="bi bi-github"></i> GitHub
+              </a>
+              <a href="mailto:mail@justmailit.in" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-envelope"></i> Contact Us
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="row g-5 justify-content-center">
+        <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+          <div class="footer-logo">
+            <i class="bi bi-envelope-heart"></i>
+            JustMailIt
+          </div>
+          <p class="footer-description">Smart AI-powered email automation for job search. Connect with hiring managers and land your dream job faster.</p>
+          <div class="d-flex flex-wrap">
+            <a href="https://facebook.com" class="social-icon" aria-label="Facebook" target="_blank">
+              <i class="bi bi-facebook"></i>
+            </a>
+            <a href="https://twitter.com" class="social-icon" aria-label="Twitter" target="_blank">
+              <i class="bi bi-twitter"></i>
+            </a>
+            <a href="mailto:mail@justmailit.in" class="social-icon" aria-label="Email">
+              <i class="bi bi-envelope-heart"></i>
+            </a>
+            <a href="https://github.com/manuchaturvedi/email-sent-site" class="social-icon" aria-label="GitHub" target="_blank">
+              <i class="bi bi-github"></i>
+            </a>
+          </div>
+          <div class="footer-badge">
+            <i class="bi bi-shield-check-fill"></i>
+            <span>Open Source Project</span>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
+          <h5 class="footer-heading">Product</h5>
+          <a href="/dashboard" class="footer-link">Email Sender</a>
+          <a href="/jobs" class="footer-link">Job Posts</a>
+          <a href="/sent_emails" class="footer-link">Email History</a>
+          <a href="/profile" class="footer-link">Profile Settings</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
+          <h5 class="footer-heading">Company</h5>
+          <a href="/about" class="footer-link">About Us</a>
+          <a href="/careers" class="footer-link">Careers</a>
+          <a href="/blog" class="footer-link">Blog</a>
+          <a href="/contact" class="footer-link">Contact</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
+          <h5 class="footer-heading">Resources</h5>
+          <a href="/documentation" class="footer-link">Documentation</a>
+          <a href="/help" class="footer-link">Help Center</a>
+          <a href="/api" class="footer-link">API Reference</a>
+          <a href="/community" class="footer-link">Community</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5 class="footer-heading">Legal</h5>
+          <a href="/privacy" class="footer-link">Privacy Policy</a>
+          <a href="/terms" class="footer-link">Terms of Service</a>
+          <a href="/cookies" class="footer-link">Cookie Policy</a>
+          <a href="/gdpr" class="footer-link">GDPR Compliance</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+            <p class="footer-copyright">© 2001-2025 JustMailIt. All rights reserved.</p>
+          </div>
+          <div class="col-md-6 text-center text-md-end">
+            <p class="footer-credits">Built with ❤️ by JustMailIt Team • <a href="https://github.com/manuchaturvedi/email-sent-site" target="_blank">GitHub</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig={apiKey:"AIzaSyDHm2fmm4q_Q6srw3BzCloiPbJCXs0Caqw",authDomain:"linkedin-7c251.firebaseapp.com",projectId:"linkedin-7c251"};firebase.initializeApp(firebaseConfig);const auth=firebase.auth();function openLoginModal(tab='signin'){document.getElementById('loginModal').classList.add('show');document.body.style.overflow='hidden';switchAuthTab(tab)}function closeLoginModal(){document.getElementById('loginModal').classList.remove('show');document.body.style.overflow='auto';clearMessages()}document.getElementById('loginModal').addEventListener('click',function(e){if(e.target===this){closeLoginModal()}});function switchAuthTab(tab){const tabs=document.querySelectorAll('.auth-tab');const forms=document.querySelectorAll('.auth-form');tabs.forEach(t=>t.classList.remove('active'));forms.forEach(f=>f.classList.remove('active'));if(tab==='signin'){tabs[0].classList.add('active');document.getElementById('signinForm').classList.add('active')}else{tabs[1].classList.add('active');document.getElementById('signupForm').classList.add('active')}clearMessages()}function showError(message){const errorEl=document.getElementById('errorMessage');errorEl.textContent=message;errorEl.classList.add('show');setTimeout(()=>errorEl.classList.remove('show'),5000)}function showSuccess(message){const successEl=document.getElementById('successMessage');successEl.textContent=message;successEl.classList.add('show');setTimeout(()=>successEl.classList.remove('show'),5000)}function clearMessages(){document.getElementById('errorMessage').classList.remove('show');document.getElementById('successMessage').classList.remove('show')}async function handleSignIn(event){event.preventDefault();clearMessages();const email=document.getElementById('signinEmail').value;const password=document.getElementById('signinPassword').value;const btn=document.getElementById('signinBtn');btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split me-2"></i>Signing In...';try{const userCredential=await auth.signInWithEmailAndPassword(email,password);const idToken=await userCredential.user.getIdToken();const response=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken:idToken})});if(response.ok){showSuccess('Sign in successful! Redirecting...');setTimeout(()=>{window.location.href='/dashboard'},1000)}else{throw new Error('Authentication failed')}}catch(error){console.error('Sign in error:',error);let errorMessage='Failed to sign in. ';switch(error.code){case 'auth/user-not-found':errorMessage+='No account found with this email.';break;case 'auth/wrong-password':errorMessage+='Incorrect password.';break;case 'auth/invalid-email':errorMessage+='Invalid email address.';break;case 'auth/user-disabled':errorMessage+='This account has been disabled.';break;default:errorMessage+=error.message}showError(errorMessage);btn.disabled=false;btn.innerHTML='<i class="bi bi-box-arrow-in-right me-2"></i>Sign In'}}async function handleSignUp(event){event.preventDefault();clearMessages();const name=document.getElementById('signupName').value;const email=document.getElementById('signupEmail').value;const password=document.getElementById('signupPassword').value;const confirmPassword=document.getElementById('signupConfirmPassword').value;const btn=document.getElementById('signupBtn');if(password!==confirmPassword){showError('Passwords do not match!');return}if(password.length<6){showError('Password must be at least 6 characters long!');return}btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split me-2"></i>Creating Account...';try{const userCredential=await auth.createUserWithEmailAndPassword(email,password);await userCredential.user.updateProfile({displayName:name});const idToken=await userCredential.user.getIdToken();const response=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken:idToken,displayName:name})});if(response.ok){showSuccess('Account created successfully! Redirecting...');setTimeout(()=>{window.location.href='/dashboard'},1000)}else{throw new Error('Account creation failed')}}catch(error){console.error('Sign up error:',error);let errorMessage='Failed to create account. ';switch(error.code){case 'auth/email-already-in-use':errorMessage+='An account with this email already exists.';break;case 'auth/invalid-email':errorMessage+='Invalid email address.';break;case 'auth/weak-password':errorMessage+='Password is too weak. Use at least 6 characters.';break;default:errorMessage+=error.message}showError(errorMessage);btn.disabled=false;btn.innerHTML='<i class="bi bi-person-plus me-2"></i>Create Account'}}async function handleGoogleAuth(){clearMessages();try{const provider=new firebase.auth.GoogleAuthProvider();const result=await auth.signInWithPopup(provider);const idToken=await result.user.getIdToken();const response=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken:idToken,displayName:result.user.displayName})});if(response.ok){showSuccess('Sign in successful! Redirecting...');setTimeout(()=>{window.location.href='/dashboard'},1000)}else{throw new Error('Authentication failed')}}catch(error){console.error('Google auth error:',error);if(error.code!=='auth/popup-closed-by-user'){showError('Failed to sign in with Google. Please try again.')}}}async function handleForgotPassword(){const email=document.getElementById('signinEmail').value;if(!email){showError('Please enter your email address first.');return}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showError('Please enter a valid email address.');return}clearMessages();try{await auth.sendPasswordResetEmail(email);showSuccess('Password reset email sent! Check your inbox.')}catch(error){console.error('Password reset error:',error);if(error.code==='auth/user-not-found'){showError('No account found with this email address.')}else if(error.code==='auth/invalid-email'){showError('Please enter a valid email address.')}else if(error.code==='auth/too-many-requests'){showError('Too many requests. Please try again later.')}else{showError('Failed to send password reset email. Please try again.')}}}
+  </script>
+</body>
+</html>

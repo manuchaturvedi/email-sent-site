@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>API Reference - JustMailIt</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><style>body{font-family:'Inter',sans-serif;background:#f8f9fa}.endpoint{background:#fff;padding:1.5rem;border-radius:8px;margin:1rem 0;border-left:4px solid #8b9fff}.method{background:#8b9fff;color:white;padding:4px 12px;border-radius:4px;font-weight:600;font-size:0.85rem}</style></head>
+<body>
+  <nav class="navbar navbar-expand-lg sticky-top" style="background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);box-shadow:0 8px 16px rgba(0,0,0,0.06);padding:1rem 0;border-bottom:1px solid rgba(168,230,207,0.1);"><div class="container"><a class="navbar-brand" href="/" style="display:flex;align-items:center;gap:.75rem;"><img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" alt="JustMailIt" style="height:45px;width:auto;" onerror="this.src='{{ url_for('static', filename='images/logo.svg') }}'"></a><button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"><span class="navbar-toggler-icon"></span></button><div class="collapse navbar-collapse" id="navbarMain"><ul class="navbar-nav mx-auto"><li class="nav-item"><a class="nav-link" href="/" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-house-fill"></i> Home</a></li><li class="nav-item"><a class="nav-link" href="/about" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-info-circle-fill"></i> About</a></li><li class="nav-item"><a class="nav-link" href="/blog" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-newspaper"></i> Blog</a></li><li class="nav-item"><a class="nav-link" href="/documentation" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-book-fill"></i> Docs</a></li><li class="nav-item"><a class="nav-link" href="/contact" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-envelope-fill"></i> Contact</a></li></ul><ul class="navbar-nav"><li class="nav-item"><a class="nav-link" href="/login" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-box-arrow-in-right"></i> Login</a></li><li class="nav-item"><a class="nav-link btn" href="/register" style="background:linear-gradient(135deg,#a8e6cf,#8b9fff);color:white;font-weight:600;padding:0.8rem 1.5rem;border-radius:10px;margin-left:0.5rem;"><i class="bi bi-person-plus-fill"></i> Sign Up</a></li></ul></div></div></nav>
+  <div class="container my-5">
+    <h1 style="color:#8b9fff">API Reference</h1>
+    <p class="lead">Integrate JustMailIt into your applications</p>
+    
+    <h3 class="mt-5">Authentication</h3>
+    <p>All API requests require Firebase authentication token in the Authorization header:</p>
+    <code>Authorization: Bearer YOUR_FIREBASE_TOKEN</code>
+
+    <h3 class="mt-4">Endpoints</h3>
+    
+    <div class="endpoint">
+      <div><span class="method">GET</span> <code>/api/sent_emails</code></div>
+      <p class="mt-2">Retrieve user's sent email history</p>
+      <strong>Response:</strong> <code>{ "emails": [...], "stats": {...} }</code>
+    </div>
+
+    <div class="endpoint">
+      <div><span class="method" style="background:#a8e6cf;color:#2d3748">POST</span> <code>/send</code></div>
+      <p class="mt-2">Send an email campaign</p>
+      <strong>Body:</strong> <code>{ "subject": "", "body": "", "recipients": [] }</code>
+    </div>
+
+    <div class="endpoint">
+      <div><span class="method">GET</span> <code>/api/sent_email_stats</code></div>
+      <p class="mt-2">Get email statistics and analytics</p>
+      <strong>Response:</strong> <code>{ "sent": 0, "delivered": 0, "opened": 0 }</code>
+    </div>
+
+    <div class="endpoint">
+      <div><span class="method">GET</span> <code>/get_profile</code></div>
+      <p class="mt-2">Retrieve user profile data</p>
+      <strong>Response:</strong> <code>{ "name": "", "email": "", "resume": "" }</code>
+    </div>
+
+    <div class="alert alert-warning mt-4"><strong>Note:</strong> API is currently in beta. Contact us for API key access.</div>
+  </div>
+  <footer class="site-footer"><div class="container"><div class="row g-5 justify-content-center"><div class="col-lg-3 col-md-6 mb-4 mb-lg-0"><div class="footer-logo"><i class="bi bi-envelope-heart"></i> JustMailIt</div><p class="footer-description">Smart AI-powered email automation for job search. Connect with hiring managers and land your dream job faster.</p><div class="d-flex flex-wrap"><a href="https://facebook.com" class="social-icon" target="_blank"><i class="bi bi-facebook"></i></a><a href="https://twitter.com" class="social-icon" target="_blank"><i class="bi bi-twitter"></i></a><a href="mailto:mail@justmailit.in" class="social-icon"><i class="bi bi-envelope-heart"></i></a><a href="https://github.com/manuchaturvedi/email-sent-site" class="social-icon" target="_blank"><i class="bi bi-github"></i></a></div><div class="footer-badge"><i class="bi bi-shield-check-fill"></i><span>Open Source Project</span></div></div><div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0"><h5 class="footer-heading">Product</h5><a href="/dashboard" class="footer-link">Email Sender</a><a href="/jobs" class="footer-link">Job Posts</a><a href="/sent_emails" class="footer-link">Email History</a><a href="/profile" class="footer-link">Profile Settings</a></div><div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0"><h5 class="footer-heading">Company</h5><a href="/about" class="footer-link">About Us</a><a href="/careers" class="footer-link">Careers</a><a href="/blog" class="footer-link">Blog</a><a href="/contact" class="footer-link">Contact</a></div><div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0"><h5 class="footer-heading">Resources</h5><a href="/documentation" class="footer-link">Documentation</a><a href="/help" class="footer-link">Help Center</a><a href="/api" class="footer-link">API Reference</a><a href="/community" class="footer-link">Community</a></div><div class="col-lg-2 col-md-3 col-6"><h5 class="footer-heading">Legal</h5><a href="/privacy" class="footer-link">Privacy Policy</a><a href="/terms" class="footer-link">Terms of Service</a><a href="/cookies" class="footer-link">Cookie Policy</a><a href="/gdpr" class="footer-link">GDPR Compliance</a></div></div></div><div class="footer-bottom"><div class="container"><div class="row align-items-center"><div class="col-md-6 text-center text-md-start mb-3 mb-md-0"><p class="footer-copyright">© 2001-2025 JustMailIt. All rights reserved.</p></div><div class="col-md-6 text-center text-md-end"><p class="footer-credits">Built with ❤️ by JustMailIt Team • <a href="https://github.com/manuchaturvedi/email-sent-site" target="_blank">GitHub</a></p></div></div></div></div></footer><style>.site-footer{background:linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%);border-top:1px solid #e2e8f0;padding:4rem 0 0;margin-top:6rem}.footer-logo{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#a8e6cf,#8b9fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}.footer-description{color:#64748b;font-size:.95rem;line-height:1.7;margin-bottom:1.5rem;max-width:320px}.footer-link{color:#64748b;text-decoration:none;transition:all .2s ease;display:block;margin-bottom:.65rem;font-size:.925rem;font-weight:500}.footer-link:hover{color:#a8e6cf;transform:translateX(4px)}.footer-heading{color:#1e293b;font-weight:700;font-size:.875rem;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:1px}.social-icon{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;background:#fff;color:#a8e6cf;margin-right:.5rem;transition:all .3s cubic-bezier(.4,0,.2,1);text-decoration:none;font-size:1.1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e2e8f0}.social-icon:hover{background:linear-gradient(135deg,#a8e6cf,#8b9fff);color:#fff;transform:translateY(-4px);box-shadow:0 8px 16px rgba(168,230,207,.2)}.footer-bottom{background:#fff;border-top:1px solid #e2e8f0;padding:2rem 0;margin-top:3.5rem}.footer-copyright{color:#64748b;font-size:.875rem;margin:0}.footer-credits{color:#64748b;font-size:.875rem;margin-top:.5rem}.footer-credits a{color:#a8e6cf;text-decoration:none;font-weight:600}.footer-credits a:hover{text-decoration:underline}.footer-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;background:#fff;border:1px solid #e2e8f0;border-radius:100px;color:#64748b;font-size:.8rem;margin-top:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.05)}.footer-badge i{color:#10b981}</style>
+</body>
+</html>

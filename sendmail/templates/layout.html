@@ -8,19 +8,22 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
   
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Modern Theme CSS -->
+  <link href="/static/css/theme.css" rel="stylesheet" />
   
   <style>
     :root {
-      --primary: #4a6741;
+      --primary: #8b9fff;
       --primary-light: #e8f0e6;
-      --accent: #3d5536;
-      --gradient-start: #5a7d4e;
-      --gradient-end: #4a6741;
-      --btn-gradient-start: #4a6741;
-      --btn-gradient-end: #3d5536;
-      --btn-hover-start: #3d5536;
-      --btn-hover-end: #2f4429;
+      --accent: #7dd4b0;
+      --gradient-start: #a8e6cf;
+      --gradient-end: #8b9fff;
+      --btn-gradient-start: #8b9fff;
+      --btn-gradient-end: #7dd4b0;
+      --btn-hover-start: #7dd4b0;
+      --btn-hover-end: #8b9fff;
       --text-dark: #1a1f36;
       --text-light: #6b7280;
       --success: #10b981;
@@ -31,13 +34,13 @@
     
     /* Campaign button styles */
     .campaign-btn {
-      background: linear-gradient(135deg, #5a7d4e, #4a6741);
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
       color: white;
       font-size: 1.1rem;
       font-weight: 600;
       padding: 1.2rem 2.5rem;
       border-radius: 14px;
-      box-shadow: 0 6px 20px rgba(74, 103, 65, 0.4);
+      box-shadow: 0 6px 20px rgba(139, 159, 255, 0.4);
       transition: all 0.3s ease;
       border: none;
       text-transform: uppercase;
@@ -48,8 +51,8 @@
 
     .campaign-btn:hover {
       transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(74, 103, 65, 0.5);
-      background: linear-gradient(135deg, #4a6741, #3d5536);
+      box-shadow: 0 8px 25px rgba(139, 159, 255, 0.5);
+      background: linear-gradient(135deg, #8b9fff, #7dd4b0);
     }
 
     .campaign-btn::before {
@@ -83,18 +86,37 @@
       background: rgba(255,255,255,0.95);
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 16px rgba(0,0,0,0.06);
-      padding: 1rem 0;
-      border-bottom: 1px solid rgba(99,102,241,0.1);
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(168,230,207,0.1);
+    }
+
+    .navbar .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: nowrap;
     }
 
     .navbar-brand {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      font-weight: 800;
-      font-size: 1.4rem;
-      letter-spacing: -0.5px;
-      text-decoration: none;
+      padding: 0.3rem;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+    
+    .navbar-collapse {
+      display: flex !important;
+      align-items: center;
+      flex-grow: 1;
+    }
+    
+    .navbar-nav {
+      display: flex;
+      align-items: center;
+      margin: 0 auto;
+      flex-wrap: nowrap;
+      white-space: nowrap;
     }
 
     .navbar-logo {
@@ -108,7 +130,7 @@
     }
 
     .navbar-brand-text {
-      background: linear-gradient(135deg, #5a7d4e, #4a6741);
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       display: none;
@@ -118,23 +140,28 @@
       color: var(--text-light) !important;
       font-weight: 500;
       position: relative;
-      padding: 0.8rem 1.2rem !important;
-      transition: all 0.2s ease;
+      padding: 0.7rem 1rem !important;
+      transition: color 0.2s ease;
       font-size: 0.95rem;
       border-radius: 10px;
       margin: 0 0.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: transparent !important;
+      box-shadow: none !important;
     }
 
     .nav-link.active {
-      color: var(--primary-color) !important;
-      background: var(--primary-light);
-      border-radius: 8px;
+      color: white !important;
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff) !important;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(139, 159, 255, 0.3) !important;
     }
 
-    .nav-link:hover {
-      color: var(--primary-color) !important;
-      background: var(--primary-light);
-      border-radius: 8px;
+    .nav-link:hover:not(.active) {
+      color: #8b9fff !important;
+      background: transparent !important;
     }
 
     .nav-link i {
@@ -151,7 +178,7 @@
     /* Common card styles */
     .card {
       background: rgba(255,255,255,0.95);
-      border: 1px solid rgba(99,102,241,0.1);
+      border: 1px solid rgba(168,230,207,0.1);
       border-radius: 16px;
       box-shadow: var(--card-shadow);
       backdrop-filter: blur(10px);
@@ -167,7 +194,7 @@
 
     .email-list-item {
       padding: 1rem;
-      border-bottom: 1px solid rgba(99,102,241,0.1);
+      border-bottom: 1px solid rgba(168,230,207,0.1);
       transition: background-color 0.2s ease;
     }
 
@@ -176,12 +203,12 @@
     }
 
     .email-list-item:hover {
-      background-color: rgba(99,102,241,0.05);
+      background-color: rgba(168,230,207,0.05);
     }
     
     /* Action button styles */
     .action-button {
-      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
       color: white;
       font-weight: 600;
       padding: 1rem 2rem;
@@ -197,7 +224,7 @@
     .action-button:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
-      background: linear-gradient(135deg, #2563eb, #1e40af);
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
     }
 
     .card:hover {
@@ -217,7 +244,7 @@
 
     .form-control:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+      box-shadow: 0 0 0 4px rgba(168,230,207,0.1);
       background: #ffffff;
     }
     
@@ -227,7 +254,7 @@
 
     /* Button styles */
     .btn-primary {
-      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
       border: none;
       padding: 0.8rem 1.5rem;
       font-weight: 600;
@@ -242,7 +269,7 @@
 
     .btn-primary:hover {
       transform: translateY(-2px);
-      background: linear-gradient(135deg, #2563eb, #1e40af);
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
       box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
     }
     
@@ -274,7 +301,7 @@
     /* Stats card */
     .stats-card {
       background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.8));
-      border: 1px solid rgba(99,102,241,0.1);
+      border: 1px solid rgba(168,230,207,0.1);
       padding: 1.5rem;
       border-radius: 16px;
       transition: transform 0.2s ease;
@@ -399,7 +426,7 @@
     .footer-logo {
       font-size: 1.5rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -410,7 +437,7 @@
     }
 
     .footer-logo i {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -435,7 +462,7 @@
     }
 
     .footer-link:hover {
-      color: #6366f1;
+      color: #a8e6cf;
       transform: translateX(4px);
     }
 
@@ -456,7 +483,7 @@
       height: 42px;
       border-radius: 12px;
       background: white;
-      color: #6366f1;
+      color: #a8e6cf;
       margin-right: 0.5rem;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       text-decoration: none;
@@ -466,10 +493,10 @@
     }
 
     .social-icon:hover {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
       color: white;
       transform: translateY(-4px);
-      box-shadow: 0 8px 16px rgba(99,102,241,0.2);
+      box-shadow: 0 8px 16px rgba(168,230,207,0.2);
     }
 
     .footer-bottom {
@@ -492,7 +519,7 @@
     }
 
     .footer-credits a {
-      color: #6366f1;
+      color: #a8e6cf;
       text-decoration: none;
       font-weight: 600;
     }
@@ -555,7 +582,7 @@
       }
       
       .navbar {
-        padding: 0.75rem 0;
+        padding: 0.5rem 0;
       }
       
       .navbar-brand {
@@ -563,25 +590,32 @@
       }
       
       .navbar-logo {
-        height: 35px;
+        height: 80px;
       }
       
       .navbar-collapse {
-        background: rgba(255,255,255,0.98);
-        padding: 1rem;
-        border-radius: 12px;
-        margin-top: 1rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        display: flex !important;
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+      }
+      
+      .navbar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
       }
       
       .nav-link {
-        padding: 0.75rem 1rem !important;
-        margin: 0.25rem 0;
+        padding: 0.5rem 0.8rem !important;
+        margin: 0.1rem;
         border-radius: 8px;
+        font-size: 0.85rem;
       }
       
       .nav-link i {
-        font-size: 1.2em;
+        font-size: 1em;
       }
       
       .main-content {
@@ -814,8 +848,192 @@
       }
     }
 
+    /* ======================================
+       GLOBAL THEME OVERRIDE - GREEN THEME
+       All buttons, gradients, and colors standardized
+       ====================================== */
+    
+    /* Override ALL btn-primary across ALL pages */
+    .btn-primary,
+    button.btn-primary,
+    a.btn-primary,
+    .select-plan-btn.primary,
+    #process-payment-btn,
+    #submitTwoFactorCode {
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff) !important;
+      border-color: #8b9fff !important;
+      color: white !important;
+      box-shadow: 0 4px 12px rgba(139, 159, 255, 0.3) !important;
+    }
+
+    .btn-primary:hover,
+    button.btn-primary:hover,
+    a.btn-primary:hover,
+    .select-plan-btn.primary:hover {
+      background: linear-gradient(135deg, #8b9fff, #7dd4b0) !important;
+      box-shadow: 0 6px 16px rgba(139, 159, 255, 0.4) !important;
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:active,
+    button.btn-primary:active,
+    a.btn-primary:active {
+      background: linear-gradient(135deg, #7dd4b0, #8b9fff) !important;
+    }
+
+    /* Override btn-outline-primary */
+    .btn-outline-primary,
+    button.btn-outline-primary,
+    a.btn-outline-primary {
+      border-color: #8b9fff !important;
+      color: #8b9fff !important;
+      background: transparent !important;
+    }
+
+    .btn-outline-primary:hover,
+    button.btn-outline-primary:hover,
+    a.btn-outline-primary:hover {
+      background: #8b9fff !important;
+      color: white !important;
+      box-shadow: 0 4px 12px rgba(139, 159, 255, 0.3) !important;
+    }
+
+    /* Fix nav-link active state */
+    .nav-link.active {
+      color: #8b9fff !important;
+      background: #e8f0e6 !important;
+    }
+
+    .nav-link:hover {
+      color: #8b9fff !important;
+      background: #e8f0e6 !important;
+    }
+
+    /* Override badge colors to green theme */
+    .badge.bg-primary,
+    .badge-primary {
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff) !important;
+      color: white !important;
+    }
+
+    /* Make all icon gradients use green theme */
+    .icon-circle-lg,
+    .icon-circle,
+    .feature-icon {
+      background: linear-gradient(135deg, rgba(139, 159, 255, 0.1), rgba(168, 230, 207, 0.15)) !important;
+      color: #8b9fff !important;
+    }
+
+    /* Campaign buttons */
+    .campaign-button,
+    .campaign-btn {
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff) !important;
+      color: white !important;
+      box-shadow: 0 6px 20px rgba(139, 159, 255, 0.4) !important;
+    }
+
+    .campaign-button:hover,
+    .campaign-btn:hover {
+      background: linear-gradient(135deg, #8b9fff, #7dd4b0) !important;
+      box-shadow: 0 8px 25px rgba(139, 159, 255, 0.5) !important;
+    }
+
+    /* Override progress bars */
+    .progress-bar {
+      background: linear-gradient(90deg, #a8e6cf, #8b9fff) !important;
+    }
+
+    /* Override alert/modal headers */
+    .modal-header.bg-warning {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.15)) !important;
+    }
+
+    /* Fix text gradient colors */
+    .text-gradient,
+    .navbar-brand-text {
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      background-clip: text !important;
+    }
+
+    /* Override form focus states */
+    .form-control:focus,
+    .form-select:focus,
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #8b9fff !important;
+      box-shadow: 0 0 0 0.25rem rgba(139, 159, 255, 0.15) !important;
+    }
+
+    /* Override link colors */
+    a {
+      color: #8b9fff;
+    }
+
+    a:hover {
+      color: #7dd4b0;
+    }
+
+    /* Ensure good visibility - add solid borders where needed */
+    .btn-primary,
+    .campaign-btn,
+    .campaign-button {
+      border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    }
+
+    /* Make sure buttons are always visible */
+    .btn {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Fix any white/light backgrounds that hide buttons */
+    .card-body .btn-primary,
+    .modal-body .btn-primary,
+    .container .btn-primary {
+      box-shadow: 0 4px 12px rgba(139, 159, 255, 0.4) !important;
+    }
+
     /* Additional styles for specific pages can be added in blocks */
     {% block additional_styles %}{% endblock %}
+  </style>
+  <style>
+    .navbar { 
+      padding: 1rem 0 !important; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .navbar-brand {
+      display: flex !important;
+      align-items: center !important;
+      padding: 0.3rem;
+      transition: all 0.3s ease;
+    }
+    .navbar-brand:hover {
+      transform: translateY(-3px);
+    }
+    .navbar-logo { 
+      height: 110px; 
+      width: auto; 
+      object-fit: contain; 
+      display: block; 
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.2)); 
+      transition: all 0.3s ease;
+    }
+    .navbar-logo:hover { 
+      transform: scale(1.05);
+      filter: drop-shadow(0 8px 16px rgba(139,159,255,0.5));
+    }
+    .navbar-brand-text {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+      display: block;
+    }
   </style>
   
   {% block extra_head %}{% endblock %}
@@ -825,20 +1043,16 @@
   <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
       <a class="navbar-brand" href="/">
-        <img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" 
+           <img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" 
              alt="JustMailIt Logo" 
              class="navbar-logo"
-             onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/logo.svg') }}';">
-        <span class="navbar-brand-text">LinkedIn Automation</span>
+             onerror="this.src='{{ url_for('static', filename='images/logo.svg') }}'>
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarMain">
+      <div class="navbar-collapse" id="navbarMain">
         <ul class="navbar-nav mx-auto">
           <li class="nav-item">
-            <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="/">
-              <i class="bi bi-house-fill"></i>Home
+            <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="/dashboard">
+              <i class="bi bi-house-fill"></i>Dashboard
             </a>
           </li>
           <li class="nav-item">
@@ -887,10 +1101,10 @@
       <div class="row g-5 justify-content-center">
         <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
           <div class="footer-logo">
-            <i class="bi bi-linkedin"></i>
-            LinkedIn Automation
+            <i class="bi bi-envelope-heart"></i>
+            JustMailIt
           </div>
-          <p class="footer-description">Smart AI-powered email automation for LinkedIn job search. Connect with hiring managers and land your dream job faster.</p>
+          <p class="footer-description">Smart AI-powered email automation for job search. Connect with hiring managers and land your dream job faster.</p>
           <div class="d-flex flex-wrap">
             <a href="https://facebook.com" class="social-icon" aria-label="Facebook" target="_blank">
               <i class="bi bi-facebook"></i>
@@ -898,8 +1112,8 @@
             <a href="https://twitter.com" class="social-icon" aria-label="Twitter" target="_blank">
               <i class="bi bi-twitter"></i>
             </a>
-            <a href="https://linkedin.com" class="social-icon" aria-label="LinkedIn" target="_blank">
-              <i class="bi bi-linkedin"></i>
+            <a href="#" class="social-icon" aria-label="LinkedIn" target="_blank">
+              <i class="bi bi-envelope-heart"></i>
             </a>
             <a href="https://github.com" class="social-icon" aria-label="GitHub" target="_blank">
               <i class="bi bi-github"></i>
@@ -921,26 +1135,26 @@
         
         <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
           <h5 class="footer-heading">Company</h5>
-          <a href="#" class="footer-link">About Us</a>
-          <a href="#" class="footer-link">Careers</a>
-          <a href="#" class="footer-link">Blog</a>
-          <a href="#" class="footer-link">Contact</a>
+          <a href="/about" class="footer-link">About Us</a>
+          <a href="/careers" class="footer-link">Careers</a>
+          <a href="/blog" class="footer-link">Blog</a>
+          <a href="/contact" class="footer-link">Contact</a>
         </div>
         
         <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
           <h5 class="footer-heading">Resources</h5>
-          <a href="#" class="footer-link">Documentation</a>
-          <a href="#" class="footer-link">Help Center</a>
-          <a href="#" class="footer-link">API Reference</a>
-          <a href="#" class="footer-link">Community</a>
+          <a href="/documentation" class="footer-link">Documentation</a>
+          <a href="/help" class="footer-link">Help Center</a>
+          <a href="/api" class="footer-link">API Reference</a>
+          <a href="/community" class="footer-link">Community</a>
         </div>
         
         <div class="col-lg-2 col-md-3 col-6">
           <h5 class="footer-heading">Legal</h5>
-          <a href="#" class="footer-link">Privacy Policy</a>
-          <a href="#" class="footer-link">Terms of Service</a>
-          <a href="#" class="footer-link">Cookie Policy</a>
-          <a href="#" class="footer-link">GDPR Compliance</a>
+          <a href="/privacy" class="footer-link">Privacy Policy</a>
+          <a href="/terms" class="footer-link">Terms of Service</a>
+          <a href="/cookies" class="footer-link">Cookie Policy</a>
+          <a href="/gdpr" class="footer-link">GDPR Compliance</a>
         </div>
       </div>
     </div>
@@ -950,13 +1164,13 @@
         <div class="row align-items-center">
           <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
             <p class="footer-copyright">
-              © 2001-2025 LinkedIn Automation. All rights reserved.
+              © 2001-2025 JustMailIt. All rights reserved.
             </p>
           </div>
           <div class="col-md-6 text-center text-md-end">
             <p class="footer-credits">
-              Built with ❤️ by <a href="#" target="_blank">Manu Chaturvedi</a> • 
-              <a href="https://github.com/manuchaturvedi" target="_blank">GitHub</a>
+              Built with ❤️ by JustMailIt Team • 
+              <a href="https://github.com/manuchaturvedi/email-sent-site" target="_blank">GitHub</a>
             </p>
           </div>
         </div>
@@ -970,13 +1184,13 @@
       <div class="modal-content">
         <div class="modal-header bg-primary text-white">
           <h5 class="modal-title" id="twoFactorModalLabel">
-            <i class="bi bi-shield-lock-fill me-2"></i>LinkedIn 2FA Required
+            <i class="bi bi-shield-lock-fill me-2"></i>Two-Factor Authentication Required
           </h5>
         </div>
         <div class="modal-body">
           <div class="alert alert-info mb-3">
             <i class="bi bi-info-circle me-2"></i>
-            LinkedIn requires additional verification. Please enter the code sent to your email/phone.
+            Additional verification additional verification. Please enter the code sent to your email/phone.
           </div>
           <div class="mb-3">
             <label for="twoFactorCode" class="form-label fw-bold">Verification Code:</label>
@@ -1118,3 +1332,4 @@
   {% block scripts %}{% endblock %}
 </body>
 </html>
+

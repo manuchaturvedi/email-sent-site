@@ -3,16 +3,9 @@ from functools import wraps
 import firebase_admin
 from firebase_admin import credentials, auth
 from job_analyzer import JobAnalyzer
+from database import Database  # Import SQLite database
 import uuid
 import hashlib
-# Firestore and Storage are optional; we'll import if available at runtime
-try:
-    from firebase_admin import firestore, storage
-    from firebase_admin.firestore import FieldFilter  # Add FieldFilter import
-except Exception:
-    firestore = None
-    storage = None
-    FieldFilter = None
 import base64
 import threading
 from queue import Queue, Empty
@@ -37,22 +30,192 @@ import platform
 
 app = Flask(__name__)
 
+# Initialize SQLite database
+db = Database()
+
 # Server-Sent Events clients (each client gets a Queue)
 clients = []
 clients_lock = threading.Lock()
 
+def extract_company_from_email(email):
+    """Extract and format company name from email address"""
+    try:
+        # Get domain part
+        domain = email.split('@')[1]
+        
+        # Remove common TLDs
+        domain = domain.replace('.com', '').replace('.co.uk', '').replace('.org', '')
+        domain = domain.replace('.net', '').replace('.io', '').replace('.ai', '')
+        domain = domain.replace('.edu', '').replace('.gov', '').replace('.in', '')
+        
+        # Handle subdomains (e.g., hr.company.com -> company)
+        parts = domain.split('.')
+        if len(parts) > 1:
+            # Take the last part before TLD (usually company name)
+            domain = parts[-1]
+        
+        # Clean and format
+        domain = domain.strip().replace('-', ' ').replace('_', ' ')
+        
+        # Capitalize each word
+        company_name = ' '.join(word.capitalize() for word in domain.split())
+        
+        return company_name if company_name else "Unknown Company"
+    except:
+        return "Unknown Company"
+
 def cleanup_chrome_processes():
-    """Cross-platform Chrome process cleanup"""
+    """Cross-platform Chrome process cleanup - kills all Chrome/Chromium processes"""
     try:
         system = platform.system().lower()
         if system == "windows":
-            os.system('taskkill /f /im chrome.exe')
+            os.system('taskkill /f /im chrome.exe 2>nul')
+            os.system('taskkill /f /im chromedriver.exe 2>nul')
         else:
-            # Linux/Unix systems (including Render)
-            os.system('pkill -f chrome || killall chrome || true')
+            # Linux/Unix systems - kill Chrome, Chromium, and ChromeDriver
+            os.system('pkill -9 -f "chrome|chromium" 2>/dev/null || true')
+            os.system('pkill -9 chromedriver 2>/dev/null || true')
+            # Extra cleanup for zombie processes
+            os.system('pkill -9 -f "defunct.*chrome" 2>/dev/null || true')
         print("🧹 Chrome processes cleaned up")
     except Exception as e:
         print(f"⚠️ Chrome cleanup failed: {e}")
+
+def extract_resume_info(resume_path):
+    """Extract key information from resume file"""
+    try:
+        import PyPDF2
+        
+        with open(resume_path, 'rb') as file:
+            pdf_reader = PyPDF2.PdfReader(file)
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+        
+        print(f"📄 Extracted text length: {len(text)} characters")
+        
+        # Extract name (usually first few lines, look for capitalized words)
+        lines = [line.strip() for line in text.split('\n') if line.strip()]
+        name = "Candidate"
+        
+        # Try to find name in first 5 lines - look for pattern of capitalized words
+        for line in lines[:5]:
+            words = line.split()
+            if len(words) >= 2 and len(words) <= 4:
+                # Check if all words start with capital letter
+                if all(w[0].isupper() for w in words if w.isalpha()):
+                    name = line
+                    break
+        
+        # Extract email and phone
+        import re
+        email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', text)
+        phone_match = re.search(r'[\+\(]?[0-9][0-9 \-\(\)]{8,}[0-9]', text)
+        
+        email = email_match.group(0) if email_match else ""
+        phone = phone_match.group(0) if phone_match else ""
+        
+        # Extract skills (look for common skill keywords)
+        skills = []
+        skill_keywords = ['python', 'java', 'javascript', 'react', 'node', 'aws', 'docker', 
+                         'kubernetes', 'sql', 'mongodb', 'machine learning', 'ai', 'devops',
+                         'angular', 'vue', 'django', 'flask', 'spring', 'microservices',
+                         'typescript', 'golang', 'rust', 'c++', 'ruby', 'php', 'swift',
+                         'kotlin', 'terraform', 'jenkins', 'git', 'linux', 'azure', 'gcp']
+        
+        text_lower = text.lower()
+        for keyword in skill_keywords:
+            if keyword in text_lower:
+                skills.append(keyword.title())
+        
+        # Remove duplicates and limit to top 8 skills
+        skills = list(dict.fromkeys(skills))[:8]
+        
+        # Extract experience (look for years of experience)
+        experience = "experienced professional"
+        exp_match = re.search(r'(\d+)\s*(?:\+)?\s*(?:year|yr)s?\s+(?:of\s+)?experience', text_lower)
+        if exp_match:
+            years = exp_match.group(1)
+            experience = f"{years}+ years experienced"
+        
+        print(f"✅ Extracted - Name: {name}, Skills: {len(skills)}, Email: {email}, Phone: {phone}")
+        
+        return {
+            'name': name,
+            'skills': skills,
+            'experience': experience,
+            'email': email,
+            'phone': phone
+        }
+    except Exception as e:
+        print(f"❌ Resume parsing error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {
+            'name': 'Candidate',
+            'skills': [],
+            'experience': 'experienced professional',
+            'email': '',
+            'phone': ''
+        }
+
+def generate_email_templates(role, resume_info):
+    """Generate professional email subject and body based on role and resume"""
+    
+    name = resume_info.get('name', 'Candidate')
+    skills = resume_info.get('skills', [])
+    experience = resume_info.get('experience', 'experienced professional')
+    email = resume_info.get('email', '')
+    phone = resume_info.get('phone', '')
+    
+    # Generate subject lines with contact info
+    subjects = [
+        f"Application for {role} Position - {name}",
+        f"{experience.title()} {role} Seeking Opportunities - {name}",
+        f"{role} Application | {name} | {experience.title()}",
+    ]
+    
+    # Generate email body
+    skills_text = ", ".join(skills[:6]) if skills else "relevant technologies"
+    
+    # Add contact info section
+    contact_info = []
+    if email:
+        contact_info.append(f"Email: {email}")
+    else:
+        contact_info.append("Email: [Add your email here]")
+    
+    if phone:
+        contact_info.append(f"Phone: {phone}")
+    else:
+        contact_info.append("Phone: [Add your phone number here]")
+    
+    contact_section = "\n".join(contact_info)
+    
+    body = f"""Dear Hiring Manager,
+
+I am writing to express my interest in the {role} position at your esteemed organization. As an {experience} with expertise in {skills_text}, I am confident that I can contribute effectively to your team.
+
+Key Highlights:
+• {experience.title()} in the field
+• Strong proficiency in {skills_text}
+• Proven track record of delivering quality results
+• Excellent problem-solving and communication skills
+
+I have attached my resume for your review. I would welcome the opportunity to discuss how my background aligns with your needs.
+
+Thank you for considering my application. I look forward to hearing from you.
+
+Best regards,
+{name}
+{contact_section}"""
+
+    return {
+        'subjects': subjects,
+        'body': body,
+        'name': name,
+        'has_contact': bool(email and phone)
+    }
 
 def send_event(message: str):
     """Push a message to all connected SSE clients."""
@@ -111,25 +274,24 @@ automation_driver = None
 verification_code_submitted = None
 verification_code_value = None
 
-def is_duplicate_job_post(post, existing_posts=None):
+def is_duplicate_job_post(post, existing_posts=None, user_email=None):
     """Check if a job post is a duplicate based on email, title, and company."""
     try:
-        if firestore is not None:
-            db = firestore.client()
-            # Query Firestore for potential duplicates
-            query = (db.collection(FIRESTORE_COLLECTIONS['job_posts'])
-                    .where('email', '==', post.get('email', ''))
-                    .where('company', '==', post.get('company', '')))
+        # Check SQLite database for duplicates
+        if user_email:
+            conn = db.get_connection()
+            cursor = conn.cursor()
             
-            docs = list(query.stream())
-            for doc in docs:
-                existing = doc.to_dict()
-                # Consider it a duplicate if title is similar (to handle minor variations)
-                if (existing.get('email') == post.get('email') and
-                    existing.get('company') == post.get('company') and
-                    existing.get('title', '').lower().strip() == post.get('title', '').lower().strip()):
-                    return True
-            return False
+            cursor.execute('''
+                SELECT COUNT(*) as count FROM job_posts
+                WHERE user_email = ? AND company = ? AND LOWER(TRIM(title)) = LOWER(TRIM(?))
+            ''', (user_email, post.get('company', ''), post.get('title', '')))
+            
+            result = cursor.fetchone()
+            conn.close()
+            
+            if result and result['count'] > 0:
+                return True
         
         # Fallback to local storage check
         if existing_posts is None:
@@ -148,29 +310,37 @@ def is_duplicate_job_post(post, existing_posts=None):
         return False
 
 def load_job_posts():
-    """Load job posts from Firestore or fall back to local JSON storage."""
+    """Load job posts from SQLite or fall back to local JSON storage."""
     # Initialize job analyzer
     analyzer = JobAnalyzer()
 
     try:
-        if firestore is not None:
-            db = firestore.client()
-            docs = list(db.collection(FIRESTORE_COLLECTIONS['job_posts']).stream())
-
-            posts = []
-            for doc in docs:
-                post_data = doc.to_dict()
-                post_data['id'] = doc.id
-                # Analyze post to extract company, location, and skills
-                posts.append(analyzer.analyze_post(post_data))
-
-            # Sort by posted_date descending
-            posts.sort(key=lambda x: x.get('posted_date', ''), reverse=True)
-            print(f"✅ Loaded {len(posts)} job posts from Firestore")
-            return posts
+        # Load from SQLite database
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT * FROM job_posts
+            ORDER BY created_at DESC
+        ''')
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        posts = []
+        for row in rows:
+            post_data = dict(row)
+            post_data['skills'] = json.loads(post_data['skills']) if post_data.get('skills') else []
+            # Map recruiter_email to email for template compatibility
+            if 'recruiter_email' in post_data and post_data['recruiter_email']:
+                post_data['email'] = post_data['recruiter_email']
+            posts.append(analyzer.analyze_post(post_data))
+        
+        print(f"✅ Loaded {len(posts)} job posts from SQLite database")
+        return posts
 
     except Exception as e:
-        print(f"❌ Error loading from Firestore: {str(e)}")
+        print(f"❌ Error loading from SQLite: {str(e)}")
         # Continue to try local storage
 
     try:
@@ -183,48 +353,38 @@ def load_job_posts():
     except FileNotFoundError:
         return []
 
-def save_job_post(post):
-    """Save a job post to Firestore and local storage, avoiding duplicates."""
+def save_job_post(post, user_email=None):
+    """Save a job post to SQLite and local storage, avoiding duplicates."""
     try:
         # First check if this is a duplicate
-        if is_duplicate_job_post(post):
+        if is_duplicate_job_post(post, user_email=user_email):
             print(f"⚠️ Duplicate job post found for {post.get('company')} - {post.get('title')}")
             return False
             
-        # Try Firestore first
-        if firestore is not None:
-            db = firestore.client()
+        # Save to SQLite first
+        if user_email:
             try:
                 # Add timestamp and clean up post data
                 post_to_save = post.copy()
                 post_to_save.update({
-                    'created_at': firestore.SERVER_TIMESTAMP,
-                    'updated_at': firestore.SERVER_TIMESTAMP,
                     'posted_date': post.get('posted_date') or datetime.now().strftime("%Y-%m-%d"),
-                    'status': 'active'
+                    'user_email': user_email
                 })
                 
-                # Save to Firestore
-                doc_ref = db.collection(FIRESTORE_COLLECTIONS['job_posts']).document()
-                doc_ref.set(post_to_save)
+                # Save to SQLite using Database class
+                db.save_job_posts(user_email, [post_to_save])
+                print(f"✅ Job post saved to SQLite database")
                 
-                # Verify the save
-                saved_doc = doc_ref.get()
-                if saved_doc.exists:
-                    print(f"✅ Job post saved to Firestore with ID: {doc_ref.id}")
-                    
-                    # Notify connected clients
-                    try:
-                        send_event(f"NEW_JOB: {post.get('title')} | {post.get('company')} | {post.get('email')}")
-                    except Exception:
-                        pass
-                    
-                    return True
-                else:
-                    print("⚠️ Warning: Job post save to Firestore could not be verified")
+                # Notify connected clients
+                try:
+                    send_event(f"NEW_JOB: {post.get('title')} | {post.get('company')} | {post.get('email')}")
+                except Exception:
+                    pass
+                
+                return True
                     
             except Exception as e:
-                print(f"❌ Error saving to Firestore: {str(e)}")
+                print(f"❌ Error saving to SQLite: {str(e)}")
                 # Continue to local storage as fallback
         
         # Fallback to local storage
@@ -264,76 +424,31 @@ def load_sent_emails(user_email=None):
     emails = []
     
     try:
-        # Try to load from Firestore first
-        if firestore is not None:
-            db = firestore.client()
-            try:
-                # First try loading without ordering to avoid index requirement
-                query = db.collection(FIRESTORE_COLLECTIONS['sent_emails'])
-                if user_email:
-                    query = query.where(filter=FieldFilter('user_email', '==', user_email))
-                
-                print(f"🔍 Querying Firestore collection: {FIRESTORE_COLLECTIONS['sent_emails']}")
-                # Add more debug info about the query
-                if user_email:
-                    print(f"📧 Filtering by user_email: {user_email}")
-                    
-                try:
-                    docs = list(query.stream())  # Convert to list to force execution
-                    print(f"📊 Found {len(docs)} documents in Firestore")
-                    
-                    # If no documents found, try a simple query to verify collection access
-                    if len(docs) == 0:
-                        test_docs = list(db.collection(FIRESTORE_COLLECTIONS['sent_emails']).limit(1).stream())
-                        if len(test_docs) > 0:
-                            print("ℹ️ Note: Collection has documents but none match the filter")
-                        else:
-                            print("ℹ️ Note: Collection appears to be empty")
-                except Exception as e:
-                    print(f"❌ Error executing Firestore query: {str(e)}")
-                    raise  # Re-raise to be caught by outer try/except
-                
-                print("📨 Processing Firestore documents...")
-                for doc in docs:
-                    try:
-                        email_data = doc.to_dict()
-                        if not email_data:
-                            print(f"⚠️ Empty document found with ID: {doc.id}")
-                            continue
-                            
-                        email_data['id'] = doc.id
-                        
-                        # Ensure we have required fields
-                        if not email_data.get('email'):
-                            print(f"⚠️ Skipping document {doc.id} - missing email field")
-                            continue
-                            
-                        emails.append(email_data)
-                    except Exception as e:
-                        print(f"⚠️ Error processing document {doc.id}: {str(e)}")
-                        continue
-                
-                print(f"✅ Successfully processed {len(emails)} valid email records")
-                
-                # Sort in memory instead of using Firestore ordering
-                # Convert Firestore timestamps to isoformat strings for sorting
-                for email in emails:
-                    created_at = email.get('created_at')
-                    if created_at and hasattr(created_at, 'isoformat'):
-                        email['created_at'] = created_at.isoformat()
-                    elif isinstance(created_at, str):
-                        # Already a string, leave as is
-                        pass
-                    else:
-                        # Use a default date for sorting if no valid date
-                        email['created_at'] = '1970-01-01T00:00:00'
-
-                emails.sort(key=lambda x: x.get('created_at', ''), reverse=True)
-                print(f"✅ Loaded {len(emails)} emails from Firestore")
-                return emails
-            except Exception as e:
-                print(f"❌ Error loading from Firestore: {str(e)}")
-                # Continue to try local storage
+        # Load from SQLite database
+        if user_email:
+            emails = db.get_sent_emails(user_email)
+            print(f"✅ Loaded {len(emails)} emails from SQLite database")
+            return emails
+        else:
+            # Get all emails (no user filter)
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT * FROM sent_emails
+                ORDER BY sent_at DESC
+            ''')
+            
+            rows = cursor.fetchall()
+            conn.close()
+            
+            emails = [dict(row) for row in rows]
+            print(f"✅ Loaded {len(emails)} emails from SQLite database")
+            return emails
+            
+    except Exception as e:
+        print(f"❌ Error loading from SQLite: {str(e)}")
+        # Continue to try local storage
         
         # Fallback to local file
         try:
@@ -359,90 +474,45 @@ def load_sent_emails(user_email=None):
 
 
 def get_user_email_stats(user_email):
-    """Get user email statistics from Firestore with efficient querying."""
+    """Get user email statistics from SQLite."""
     try:
-        if firestore is not None:
-            db = firestore.client()
-            # Avoid server-side ordering which can require a composite index.
-            # Fetch documents for the user and sort in-memory to remove the
-            # need for a composite index on (user_id, timestamp).
-            try:
-                base_query = db.collection(FIRESTORE_COLLECTIONS['sent_emails']).where('user_id', '==', user_email)
-                docs = list(base_query.stream())
-            except Exception as e:
-                print(f"❌ Error executing Firestore query: {str(e)}")
-                return None, {}
-
-            # Prepare empty stats structure
-            stats = {
-                "sent": 0,
-                "skipped": 0,
-                "failed": 0,
-                "duplicates": 0,
-                "total": len(docs),
-                "unique_recipients": set(),
-                "unique_runs": set(),
-                "last_run_time": None
-            }
-
-            processed_emails = []
-            for doc in docs:
-                try:
-                    email_data = doc.to_dict() or {}
-                    email_data['id'] = doc.id
-
-                    # Normalize timestamp fields for comparisons
-                    ts = email_data.get('timestamp') or email_data.get('created_at')
-                    if ts and hasattr(ts, 'isoformat'):
-                        # Firestore timestamp -> ISO string
-                        email_data['timestamp'] = ts.isoformat()
-                    elif isinstance(ts, str):
-                        email_data['timestamp'] = ts
-                    else:
-                        email_data['timestamp'] = ''
-
-                    # Update stats counters
-                    status = email_data.get('status', 'unknown')
-                    if status in stats:
-                        stats[status] += 1
-
-                    # Track unique values
-                    if email_data.get('email'):
-                        stats['unique_recipients'].add(email_data['email'])
-                    if email_data.get('run_id'):
-                        stats['unique_runs'].add(email_data['run_id'])
-
-                    # Track latest run (string compare of ISO timestamps is OK)
-                    timestamp = email_data.get('timestamp', '')
-                    if timestamp and (not stats['last_run_time'] or timestamp > stats['last_run_time']):
-                        stats['last_run_time'] = timestamp
-
-                    processed_emails.append(email_data)
-                except Exception as e:
-                    print(f"⚠️ Error processing document {doc.id}: {str(e)}")
-                    continue
-
-            # Sort processed emails by timestamp descending
-            processed_emails.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-
-            # Convert sets to counts and finalize stats
-            stats['unique_recipients'] = len(stats['unique_recipients'])
-            stats['runs'] = len(stats['unique_runs'])
-            stats['last_run'] = stats['last_run_time']
-            del stats['unique_runs']
-            del stats['last_run_time']
-
-            print(f"✅ Processed {len(processed_emails)} email records for user {user_email}")
-            return processed_emails, stats
+        # Get email stats from SQLite
+        stats_data = db.get_email_stats(user_email)
+        emails = db.get_sent_emails(user_email)
+        
+        # Build detailed stats
+        stats = {
+            "sent": sum(1 for e in emails if e.get('status') == 'sent'),
+            "skipped": sum(1 for e in emails if e.get('status') == 'skipped'),
+            "failed": sum(1 for e in emails if e.get('status') == 'failed'),
+            "duplicates": 0,
+            "total": stats_data.get('total_emails', 0),
+            "unique_recipients": len(set(e.get('recipient_email') for e in emails if e.get('recipient_email'))),
+            "runs": len(set(e.get('run_id') for e in emails if e.get('run_id'))),
+            "last_run": max((e.get('sent_at', '') for e in emails), default='')
+        }
+        
+        # Add timestamp field and email field mapping for template compatibility
+        for email in emails:
+            email['timestamp'] = email.get('sent_at', '')
+            # Map recipient_email to email for template
+            if 'recipient_email' in email and 'email' not in email:
+                email['email'] = email['recipient_email']
+            # Add cc field (use user_email as cc since emails are sent with user in cc)
+            if 'cc' not in email:
+                email['cc'] = user_email
+        
+        print(f"✅ Processed {len(emails)} email records for user {user_email}")
+        return emails, stats
     except Exception as e:
-        print(f"❌ Error querying Firestore: {str(e)}")
+        print(f"❌ Error querying SQLite: {str(e)}")
         return None, {}
 
 def prepare_email_record(record, run_id=None, user_email=None):
     """Prepare an email record for storage by adding necessary fields."""
     record_to_save = record.copy()
     record_to_save.update({
-        'created_at': firestore.SERVER_TIMESTAMP if firestore else datetime.now().isoformat(),
+        'created_at': datetime.now().isoformat(),
         'user_id': user_email,
         'user_email': user_email,  # For backwards compatibility
         'run_id': run_id,
@@ -451,13 +521,9 @@ def prepare_email_record(record, run_id=None, user_email=None):
         'run_time': datetime.now().isoformat(),  # Add run_time for consistency
         'subject': record.get('subject', 'No Subject'),
         'email': record.get('email', ''),
+        'recipient_email': record.get('email', ''),  # For SQLite compatibility
         'action_type': record.get('status', 'unknown'),
         'error': record.get('error', None),  # Store any error messages
-        'metadata': {  # Additional metadata for analysis
-            'client_time': datetime.now().isoformat(),
-            'source': 'automation',
-            'version': '1.0'
-        }
     })
     return record_to_save
 
@@ -467,61 +533,29 @@ def count_emails_sent_today(user_email):
     try:
         print(f"📧 Counting emails for user: {user_email}")
         
-        if not firestore:
-            print("⚠️ Firestore not available")
-            return 0, None
-        
         from datetime import date
         today = date.today()
         print(f"📅 Today's date: {today}")
         
-        db = firestore.client()
-        query = db.collection(FIRESTORE_COLLECTIONS['sent_emails']) \
-            .where('user_email', '==', user_email) \
-            .where('status', '==', 'sent')
+        # Query SQLite for emails sent today
+        conn = db.get_connection()
+        cursor = conn.cursor()
         
-        all_emails = list(query.stream())
-        print(f"📊 Total sent emails in database: {len(all_emails)}")
+        cursor.execute('''
+            SELECT COUNT(*) as count
+            FROM sent_emails
+            WHERE user_email = ? 
+            AND status = 'sent'
+            AND DATE(sent_at) = DATE('now')
+        ''', (user_email,))
         
-        emails_today = 0
+        result = cursor.fetchone()
+        conn.close()
         
-        for email_doc in all_emails:
-            email_data = email_doc.to_dict()
-            
-            # Check multiple possible timestamp fields
-            timestamp = email_data.get('sent_at') or email_data.get('timestamp') or email_data.get('created_at')
-            
-            if not timestamp:
-                continue
-            
-            # Handle different timestamp types
-            try:
-                if isinstance(timestamp, datetime):
-                    if timestamp.date() == today:
-                        emails_today += 1
-                        print(f"  ✓ Email #{emails_today}: {email_data.get('email')} at {timestamp}")
-                elif isinstance(timestamp, str):
-                    # Try ISO format first (YYYY-MM-DD)
-                    try:
-                        sent_date = datetime.fromisoformat(timestamp.replace('Z', '+00:00')).date()
-                        if sent_date == today:
-                            emails_today += 1
-                            print(f"  ✓ Email #{emails_today}: {email_data.get('email')} at {timestamp[:10]}")
-                    except:
-                        # Try other formats
-                        try:
-                            sent_date = datetime.strptime(timestamp.split()[0], '%Y-%m-%d').date()
-                            if sent_date == today:
-                                emails_today += 1
-                                print(f"  ✓ Email #{emails_today}: {email_data.get('email')} at {timestamp[:10]}")
-                        except:
-                            pass
-            except Exception as e:
-                print(f"⚠️ Error parsing timestamp {timestamp}: {e}")
-                continue
-        
+        emails_today = result['count'] if result else 0
         print(f"✅ Total emails sent today: {emails_today}")
         return emails_today, None
+        
     except Exception as e:
         error_msg = f"Error counting emails: {str(e)}"
         print(f"❌ {error_msg}")
@@ -533,20 +567,9 @@ def check_email_limit(user_email):
     try:
         print(f"🔍 Checking email limit for user: {user_email}")
         
-        if not firestore:
-            print("⚠️ Firestore not available, allowing send")
-            return True, 0, None
-        
-        db = firestore.client()
-        doc = db.collection('user_profiles').document(user_email).get()
-        
-        if not doc.exists:
-            print(f"⚠️ User profile not found for {user_email}")
-            return False, 0, "Please set up your profile first"
-        
-        profile_data = doc.to_dict()
-        user_subscription = profile_data.get('subscription', {})
-        user_plan = user_subscription.get('plan', 'free')
+        # Get user subscription from SQLite
+        subscription = db.get_subscription(user_email)
+        user_plan = subscription.get('plan', 'free')
         
         print(f"💳 User plan: {user_plan}")
         
@@ -579,7 +602,7 @@ def check_email_limit(user_email):
 
 
 def save_sent_email(record, run_id=None, user_email=None):
-    """Save a single sent-email record locally and to Firestore."""
+    """Save a single sent-email record to SQLite."""
     try:
         # Add user information
         if user_email:
@@ -590,57 +613,24 @@ def save_sent_email(record, run_id=None, user_email=None):
             record['run_id'] = run_id
             record['run_time'] = datetime.now().isoformat()
         
-        # First try Firestore
-        if firestore is not None:
-            db = firestore.client()
+        # Prepare the record
+        record_to_save = prepare_email_record(record, run_id, user_email)
+        
+        # Save to SQLite
+        db.save_sent_email(user_email, record_to_save)
+        
+        # Notify connected clients
+        try:
+            send_event(f"NEW_EMAIL: {record_to_save.get('email')} | {record_to_save.get('status')} | {record_to_save.get('run_id')}")
+        except Exception:
+            pass
+        
+        print(f"✅ Saved email record to SQLite: {record.get('email')}")
+        return True
             
-            try:
-                print("🔍 Checking Firestore for existing record...")
-                
-                # Save or update in Firestore
-                try:
-                    # Always create a new record with timestamp
-                    doc_ref = db.collection(FIRESTORE_COLLECTIONS['sent_emails']).document()
-                    
-                    # Clean up and prepare the record for storage
-                    record_to_save = prepare_email_record(record, run_id, user_email)
-                    doc_ref.set(record_to_save)
-                    # Notify connected clients about the new email
-                    try:
-                        send_event(f"NEW_EMAIL: {record_to_save.get('email')} | {record_to_save.get('status')} | {record_to_save.get('run_id')}")
-                    except Exception:
-                        pass
-                    
-                    # Update automation run statistics (skip for manual sends)
-                    if run_id and not run_id.startswith('manual_'):
-                        run_ref = db.collection(FIRESTORE_COLLECTIONS['automation_runs']).document(run_id)
-                        if record.get('status') == 'sent':
-                            run_ref.update({
-                                'successful': firestore.Increment(1),
-                                'total_emails': firestore.Increment(1)
-                            })
-                        elif record.get('status') == 'failed':
-                            run_ref.update({
-                                'failed': firestore.Increment(1),
-                                'total_emails': firestore.Increment(1)
-                            })
-                    
-                    print(f"✅ Saved email record to Firestore: {record.get('email')}")
-                    # Force a read back to verify
-                    verify_query = db.collection(FIRESTORE_COLLECTIONS['sent_emails']).document(doc_ref.id).get()
-                    if verify_query.exists:
-                        print(f"✅ Verified record exists in Firestore with ID: {doc_ref.id}")
-                    else:
-                        print(f"⚠️ Warning: Record save succeeded but verification failed")
-                    
-                    return True
-                except Exception as e:
-                    print(f"❌ Error in Firestore operation: {str(e)}")
-                    return False
-
-            except Exception as e:
-                print(f"❌ Error saving to Firestore: {str(e)}")
-                # Continue to local storage as fallback
+    except Exception as e:
+        print(f"❌ Error in save_sent_email: {str(e)}")
+        
         # Fallback to local storage
         try:
             existing = load_sent_emails()
@@ -668,19 +658,9 @@ def save_sent_email(record, run_id=None, user_email=None):
             print(f"✅ Saved email record to local storage: {record.get('email')}")
             return True
             
-        except Exception as e:
-            print(f"❌ Error saving to local storage: {str(e)}")
+        except Exception as local_error:
+            print(f"❌ Error saving to local storage: {str(local_error)}")
             return False
-            
-    except Exception as e:
-        print(f"❌ Error in save_sent_email: {str(e)}")
-        return False
-    try:
-        send_event(f"SENT_EMAIL: {record.get('email')} | {record.get('subject')}")
-    except Exception:
-        pass
-
-    return True
 app.secret_key = "super-secret-key-change-this"
 
 # Initialize Firebase Admin SDK
@@ -706,7 +686,7 @@ def initialize_firebase():
             
         else:
             # Fallback to local file (for development)
-            cred_path = os.path.join(os.path.dirname(__file__), "linkedin-7c251-firebase-adminsdk-fbsvc-c9b46f2c3d.json")
+            cred_path = os.path.join(os.path.dirname(__file__), "justmailit-d6f2d-firebase-adminsdk-fbsvc-552f0c36ab.json")
             if os.path.exists(cred_path):
                 print(f"🔑 Loading Firebase credentials from local file: {cred_path}")
                 cred = credentials.Certificate(cred_path)
@@ -724,9 +704,8 @@ def initialize_firebase():
 # Initialize Firebase
 firebase_initialized = initialize_firebase()
 
-# Initialize Firestore operations
-from firestore_ops import FirestoreOps
-db_ops = FirestoreOps() if firebase_initialized else None
+print("✅ Using SQLite database for data storage")
+print("✅ Firebase is used for authentication only")
 
 
 # --- LOGIN CONTROL ---
@@ -740,9 +719,13 @@ def login_required(f):
     return decorated_function
 
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    # Handle Firebase authentication from modal
+    # Handle GET request - show landing page with login modal
+    if request.method == "GET":
+        return redirect(url_for("landing"))
+    
+    # Handle Firebase authentication from modal (POST)
     data = request.get_json()
     id_token = data.get("idToken")
     display_name = data.get("displayName", "")
@@ -752,28 +735,25 @@ def login():
         user_email = decoded_token["email"]
         session["user"] = user_email
         
-        # Store user info in Firestore if new user
+        # Log user in immediately
+        print(f"✅ {user_email} logged in successfully!")
+        
+        # Create or update user profile in SQLite
         try:
-            db = firestore.client()
-            user_ref = db.collection('user_profiles').document(user_email)
-            user_doc = user_ref.get()
-            
-            if not user_doc.exists:
-                # New user - create profile
-                user_ref.set({
-                    'email': user_email,
-                    'displayName': display_name or decoded_token.get('name', ''),
-                    'createdAt': datetime.now(),
-                    'plan': 'free',
-                    'emailsRemaining': 10
-                })
-                print(f"✅ New user profile created: {user_email}")
-            else:
-                print(f"✅ Existing user logged in: {user_email}")
+            db.create_or_update_profile(
+                email=user_email,
+                display_name=display_name or decoded_token.get('name', ''),
+                photo_url=decoded_token.get('picture')
+            )
+            print(f"✅ User profile updated in database: {user_email}")
         except Exception as profile_error:
             print(f"⚠️ Profile creation/check error: {profile_error}")
+            # Continue login even if profile update fails
+            if "429" in str(profile_error) or "Quota exceeded" in str(profile_error):
+                print(f"⚠️ Firestore quota exceeded - login successful but profile not synced")
+            else:
+                print(f"⚠️ Profile sync error (non-critical): {profile_error}")
         
-        print(f"✅ {user_email} logged in successfully!")
         return jsonify({"status": "success"}), 200
     except Exception as e:
         print(f"❌ Login failed: {e}")
@@ -812,66 +792,97 @@ def profile():
 @app.route("/get_profile")
 @login_required
 def get_profile():
-    """Get user profile data from Firestore."""
+    """Get user profile data from SQLite."""
     user_email = session.get("user")
     try:
-        db = firestore.client()
-        doc = db.collection('user_profiles').document(user_email).get()
-        if doc.exists:
-            data = doc.to_dict()
-            return jsonify(data)
+        profile = db.get_profile(user_email)
+        if profile:
+            # Convert to dict and remove BLOB data (can't be JSON serialized)
+            profile_dict = dict(profile)
+            
+            # Handle resume BLOB
+            if 'resume_data' in profile_dict:
+                resume_blob = profile_dict['resume_data']
+                if resume_blob:
+                    profile_dict['resume_size'] = len(resume_blob)
+                    profile_dict['has_resume'] = True
+                else:
+                    profile_dict['resume_size'] = 0
+                    profile_dict['has_resume'] = False
+                del profile_dict['resume_data']  # Remove BLOB
+            
+            # Convert snake_case to camelCase for frontend
+            formatted_profile = {
+                'email': profile_dict.get('email'),
+                'displayName': profile_dict.get('display_name'),
+                'photoUrl': profile_dict.get('photo_url'),
+                'emailSubject': profile_dict.get('email_subject') or '',
+                'emailContent': profile_dict.get('email_content') or '',
+                'searchRole': profile_dict.get('search_role') or '',
+                'searchTimePeriod': profile_dict.get('search_time_period') or 'past-week',
+                'resumeFilename': profile_dict.get('resume_filename') or '',
+                'resumeSize': profile_dict.get('resume_size', 0),
+                'hasResume': profile_dict.get('has_resume', False),
+                'createdAt': profile_dict.get('created_at'),
+                'updatedAt': profile_dict.get('updated_at')
+            }
+            
+            print(f"📤 Sending profile data: subject={formatted_profile['emailSubject'][:30] if formatted_profile['emailSubject'] else 'None'}..., role={formatted_profile['searchRole']}, resume={formatted_profile['resumeFilename']}")
+            
+            return jsonify(formatted_profile)
         return jsonify({})
     except Exception as e:
         print(f"Error getting profile: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-# Firestore collection names
-FIRESTORE_COLLECTIONS = {
-    'user_profiles': 'user_profiles',      # Stores user profile data
-    'user_preferences': 'user_preferences', # Stores user preferences
-    'sent_emails': 'sent_emails',          # Stores email history
-    'automation_runs': 'automation_runs',   # Stores automation run data
-    'job_posts': 'job_posts'               # Stores unique job posts
-}
+# Database collection names (for reference only)
+# All data is now stored in SQLite tables:
+# - user_profiles: User profile data
+# - job_posts: Unique job posts
+# - sent_emails: Email history  
+# - automation_runs: Automation run data
+# - subscriptions: User subscriptions
 
 def get_user_preferences(user_email):
-    """Get user preferences from Firestore.
+    """Get user preferences from SQLite.
     
-    Data structure in Firestore:
-    - Collection: user_preferences
-      - Document ID: user's email
-        - Fields:
-          - defaultSubject: string
-          - defaultTemplate: string
-          - notifications: boolean
-          - customSettings: map
-          - lastUpdated: timestamp
+    Returns user profile data which includes preferences.
     """
     try:
-        if firestore is not None:
-            db = firestore.client()
-            doc = db.collection(FIRESTORE_COLLECTIONS['user_preferences']).document(user_email).get()
-            if doc.exists:
-                return doc.to_dict()
+        profile = db.get_profile(user_email)
+        if profile:
+            # Return profile data as preferences
+            return {
+                'defaultSubject': profile.get('email_subject') or '',
+                'defaultTemplate': profile.get('email_content') or '',
+                'searchRole': profile.get('search_role') or '',
+                'searchTimePeriod': profile.get('search_time_period') or 'past-week',
+                'resumeFilename': profile.get('resume_filename') or '',
+                'lastUpdated': profile.get('updated_at') or ''
+            }
+        return {}
     except Exception as e:
         print(f"Error getting user preferences: {str(e)}")
     return {}
 
 def save_user_preferences(user_email, preferences):
-    """Save user preferences to Firestore."""
+    """Save user preferences to SQLite."""
     try:
-        if firestore is not None:
-            db = firestore.client()
-            # Add timestamp to track last update
-            preferences['lastUpdated'] = firestore.SERVER_TIMESTAMP
-            db.collection(FIRESTORE_COLLECTIONS['user_preferences']).document(user_email).set(preferences, merge=True)
-            return True
+        # Update user profile with preferences
+        db.create_or_update_profile(
+            email=user_email,
+            display_name=preferences.get('displayName'),
+            photo_url=preferences.get('photoUrl')
+        )
+        return True
     except Exception as e:
         print(f"Error saving user preferences: {str(e)}")
     return False
 
 def save_automation_run(run_id, user_email, settings=None):
-    """Save automation run data to Firestore.
+    """Save automation run data to SQLite.
     
     Args:
         run_id: Unique identifier for the automation run
@@ -879,32 +890,26 @@ def save_automation_run(run_id, user_email, settings=None):
         settings: Dictionary of settings used for this run
     """
     try:
-        if firestore is not None:
-            db = firestore.client()
-            run_data = {
-                'user_email': user_email,
-                'start_time': firestore.SERVER_TIMESTAMP,
-                'status': 'running',
-                'settings_used': settings or {},
-                'total_emails': 0,
-                'successful': 0,
-                'failed': 0
-            }
-            db.collection(FIRESTORE_COLLECTIONS['automation_runs']).document(run_id).set(run_data)
-            return True
+        run_data = {
+            'job_title': settings.get('searchRole', '') if settings else '',
+            'location': '',
+            'keywords': settings.get('searchRole', '') if settings else '',
+            'status': 'running',
+            'total_jobs_found': 0,
+            'emails_sent': 0
+        }
+        db.save_automation_run(user_email, run_data)
+        return True
     except Exception as e:
         print(f"Error saving automation run: {str(e)}")
     return False
 
 def update_automation_run(run_id, stats):
-    """Update automation run statistics in Firestore."""
+    """Update automation run statistics in SQLite."""
     try:
-        if firestore is not None:
-            db = firestore.client()
-            stats['end_time'] = firestore.SERVER_TIMESTAMP
-            stats['status'] = 'completed'
-            db.collection(FIRESTORE_COLLECTIONS['automation_runs']).document(run_id).update(stats)
-            return True
+        # Note: SQLite automation runs are tracked per-email save
+        # This function is kept for compatibility but doesn't need to do much
+        return True
     except Exception as e:
         print(f"Error updating automation run: {str(e)}")
     return False
@@ -912,47 +917,53 @@ def update_automation_run(run_id, stats):
 @app.route("/save_profile", methods=["POST"])
 @login_required
 def save_profile():
-    """Save user profile data to Firestore."""
+    """Save user profile data to SQLite."""
     user_email = session.get("user")
     
     # Get form data
     email_subject = request.form.get("emailSubject")
     email_content = request.form.get("emailContent")
-    search_role = request.form.get("searchRole", "devops, cloud, site reliability")
+    search_role = request.form.get("searchRole", "")
     search_time_period = request.form.get("searchTimePeriod", "past-week")
     
-    # Handle resume file - store in Firestore as base64
+    # Handle resume file - store as BLOB in database
     resume_data = None
     resume_filename = None
     if "resumeFile" in request.files:
         resume = request.files["resumeFile"]
         if resume.filename:
-            # Read file and encode as base64
-            resume_bytes = resume.read()
-            resume_data = base64.b64encode(resume_bytes).decode('utf-8')
+            # Read file as binary data
+            resume_data = resume.read()
             resume_filename = resume.filename
-            print(f"📄 Resume uploaded: {resume_filename}, size: {len(resume_bytes)} bytes")
+            
+            print(f"📄 Resume uploaded: {resume_filename}")
+            print(f"   Size: {len(resume_data)} bytes")
+            print(f"   Type: {resume.content_type}")
     
     try:
-        db = firestore.client()
-        profile_data = {
-            "emailSubject": email_subject,
-            "emailContent": email_content,
-            "searchRole": search_role,
-            "searchTimePeriod": search_time_period,
-            "updatedAt": datetime.now()
-        }
+        # Update user profile in SQLite with all form data
+        db.create_or_update_profile(
+            email=user_email,
+            display_name=None,  # Keep existing
+            photo_url=None,  # Keep existing
+            email_subject=email_subject,
+            email_content=email_content,
+            search_role=search_role,
+            search_time_period=search_time_period,
+            resume_data=resume_data,  # Store binary BLOB
+            resume_filename=resume_filename
+        )
         
-        # Only update resume if new one uploaded
-        if resume_data:
-            profile_data["resumeData"] = resume_data
-            profile_data["resumeFilename"] = resume_filename
-            print(f"✅ Storing resume in Firestore: {resume_filename}")
+        print(f"✅ Profile updated for {user_email}")
+        print(f"   - Email Subject: {email_subject[:50] if email_subject else 'None'}...")
+        print(f"   - Search Role: {search_role}")
+        print(f"   - Resume: {resume_filename if resume_filename else 'None'}")
         
-        db.collection('user_profiles').document(user_email).set(profile_data, merge=True)
         return jsonify({"status": "success"})
     except Exception as e:
         print(f"❌ Error saving profile: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @app.route("/")
@@ -1030,11 +1041,11 @@ def home():
     """Home dashboard after login with links to the main features."""
     user_email = session["user"]
     
-    # Get user's email stats from Firestore
+    # Get user's email stats from SQLite
     sent_emails, stats = get_user_email_stats(user_email)
     
     if sent_emails is None:
-        # Fallback to local storage if Firestore query failed
+        # Fallback to local storage if SQLite query failed
         print("⚠️ Falling back to local storage")
         sent_emails = load_sent_emails(user_email)
         stats = {
@@ -1048,11 +1059,9 @@ def home():
             "runs": len(set(r.get('run_id') for r in sent_emails if r.get('run_id')))
         }
     
-    # Get user profile data
+    # Get user profile data from SQLite
     try:
-        db = firestore.client()
-        profile_doc = db.collection('user_profiles').document(user_email).get()
-        profile_data = profile_doc.to_dict() if profile_doc.exists else {}
+        profile_data = db.get_profile(user_email) or {}
     except Exception:
         profile_data = {}
     
@@ -1061,12 +1070,12 @@ def home():
     if sent_emails:
         # Group by run_id and get the most recent 5 runs
         runs = {}
-        for email in sorted(sent_emails, key=lambda x: x.get('run_time', ''), reverse=True):
+        for email in sorted(sent_emails, key=lambda x: x.get('run_time') or '', reverse=True):
             run_id = email.get('run_id', 'unknown')
             if run_id not in runs:
                 runs[run_id] = {
                     'run_id': run_id,
-                    'run_time': email.get('run_time'),
+                    'run_time': email.get('run_time') or '',
                     'emails_sent': sum(1 for e in sent_emails if e.get('run_id') == run_id and e.get('status') == 'sent'),
                     'total_emails': sum(1 for e in sent_emails if e.get('run_id') == run_id)
                 }
@@ -1074,13 +1083,13 @@ def home():
                 break
         recent_runs = list(runs.values())
     
-    # Get job posts stats
+    # Get job posts stats from SQLite
     total_jobs = 0
     try:
-        job_posts = load_job_posts()
-        total_jobs = len(job_posts)
+        job_stats = db.get_job_stats(user_email)
+        total_jobs = job_stats.get('total_jobs', 0)
     except Exception as e:
-        print(f"Error loading job posts: {e}")
+        print(f"Error loading job stats: {e}")
     
     # Calculate remaining jobs (jobs not yet emailed)
     sent_count = stats.get('sent', 0)
@@ -1090,8 +1099,58 @@ def home():
     stats['total_jobs'] = total_jobs
     stats['remaining'] = remaining
     
-    # Get subscription data
-    subscription = profile_data.get('subscription', {'plan': 'free', 'status': 'active'})
+    # Get today's email count for free users
+    emails_today, _ = count_emails_sent_today(user_email)
+    stats['emails_today'] = emails_today
+    
+    # Get subscription data from SQLite
+    subscription = db.get_subscription(user_email)
+    
+    # Get recent job posts for carousel (limit to 12 + 1 for show more)
+    job_posts = []
+    try:
+        job_posts = db.get_job_posts(user_email, limit=12)
+        print(f"✅ Loaded {len(job_posts)} job posts for user {user_email}")
+        if job_posts:
+            print(f"📋 First job post: {job_posts[0].get('title', 'No title')}")
+    except Exception as e:
+        print(f"❌ Error loading job posts: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    # Get list of emails already sent by this user from SQLite
+    sent_emails = set()
+    try:
+        emails = db.get_sent_emails(user_email)
+        for email_record in emails:
+            if email_record.get('status') == 'sent' and email_record.get('recipient_email'):
+                sent_emails.add(email_record['recipient_email'])
+        print(f"📧 User {user_email} has sent to {len(sent_emails)} unique emails")
+    except Exception as e:
+        print(f"⚠️ Error loading sent emails: {str(e)}")
+    
+    # Mark posts that were already sent and extract company from email
+    for post in job_posts:
+        # Map recruiter_email to email for template compatibility
+        if 'recruiter_email' in post and not post.get('email'):
+            post['email'] = post['recruiter_email']
+        
+        # Check if already sent
+        email = post.get('email') or post.get('recruiter_email', '')
+        if email in sent_emails:
+            post['already_sent'] = True
+        else:
+            post['already_sent'] = False
+        
+        # Extract company name from email if not present
+        if not post.get('company') or post.get('company') in ['Company Not Found', 'Company Not Specified', '']:
+            if email and '@' in email:
+                post['company'] = extract_company_from_email(email)
+    
+    print(f"📊 Dashboard stats for {user_email}:")
+    print(f"   Total Jobs: {stats.get('total_jobs', 0)}")
+    print(f"   Job Posts Array Length: {len(job_posts)}")
+    print(f"   Already Sent Count: {sum(1 for p in job_posts if p.get('already_sent'))}")
     
     return render_template(
         "home.html",
@@ -1099,7 +1158,8 @@ def home():
         stats=stats,
         profile=profile_data,
         subscription=subscription,
-        recent_runs=recent_runs
+        recent_runs=recent_runs,
+        job_posts=job_posts
     )
 
 
@@ -1122,40 +1182,36 @@ def job_posts():
     user_email = session.get("user")
     posts = load_job_posts()
     
-    # Get list of emails already sent by this user
+    # Get list of emails already sent by this user from SQLite
     sent_emails = set()
     try:
-        if firestore is not None:
-            db = firestore.client()
-            query = db.collection(FIRESTORE_COLLECTIONS['sent_emails']) \
-                .where('user_email', '==', user_email) \
-                .where('status', '==', 'sent')
-            
-            for doc in query.stream():
-                data = doc.to_dict()
-                sent_emails.add(data.get('email'))
-            
-            print(f"📧 User {user_email} has sent to {len(sent_emails)} unique emails")
+        emails = db.get_sent_emails(user_email)
+        for email_record in emails:
+            if email_record.get('status') == 'sent' and email_record.get('recipient_email'):
+                sent_emails.add(email_record['recipient_email'])
+        
+        print(f"📧 User {user_email} has sent to {len(sent_emails)} unique emails")
     except Exception as e:
         print(f"⚠️ Error loading sent emails: {str(e)}")
     
     # Mark posts that were already sent and extract company from email
     for post in posts:
-        if post.get('email') in sent_emails:
+        # Map recruiter_email to email for template compatibility
+        if 'recruiter_email' in post and not post.get('email'):
+            post['email'] = post['recruiter_email']
+        
+        # Check if already sent
+        email = post.get('email') or post.get('recruiter_email', '')
+        if email in sent_emails:
             post['already_sent'] = True
         else:
             post['already_sent'] = False
         
-        # Extract company name from email if not present
-        if not post.get('company') or post.get('company') == 'Company Not Found':
-            email = post.get('email', '')
+        # Extract company name from email if not present - use helper function
+        if not post.get('company') or post.get('company') in ['Company Not Found', 'Company Not Specified', '']:
             if email and '@' in email:
-                # Extract domain from email
-                domain = email.split('@')[1]
-                # Remove common extensions
-                company_name = domain.split('.')[0]
-                # Capitalize first letter
-                post['company'] = company_name.upper()
+                # Use our helper function for extraction
+                post['company'] = extract_company_from_email(email)
     
     # Sort posts by date, newest first
     posts.sort(key=lambda x: x["posted_date"], reverse=True)
@@ -1192,26 +1248,24 @@ def send_job_email():
         
         print(f"✅ Email limit check passed. Sent today: {emails_sent}/10")
         
-        # Get user's saved profile data
+        # Get user's saved profile data from SQLite
         try:
-            db = firestore.client()
-            doc = db.collection('user_profiles').document(user_email).get()
-            if not doc.exists:
+            profile_data = db.get_profile(user_email)
+            if not profile_data:
                 return jsonify({"success": False, "message": "Please set up your profile first"}), 400
             
-            profile_data = doc.to_dict()
-            
             # Get email content and subject from profile
-            email_content = profile_data.get('emailContent', '')
-            subject = profile_data.get('subject', 'Job Application')
+            email_content = profile_data.get('email_content', '')
+            subject = profile_data.get('email_subject', 'Job Application')
             
-            # Check if resume exists
-            if not profile_data.get('resumeData') or not profile_data.get('resumeFilename'):
+            # Check if resume exists - use correct field names with underscores
+            resume_data_b64 = profile_data.get('resume_data')
+            resume_filename = profile_data.get('resume_filename')
+            
+            if not resume_data_b64 or not resume_filename:
                 return jsonify({"success": False, "message": "Please upload a resume first"}), 400
             
-            # Get resume from Firestore and create temp file
-            resume_filename = profile_data['resumeFilename']
-            resume_data_b64 = profile_data['resumeData']
+            # Decode resume from base64 and create temp file
             resume_bytes = base64.b64decode(resume_data_b64)
             
             temp_dir = tempfile.gettempdir()
@@ -1226,20 +1280,13 @@ def send_job_email():
             print(f"❌ Error getting profile data: {str(e)}")
             return jsonify({"success": False, "message": "Error loading profile data"}), 500
         
-        # Check for duplicate
+        # Check for duplicate using SQLite
         try:
-            if firestore is not None:
-                db = firestore.client()
-                query = db.collection(FIRESTORE_COLLECTIONS['sent_emails']) \
-                    .where('email', '==', job_email) \
-                    .where('subject', '==', subject) \
-                    .where('user_email', '==', user_email) \
-                    .limit(1)
-                
-                existing = list(query.stream())
-                if existing:
-                    last_doc = existing[0].to_dict()
-                    last_sent = last_doc.get('sent_at', 'unknown time')
+            emails = db.get_sent_emails(user_email)
+            for email_record in emails:
+                if (email_record.get('recipient_email') == job_email and
+                    email_record.get('subject') == subject):
+                    last_sent = email_record.get('sent_at', 'unknown time')
                     return jsonify({
                         "success": False, 
                         "message": f"Already sent to this email on {last_sent}"
@@ -1247,17 +1294,19 @@ def send_job_email():
         except Exception as e:
             print(f"⚠️ Error checking duplicates: {str(e)}")
         
-        # Send the email - use same credentials as main automation
+        # Send the email - using mail@justmailit.in via Gmail SMTP
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
-        sender_email = "manudrive06@gmail.com"
-        sender_password = "ozds nrqo gduy mnwd"
+        sender_email = "mail@justmailit.in"  # Custom domain email
+        smtp_user = "manudrive06@gmail.com"  # Gmail account for authentication
+        sender_password = "ozds nrqo gduy mnwd"  # Gmail App Password
         
         try:
             msg = MIMEMultipart()
-            msg["From"] = sender_email
+            msg["From"] = sender_email  # mail@justmailit.in
             msg["To"] = job_email
-            msg["Cc"] = user_email
+            msg["Bcc"] = user_email  # Send copy to user (hidden from recruiter)
+            msg["Reply-To"] = user_email  # Replies go to user
             msg["Subject"] = subject
             
             # Attach email content
@@ -1275,27 +1324,29 @@ def send_job_email():
                     )
                     msg.attach(part)
             
-            # Send email - match the pattern used in main automation
+            # Send email - authenticate with Gmail, send as mail@justmailit.in
             server = smtplib.SMTP(smtp_server, smtp_port)
             server.starttls()
-            server.login(sender_email, sender_password)
-            # Send to both job_email and user_email (CC)
-            recipients = [job_email, user_email]
+            server.login(smtp_user, sender_password)  # Authenticate with Gmail
+            # Send to recruiter AND user (BCC - user gets copy for tracking)
+            recipients = [job_email, user_email]  # Both receive the email
             server.sendmail(sender_email, recipients, msg.as_string())
             server.quit()
             
-            print(f"✅ Email sent successfully to {job_email} (CC: {user_email})")
+            print(f"✅ Email sent successfully to {job_email} from {sender_email} (copy sent to user: {user_email})")
             
-            # Save to sent emails
+            # Save to sent emails with proper record format
             run_id = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             save_sent_email({
                 "email": job_email,
+                "recipient_email": job_email,
                 "subject": subject,
-                "cc": user_email,
+                "reply_to": user_email,  # User gets replies
                 "sent_at": datetime.now().isoformat(),
                 "status": "sent",
                 "source_url": job_url,
                 "company": job_company,
+                "job_title": job_description[:50] + "..." if len(job_description) > 50 else job_description,
                 "description": job_description[:100] + "..." if len(job_description) > 100 else job_description
             }, run_id, user_email)
             
@@ -1314,12 +1365,13 @@ def send_job_email():
         except Exception as e:
             print(f"❌ Error sending email: {str(e)}")
             
-            # Save failure
+            # Save failure with proper record format
             run_id = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             save_sent_email({
                 "email": job_email,
+                "recipient_email": job_email,
                 "subject": subject,
-                "cc": user_email,
+                "reply_to": user_email,
                 "sent_at": datetime.now().isoformat(),
                 "status": "failed",
                 "error": str(e),
@@ -1354,7 +1406,7 @@ def sent_emails_page():
     runs = {}
     for record in records:
         run_id = record.get('run_id', 'unknown')
-        run_time = record.get('run_time', record.get('sent_at', ''))
+        run_time = record.get('run_time') or record.get('sent_at') or ''
         if run_id not in runs:
             runs[run_id] = {
                 'run_id': run_id,
@@ -1370,9 +1422,9 @@ def sent_emails_page():
         if status in runs[run_id]['stats']:
             runs[run_id]['stats'][status] += 1
     
-    # Convert to list and sort by run_time
+    # Convert to list and sort by run_time (handle None values)
     runs_list = list(runs.values())
-    runs_list.sort(key=lambda x: x['run_time'], reverse=True)
+    runs_list.sort(key=lambda x: x.get('run_time') or '', reverse=True)
     
     # Add total stats
     total_stats = {
@@ -1467,6 +1519,78 @@ def submit_2fa_code():
         log(f"❌ Error submitting 2FA code: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/generate_email_template', methods=['POST'])
+@login_required
+def generate_email_template():
+    """Generate email subject and body based on uploaded resume and role"""
+    try:
+        role = request.form.get('role', 'Software Developer')
+        user_email = session.get('user')
+        
+        # Check if resume file is uploaded or use saved resume
+        resume_info = None
+        resume_path = None
+        
+        # First check for new upload
+        if 'resume' in request.files and request.files['resume'].filename:
+            # New resume uploaded - save it
+            resume_file = request.files['resume']
+            user_folder = os.path.join('uploads', user_email.replace('@', '_at_').replace('.', '_'))
+            os.makedirs(user_folder, exist_ok=True)
+            
+            # Save the resume
+            resume_filename = f"resume_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            resume_path = os.path.join(user_folder, resume_filename)
+            resume_file.save(resume_path)
+            
+            # Also save to profile
+            db.create_or_update_profile(user_email, resume_filename=resume_filename)
+            
+            print(f"✅ Resume saved: {resume_path}")
+        else:
+            # Try to use saved resume
+            user_folder = os.path.join('uploads', user_email.replace('@', '_at_').replace('.', '_'))
+            if os.path.exists(user_folder):
+                resume_files = [f for f in os.listdir(user_folder) if f.endswith('.pdf')]
+                if resume_files:
+                    # Use most recent resume
+                    resume_files.sort(reverse=True)
+                    resume_path = os.path.join(user_folder, resume_files[0])
+                    print(f"📄 Using saved resume: {resume_path}")
+        
+        # If no resume found, return error
+        if not resume_path or not os.path.exists(resume_path):
+            return jsonify({
+                'status': 'error',
+                'error_type': 'no_resume',
+                'message': 'Please upload your resume to generate a personalized email template.'
+            }), 400
+        
+        # Extract resume info
+        resume_info = extract_resume_info(resume_path)
+        print(f"📋 Resume Info Extracted: {resume_info}")
+        
+        # Generate templates
+        templates = generate_email_templates(role, resume_info)
+        print(f"📧 Templates Generated: Subjects={templates['subjects']}, Has Contact={templates['has_contact']}")
+        
+        return jsonify({
+            'status': 'success',
+            'subjects': templates['subjects'],
+            'body': templates['body'],
+            'name': templates['name'],
+            'has_contact': templates['has_contact']
+        })
+    
+    except Exception as e:
+        print(f"❌ Error generating template: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
 @app.route('/progress')
 @login_required
 def progress_stream():
@@ -1484,7 +1608,7 @@ def progress_stream():
                 try:
                     # Wait up to 15s for a message then send heartbeat
                     msg = q.get(timeout=15)
-                    print(f"📢 Sending message: {msg}")
+                    # Don't print here to avoid duplication - message already logged via log()
                     yield f"data: {msg}\n\n"
                 except Empty:
                     # heartbeat to keep connection alive
@@ -1949,13 +2073,11 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
 
     try:
         # Get search parameters from function args or fallback to profile preferences
-        db = firestore.client()
-        profile_doc = db.collection('user_profiles').document(user_email).get()
-        profile_data = profile_doc.to_dict() if profile_doc.exists else {}
+        profile_data = db.get_profile(user_email) if user_email else {}
 
         # Use passed-in search parameters if provided, otherwise fall back to profile preferences
         if not search_role:
-            search_role = profile_data.get('searchRole', 'devops, cloud, site reliability')
+            search_role = profile_data.get('searchRole', '')
         if not search_time:
             search_time = profile_data.get('searchTimePeriod', 'past-week')
         
@@ -2098,9 +2220,11 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                             "location": "Remote/On-site",  # You can enhance this with actual location parsing
                             "job_type": "Full-time",      # You can enhance this with actual job type parsing
                             "posted_date": datetime.now().strftime("%Y-%m-%d"),
-                            "url": url
+                            "url": url,
+                            "job_url": url,
+                            "skills": []
                         }
-                        save_job_post(job_post)
+                        save_job_post(job_post, user_email)
                         
                 except Exception as e:
                     log(f"Error extracting job post: {e}")
@@ -2109,82 +2233,70 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         log(f"📧 Found {len(all_emails)} email(s).")
 
         # CHECK EMAIL LIMIT FOR FREE USERS BEFORE SENDING
-        if user_email and firestore is not None:
+        skipped_emails = []
+        if user_email:
             try:
-                db = firestore.client()
-                user_doc = db.collection('user_profiles').document(user_email).get()
-                if user_doc.exists:
-                    user_data = user_doc.to_dict()
-                    user_subscription = user_data.get('subscription', {})
-                    user_plan = user_subscription.get('plan', 'free')
+                subscription = db.get_subscription(user_email)
+                user_plan = subscription.get('plan', 'free')
+                
+                if user_plan == 'free':
+                    # Count emails sent today
+                    from datetime import date
+                    today = date.today()
                     
-                    if user_plan == 'free':
-                        # Count emails sent today
-                        from datetime import date
-                        today = date.today()
-                        
-                        query = db.collection(FIRESTORE_COLLECTIONS['sent_emails']) \
-                            .where('user_email', '==', user_email)
-                        
-                        all_sent = list(query.stream())
-                        emails_today = 0
-                        
-                        for email_doc in all_sent:
-                            email_data = email_doc.to_dict()
-                            sent_at = email_data.get('sent_at')
-                            if sent_at and isinstance(sent_at, datetime):
-                                if sent_at.date() == today:
-                                    emails_today += 1
-                            elif sent_at and isinstance(sent_at, str):
-                                try:
-                                    sent_date = datetime.strptime(sent_at.split()[0], '%Y-%m-%d').date()
-                                    if sent_date == today:
-                                        emails_today += 1
-                                except:
-                                    pass
-                        
-                        if emails_today >= 10:
-                            log(f"❌ Daily limit reached! Free users can send 10 emails per day. Already sent: {emails_today}")
-                            log("⚠️ Stopping automation. Upgrade to Pro for unlimited emails.")
-                            send_event(f"ERROR: Daily limit of 10 emails reached. Sent today: {emails_today}. <a href='/pricing'>Upgrade to Pro</a> for unlimited emails.")
-                            return  # Stop the automation
-                        
-                        # Check if we're about to exceed the limit
-                        emails_to_send = len(all_emails)
-                        if emails_today + emails_to_send > 10:
-                            max_can_send = 10 - emails_today
-                            log(f"⚠️ Can only send {max_can_send} more emails today (already sent {emails_today}/10)")
-                            send_event(f"WARNING: Free plan limit - can only send {max_can_send} more emails today. <a href='/pricing'>Upgrade to Pro</a>")
-                            all_emails = set(list(all_emails)[:max_can_send])  # Limit to remaining quota
-                        
-                        log(f"✅ Email limit check passed. Plan: {user_plan}, Sent today: {emails_today}/10")
+                    conn = db.get_connection()
+                    cursor = conn.cursor()
+                    
+                    cursor.execute('''
+                        SELECT COUNT(*) as count
+                        FROM sent_emails
+                        WHERE user_email = ? AND DATE(sent_at) = DATE('now')
+                    ''', (user_email,))
+                    
+                    result = cursor.fetchone()
+                    conn.close()
+                    
+                    emails_today = result['count'] if result else 0
+                    
+                    if emails_today >= 10:
+                        print(f"❌ Daily limit reached! Free users can send 10 emails per day. Already sent: {emails_today}")
+                        print("⚠️ Stopping automation. Upgrade to Pro for unlimited emails.")
+                        send_event(f"<div class='upgrade-prompt'><h4>🚀 Daily Limit Reached!</h4><p>You've sent all 10 emails available on the Free plan today.</p><p><strong>Missing opportunities for {len(all_emails)} potential jobs!</strong></p><a href='/pricing' class='btn-upgrade'>Upgrade to Pro for Unlimited Emails</a></div>")
+                        return  # Stop the automation
+                    
+                    # Check if we're about to exceed the limit
+                    emails_to_send = len(all_emails)
+                    if emails_today + emails_to_send > 10:
+                        max_can_send = 10 - emails_today
+                        print(f"⚠️ Can only send {max_can_send} more emails today (already sent {emails_today}/10)")
+                        # Store skipped emails for upgrade prompt
+                        all_emails_list = list(all_emails)
+                        skipped_emails = all_emails_list[max_can_send:]
+                        all_emails = set(all_emails_list[:max_can_send])  # Limit to remaining quota
+                        print(f"📊 Will send {len(all_emails)} emails, {len(skipped_emails)} will be skipped due to free plan limit")
+                    
+                    print(f"✅ Email limit check passed. Plan: {user_plan}, Sent today: {emails_today}/10")
             except Exception as e:
-                log(f"⚠️ Could not check email limit: {str(e)}")
+                print(f"⚠️ Could not check email limit: {str(e)}")
 
-        # Function to check if email was already sent (directly in Firestore if available)
+        # Function to check if email was already sent (using SQLite)
         def is_duplicate_email(email, subject):
             try:
-                if firestore is not None:
-                    db = firestore.client()
-                    # Query Firestore directly for this email+subject combination
-                    query = (db.collection(FIRESTORE_COLLECTIONS['sent_emails'])
-                            .where('email', '==', email)
-                            .where('subject', '==', subject)
-                            .where('status', 'in', ['sent', 'skipped'])
-                            .limit(1))
-                    
-                    docs = list(query.stream())
-                    if docs:
-                        # Found a match in Firestore
-                        return True, docs[0].to_dict().get('sent_at', '')
+                # Query SQLite directly for this email+subject combination
+                conn = db.get_connection()
+                cursor = conn.cursor()
                 
-                # If no match in Firestore or Firestore not available, check local storage
-                sent_records = load_sent_emails()
-                for record in sent_records:
-                    if (record.get('email') == email and 
-                        record.get('subject') == subject and
-                        record.get('status') in ['sent', 'skipped']):
-                        return True, record.get('sent_at', '')
+                cursor.execute('''
+                    SELECT sent_at FROM sent_emails
+                    WHERE recipient_email = ? AND subject = ? AND status IN ('sent', 'skipped')
+                    LIMIT 1
+                ''', (email, subject))
+                
+                result = cursor.fetchone()
+                conn.close()
+                
+                if result:
+                    return True, result['sent_at']
                 
                 return False, None
                 
@@ -2194,6 +2306,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 return True, None
 
         # Send emails with enhanced duplicate checking
+        emails_sent_count = 0
         for receiver_email in all_emails:
             try:
                 # Check if this exact email+subject was already sent
@@ -2201,11 +2314,12 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 
                 if is_duplicate:
                     when = f" (last sent: {last_sent})" if last_sent else ""
-                    log(f"⚠️ Already sent to {receiver_email} with subject '{subject}'{when} — skipping.")
+                    print(f"⚠️ Already sent to {receiver_email} with subject '{subject}'{when} — skipping.")
                     
                     # Record skip with detailed reason
                     save_sent_email({
                         "email": receiver_email,
+                        "recipient_email": receiver_email,
                         "subject": subject if subject else "",
                         "cc": cc_email,
                         "sent_at": datetime.now().isoformat(),
@@ -2213,7 +2327,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                         "reason": "duplicate",
                         "last_sent": last_sent,
                         "source_url": ",".join(search_urls)
-                    })
+                    }, run_id, user_email)
                     continue
 
                 # Create message
@@ -2242,6 +2356,11 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                         )
                         msg.attach(part)
 
+                # Extract company name from email for better UX
+                company_name = extract_company_from_email(receiver_email)
+                send_event(f"📧 Sending email to {company_name}...")
+                send_event(f"EMAIL_PENDING:{receiver_email}")
+                
                 server = smtplib.SMTP(smtp_server, smtp_port)
                 server.starttls()
                 server.login(sender_email, sender_password)
@@ -2252,10 +2371,14 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 server.sendmail(sender_email, recipients, msg.as_string())
                 server.quit()
 
-                log(f"✅ Sent to {receiver_email} (CC: {cc_email})")
+                emails_sent_count += 1
+                send_event(f"✅ Email sent to {company_name} successfully!")
+                send_event(f"EMAIL_SENT:{receiver_email}")
+                print(f"✅ Sent to {receiver_email} (CC: {cc_email})")
                 # Persist sent email record
                 save_sent_email({
                     "email": receiver_email,
+                    "recipient_email": receiver_email,
                     "subject": subject if subject else "",
                     "cc": cc_email,
                     "sent_at": datetime.now().isoformat(),
@@ -2268,6 +2391,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 try:
                     save_sent_email({
                         "email": receiver_email,
+                        "recipient_email": receiver_email,
                         "subject": subject if subject else "",
                         "cc": cc_email,
                         "sent_at": datetime.now().isoformat(),
@@ -2282,16 +2406,40 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         try:
             # Force close any remaining Chrome instances
             if driver:
-                driver.quit()
+                try:
+                    driver.quit()
+                    print("✅ Driver quit successfully")
+                except Exception as quit_error:
+                    print(f"⚠️ Driver quit failed: {str(quit_error)}")
+            
+            # Always cleanup Chrome processes (even if driver.quit() fails)
             cleanup_chrome_processes()
-            # Note: We don't delete the profile directory since it's persistent (D:\Profile)
-            log("🧹 Browser and Chrome instances closed.")
+            print("🧹 Browser and Chrome instances closed.")
 
             # Send completion status back to the frontend
-            log("✅ Automation completed successfully!")
-            log(f"📊 Summary:")
-            log(f"   - Emails found: {len(all_emails)}")
-            log(f"   - Emails processed: {sum(1 for _ in all_emails)}")
+            send_event(f"<div class='success-message'>🎉 Automation completed! Sent {emails_sent_count} emails successfully.</div>")
+            print("✅ Automation completed successfully!")
+            print(f"📊 Summary:")
+            print(f"   - Emails found: {len(all_emails)}")
+            print(f"   - Emails sent: {emails_sent_count}")
+            
+            # Show upgrade prompt if emails were skipped
+            if len(skipped_emails) > 0:
+                skipped_companies = [extract_company_from_email(email) for email in skipped_emails[:5]]
+                companies_list = '<br>'.join([f"• {company}" for company in skipped_companies])
+                more_text = f"<br>• ...and {len(skipped_emails) - 5} more companies" if len(skipped_emails) > 5 else ""
+                
+                send_event(f"""<div class='upgrade-prompt-modal'>
+                    <h3>🌟 You're Missing Great Opportunities!</h3>
+                    <p><strong>{len(skipped_emails)} emails couldn't be sent</strong> due to your Free plan limit (10 emails/day).</p>
+                    <div class='missed-companies'>
+                        <p><strong>Companies you missed:</strong></p>
+                        {companies_list}{more_text}
+                    </div>
+                    <p class='upgrade-cta'>💎 Upgrade to Pro for unlimited emails and never miss an opportunity!</p>
+                    <a href='/pricing' class='btn-upgrade-big'>Upgrade to Pro Now</a>
+                </div>""")
+                print(f"📋 Skipped {len(skipped_emails)} emails due to free plan limit")
             
             # Return status if this was called from a route
             return {
@@ -2302,8 +2450,11 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
             
         except Exception as e:
             log(f"❌ Error during cleanup: {str(e)}")
-            # Still try to kill Chrome processes even if driver.quit() fails
-            cleanup_chrome_processes()
+            # Still try to kill Chrome processes even if everything else fails
+            try:
+                cleanup_chrome_processes()
+            except:
+                pass
 
 
 # --- START AUTOMATION ---
@@ -2338,13 +2489,9 @@ def send_email():
     
     # Save search preferences to user profile
     try:
-        if firestore is not None:
-            db = firestore.client()
-            db.collection('user_profiles').document(user_email).update({
-                'searchRole': search_role,
-                'searchTimePeriod': search_time_period,
-                'lastSearchAt': datetime.now()
-            })
+        # Note: This requires extending the user_profiles table or using JSON storage
+        # For now, we'll just log it
+        print(f"Search preferences: role={search_role}, time={search_time_period}")
     except Exception as e:
         print(f"⚠️ Could not save search preferences: {e}")
     print(f"📧 Subject: {subject}")
@@ -2354,36 +2501,29 @@ def send_email():
     resume_path = None
     
     if use_saved_resume:
-        # Get saved resume from Firestore and create temporary file
+        # Get saved resume BLOB from database
         try:
-            db = firestore.client()
-            doc = db.collection('user_profiles').document(user_email).get()
-            if doc.exists:
-                profile_data = doc.to_dict()
+            profile_data = db.get_profile(user_email)
+            if profile_data:
+                resume_blob = profile_data.get('resume_data')
+                resume_filename = profile_data.get('resume_filename')
                 
-                # Check if resume data exists in Firestore
-                if profile_data.get('resumeData') and profile_data.get('resumeFilename'):
-                    resume_filename = profile_data['resumeFilename']
-                    resume_data_b64 = profile_data['resumeData']
-                    
-                    print(f"📄 Retrieving saved resume from Firestore: {resume_filename}")
+                if resume_blob and resume_filename:
+                    print(f"📄 Retrieving saved resume: {resume_filename}")
                     
                     try:
-                        # Decode base64 resume data
-                        resume_bytes = base64.b64decode(resume_data_b64)
-                        
-                        # Create temporary file for the resume
+                        # Write BLOB to temporary file
                         temp_dir = tempfile.gettempdir()
                         resume_path = os.path.join(temp_dir, f"{user_email}_{resume_filename}")
                         
                         with open(resume_path, 'wb') as f:
-                            f.write(resume_bytes)
+                            f.write(resume_blob)
                         
                         print(f"✅ Resume restored to temporary file: {resume_path}")
-                        print(f"✅ Resume size: {len(resume_bytes)} bytes")
+                        print(f"✅ Resume size: {len(resume_blob)} bytes")
                         
-                    except Exception as decode_error:
-                        print(f"❌ Error decoding resume: {str(decode_error)}")
+                    except Exception as write_error:
+                        print(f"❌ Error writing resume: {str(write_error)}")
                         flash("Error loading saved resume. Please upload a new resume.", "error")
                         return redirect(url_for("send_page"))
                 else:
@@ -2426,17 +2566,19 @@ def send_email():
     run_id = datetime.now().strftime('%Y%m%d_%H%M%S')
     print(f"🆔 DEBUG: Generated run_id: {run_id}")
 
-    # Initialize automation run in Firestore (if available)
-    if db_ops:
-        print("💾 DEBUG: Saving automation run to Firestore...")
-        db_ops.save_automation_run(run_id, user_email, {
+    # Initialize automation run in SQLite
+    try:
+        print("💾 DEBUG: Saving automation run to SQLite...")
+        save_automation_run(run_id, user_email, {
             'subject': subject,
             'usesSavedResume': use_saved_resume,
-            'resumePath': resume_path
+            'resumePath': resume_path,
+            'searchRole': search_role,
+            'searchTimePeriod': search_time_period
         })
-        print("✅ DEBUG: Automation run saved to Firestore")
-    else:
-        print(f"⚠️ Firestore not available - automation run {run_id} not saved")
+        print("✅ DEBUG: Automation run saved to SQLite")
+    except Exception as e:
+        print(f"⚠️ Could not save automation run: {e}")
 
     # Start automation in background thread
     print("=" * 60)
@@ -2466,18 +2608,9 @@ def send_email():
 def pricing_page():
     """Display pricing plans"""
     user_email = session.get("user")
-    subscription_data = {'plan': 'free', 'status': 'active'}
+    subscription = db.get_subscription(user_email)
     
-    if firestore is not None:
-        db = firestore.client()
-        user_ref = db.collection('user_profiles').document(user_email)
-        user_doc = user_ref.get()
-        
-        if user_doc.exists:
-            user_data = user_doc.to_dict()
-            subscription_data = user_data.get('subscription', subscription_data)
-    
-    return render_template("pricing.html", subscription=subscription_data)
+    return render_template("pricing.html", subscription=subscription)
 
 
 @app.route("/create_payment", methods=["POST"])
@@ -2500,17 +2633,14 @@ def create_payment():
         user_name = user_email.split('@')[0]  # Default name from email
         user_contact = ''
         
-        if firestore is not None:
-            try:
-                db = firestore.client()
-                user_doc = db.collection('user_profiles').document(user_email).get()
-                if user_doc.exists:
-                    user_data = user_doc.to_dict()
-                    user_contact = user_data.get('phone', user_data.get('contact', ''))
-                    if user_data.get('name'):
-                        user_name = user_data.get('name')
-            except Exception as e:
-                print(f"⚠️ Could not fetch user profile: {e}")
+        try:
+            profile = db.get_profile(user_email)
+            if profile:
+                user_contact = profile.get('phone', profile.get('contact', ''))
+                if profile.get('display_name'):
+                    user_name = profile.get('display_name')
+        except Exception as e:
+            print(f"⚠️ Could not fetch user profile: {e}")
         
         # Generate unique order ID
         order_id = f"JMI_{int(time.time())}_{plan}"
@@ -2526,20 +2656,21 @@ def create_payment():
             }
         })
         
-        # Store pending payment in Firestore
-        if firestore is not None:
-            db = firestore.client()
-            payment_ref = db.collection('pending_payments').document(order_id)
-            payment_ref.set({
-                'orderId': order_id,
-                'userEmail': user_email,
-                'plan': plan,
-                'amount': price,
-                'status': 'pending',
-                'razorpay_order_id': razorpay_order['id'],
-                'createdAt': datetime.now(),
-                'expiresAt': datetime.now().replace(hour=datetime.now().hour + 1)
-            })
+        # Store pending payment in SQLite
+        # Note: This requires a pending_payments table which exists in database.py
+        try:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                INSERT INTO pending_payments (order_id, user_email, plan, amount, created_at)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ''', (order_id, user_email, plan, price))
+            
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"⚠️ Could not store pending payment: {e}")
         
         # Prepare prefill data
         prefill_data = {
@@ -2604,30 +2735,31 @@ def payment_webhook():
             amount = payment.get('amount') / 100  # Convert from paise to INR
             
             # Update payment and activate subscription
-            if firestore is not None and razorpay_order_id:
-                db = firestore.client()
-                
-                # Get pending payment by Razorpay order ID
-                payments = db.collection('pending_payments').where('razorpay_order_id', '==', razorpay_order_id).get()
-                
-                for payment_doc in payments:
-                    payment_data = payment_doc.to_dict()
-                    user_email = payment_data.get('userEmail')
-                    plan = payment_data.get('plan')
-                    doc_order_id = payment_data.get('orderId')
+            if razorpay_order_id:
+                try:
+                    conn = db.get_connection()
+                    cursor = conn.cursor()
                     
-                    # Update payment status
-                    db.collection('pending_payments').document(doc_order_id).update({
-                        'status': 'completed',
-                        'completedAt': datetime.now(),
-                        'razorpay_payment_id': razorpay_payment_id,
-                        'webhook_data': webhook_data
-                    })
+                    # Get pending payment by Razorpay order ID
+                    cursor.execute('''
+                        SELECT * FROM pending_payments WHERE order_id = ?
+                    ''', (razorpay_order_id,))
                     
-                    # Activate subscription
-                    activate_subscription(user_email, plan, payment_data.get('amount'), doc_order_id)
+                    payment_data = cursor.fetchone()
+                    conn.close()
                     
-                    print(f"✅ Payment webhook: {user_email} upgraded to {plan} (Payment ID: {razorpay_payment_id})")
+                    if payment_data:
+                        user_email = payment_data['user_email']
+                        plan = payment_data['plan']
+                        doc_order_id = payment_data['order_id']
+                        amount = payment_data['amount']
+                        
+                        # Activate subscription
+                        activate_subscription(user_email, plan, amount, doc_order_id)
+                        
+                        print(f"✅ Payment webhook: {user_email} upgraded to {plan} (Payment ID: {razorpay_payment_id})")
+                except Exception as e:
+                    print(f"⚠️ Could not process webhook: {e}")
         
         return jsonify({'success': True}), 200
         
@@ -2670,25 +2802,19 @@ def payment_success():
                 print(f"❌ Payment signature verification failed: {e}")
                 return jsonify({'success': False, 'error': 'Invalid payment signature'})
         
-        # Get payment details from Firestore
-        if firestore is not None:
-            db = firestore.client()
-            payment_ref = db.collection('pending_payments').document(our_order_id)
-            payment_doc = payment_ref.get()
+        # Get payment details from SQLite
+        try:
+            conn = db.get_connection()
+            cursor = conn.cursor()
             
-            if payment_doc.exists:
-                payment_data = payment_doc.to_dict()
-                user_email = payment_data.get('userEmail')
-                plan = payment_data.get('plan')
-                amount = payment_data.get('amount')
-                
-                # Update payment status
-                payment_ref.update({
-                    'status': 'completed',
-                    'completedAt': datetime.now(),
-                    'razorpay_payment_id': razorpay_payment_id,
-                    'razorpay_order_id': razorpay_order_id
-                })
+            cursor.execute('SELECT * FROM pending_payments WHERE order_id = ?', (our_order_id,))
+            payment_data = cursor.fetchone()
+            conn.close()
+            
+            if payment_data:
+                user_email = payment_data['user_email']
+                plan = payment_data['plan']
+                amount = payment_data['amount']
                 
                 # Activate subscription
                 activate_subscription(user_email, plan, amount, our_order_id)
@@ -2702,8 +2828,9 @@ def payment_success():
                 })
             else:
                 return jsonify({'success': False, 'error': 'Payment record not found'})
-        
-        return jsonify({'success': False, 'error': 'Payment processing failed'})
+        except Exception as e:
+            print(f"❌ Error processing payment: {e}")
+            return jsonify({'success': False, 'error': 'Payment processing failed'})
         
     except Exception as e:
         print(f"❌ Payment success handler error: {e}")
@@ -2713,37 +2840,20 @@ def payment_success():
 def activate_subscription(user_email, plan, price, order_id):
     """Activate user subscription after successful payment"""
     try:
-        if firestore is not None:
-            db = firestore.client()
-            user_ref = db.collection('user_profiles').document(user_email)
-            user_doc = user_ref.get()
-            current_data = user_doc.to_dict() if user_doc.exists else {}
-            
-            from datetime import timedelta
-            next_billing = datetime.now() + timedelta(days=30)
-            
-            subscription_data = {
-                'subscription': {
-                    'plan': plan,
-                    'price': price,
-                    'status': 'active',
-                    'startDate': datetime.now(),
-                    'nextBillingDate': next_billing,
-                    'paymentMethod': 'Razorpay'
-                },
-                'paymentHistory': current_data.get('paymentHistory', []) + [{
-                    'plan': plan,
-                    'amount': price,
-                    'date': datetime.now(),
-                    'status': 'completed',
-                    'orderId': order_id,
-                    'paymentMethod': 'Razorpay'
-                }]
-            }
-            
-            user_ref.set(subscription_data, merge=True)
-            print(f"✅ Subscription activated: {user_email} - {plan} plan")
-            
+        from datetime import timedelta
+        next_billing = datetime.now() + timedelta(days=30)
+        
+        subscription_data = {
+            'plan': plan,
+            'status': 'active',
+            'amount': price,
+            'razorpay_order_id': order_id,
+            'expires_at': next_billing.isoformat()
+        }
+        
+        db.create_or_update_subscription(user_email, subscription_data)
+        print(f"✅ Subscription activated: {user_email} - {plan} plan")
+        
     except Exception as e:
         print(f"❌ Activate subscription error: {e}")
 
@@ -2755,52 +2865,45 @@ def check_payment_status(order_id):
     try:
         user_email = session.get("user")
         
-        if firestore is not None:
-            db = firestore.client()
-            
-            # Check if user has active subscription
-            user_ref = db.collection('user_profiles').document(user_email)
-            user_doc = user_ref.get()
-            
-            if user_doc.exists:
-                user_data = user_doc.to_dict()
-                subscription = user_data.get('subscription', {})
+        # Check if user has active subscription
+        subscription = db.get_subscription(user_email)
+        
+        if subscription and subscription.get('status') == 'active':
+            # Check if subscription is recent (within last 5 minutes)
+            started_at = subscription.get('started_at')
+            if started_at:
+                # Parse timestamp if it's a string
+                if isinstance(started_at, str):
+                    try:
+                        # Try to parse ISO format timestamp
+                        start_date = datetime.fromisoformat(started_at.replace('Z', '+00:00'))
+                    except:
+                        start_date = None
+                else:
+                    start_date = started_at
                 
-                # Check if subscription is active and recent
-                if subscription.get('status') == 'active':
-                    start_date = subscription.get('startDate')
-                    if start_date and isinstance(start_date, datetime):
-                        # If subscription started in last 5 minutes, consider it just activated
-                        if (datetime.now() - start_date).total_seconds() < 300:
-                            return jsonify({
-                                'success': True,
-                                'status': 'completed',
-                                'plan': subscription.get('plan'),
-                                'message': 'Payment verified and subscription activated!'
-                            })
-            
-            # Check pending payment status
-            payment_ref = db.collection('pending_payments').document(order_id)
-            payment_doc = payment_ref.get()
-            
-            if payment_doc.exists:
-                payment_data = payment_doc.to_dict()
-                status = payment_data.get('status', 'pending')
-                
-                # If payment marked as completed, return completed status
-                if status == 'completed':
+                if start_date and (datetime.now() - start_date).total_seconds() < 300:
                     return jsonify({
                         'success': True,
                         'status': 'completed',
-                        'plan': payment_data.get('plan'),
+                        'plan': subscription.get('plan'),
                         'message': 'Payment verified and subscription activated!'
                     })
-                
-                return jsonify({
-                    'success': True,
-                    'status': status,
-                    'message': 'Waiting for payment confirmation...'
-                })
+        
+        # Check pending payment status
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT * FROM pending_payments WHERE order_id = ?', (order_id,))
+        payment_data = cursor.fetchone()
+        conn.close()
+        
+        if payment_data:
+            return jsonify({
+                'success': True,
+                'status': 'pending',
+                'message': 'Waiting for payment confirmation...'
+            })
         
         return jsonify({
             'success': True,
@@ -2814,6 +2917,736 @@ def check_payment_status(order_id):
             'success': False,
             'error': 'Failed to check payment status'
         })
+
+
+# ========== ADMIN PANEL ROUTES ==========
+
+# Admin email - change this to your admin email
+ADMIN_EMAIL = "manuchaturvedi28mc@gmail.com"
+
+def admin_required(f):
+    """Decorator to check if user is admin"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user" not in session:
+            flash("Please log in first!", "warning")
+            return redirect(url_for('landing'))
+        
+        # session['user'] is a string (email), not a dict
+        user_email = session.get('user', '')
+        if user_email != ADMIN_EMAIL:
+            flash("Access denied. Admin only!", "danger")
+            return redirect(url_for('dashboard'))
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/admin')
+@admin_required
+def admin_panel():
+    """Admin panel dashboard"""
+    try:
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get total users
+        cursor.execute("SELECT COUNT(*) FROM user_profiles")
+        total_users = cursor.fetchone()[0]
+        
+        # Get new users today
+        cursor.execute("""
+            SELECT COUNT(*) FROM user_profiles 
+            WHERE DATE(created_at) = DATE('now')
+        """)
+        new_users_today = cursor.fetchone()[0]
+        
+        # Get total emails sent
+        cursor.execute("SELECT COUNT(*) FROM sent_emails")
+        total_emails = cursor.fetchone()[0]
+        
+        # Get emails sent today
+        cursor.execute("""
+            SELECT COUNT(*) FROM sent_emails 
+            WHERE DATE(sent_at) = DATE('now')
+        """)
+        emails_today = cursor.fetchone()[0]
+        
+        # Get active automation runs
+        cursor.execute("""
+            SELECT COUNT(*) FROM automation_runs 
+            WHERE status = 'running'
+        """)
+        active_runs = cursor.fetchone()[0]
+        
+        # Get total automation runs
+        cursor.execute("SELECT COUNT(*) FROM automation_runs")
+        total_runs = cursor.fetchone()[0]
+        
+        # Get premium users count
+        cursor.execute("""
+            SELECT COUNT(*) FROM subscriptions 
+            WHERE status = 'active' AND plan != 'free'
+        """)
+        premium_users = cursor.fetchone()[0]
+        
+        # Get recent users (last 10)
+        cursor.execute("""
+            SELECT email, display_name, created_at 
+            FROM user_profiles 
+            ORDER BY created_at DESC 
+            LIMIT 10
+        """)
+        recent_users = [dict(row) for row in cursor.fetchall()]
+        
+        # Get user email statistics with subscription info
+        cursor.execute("""
+            SELECT 
+                up.email,
+                up.display_name,
+                up.created_at,
+                COUNT(DISTINCT se.id) as emails_sent,
+                COUNT(DISTINCT ar.id) as automation_runs,
+                COALESCE(s.plan, 'free') as plan,
+                COALESCE(s.status, 'inactive') as subscription_status,
+                s.expires_at
+            FROM user_profiles up
+            LEFT JOIN sent_emails se ON up.email = se.user_email
+            LEFT JOIN automation_runs ar ON up.email = ar.user_email
+            LEFT JOIN subscriptions s ON up.email = s.user_email
+            GROUP BY up.email
+            ORDER BY emails_sent DESC, up.created_at DESC
+            LIMIT 50
+        """)
+        user_stats = [dict(row) for row in cursor.fetchall()]
+        
+        # Get recent email activity
+        cursor.execute("""
+            SELECT 
+                se.user_email,
+                se.recipient_email,
+                se.subject,
+                se.company,
+                se.job_title,
+                se.sent_at,
+                se.status
+            FROM sent_emails se
+            ORDER BY se.sent_at DESC
+            LIMIT 50
+        """)
+        recent_emails = [dict(row) for row in cursor.fetchall()]
+        
+        # Get daily email stats (last 7 days)
+        cursor.execute("""
+            SELECT 
+                DATE(sent_at) as date,
+                COUNT(*) as count
+            FROM sent_emails
+            WHERE sent_at >= DATE('now', '-7 days')
+            GROUP BY DATE(sent_at)
+            ORDER BY date DESC
+        """)
+        daily_stats = [dict(row) for row in cursor.fetchall()]
+        
+        conn.close()
+        
+        stats = {
+            'total_users': total_users,
+            'new_users_today': new_users_today,
+            'total_emails': total_emails,
+            'emails_today': emails_today,
+            'active_runs': active_runs,
+            'total_runs': total_runs,
+            'premium_users': premium_users
+        }
+        
+        return render_template('admin.html',
+                             stats=stats,
+                             recent_users=recent_users,
+                             user_stats=user_stats,
+                             recent_emails=recent_emails,
+                             daily_stats=daily_stats)
+    
+    except Exception as e:
+        print(f"Admin panel error: {e}")
+        flash(f"Error loading admin panel: {str(e)}", "danger")
+        return redirect(url_for('dashboard'))
+
+@app.route('/admin/api/stats')
+@admin_required
+def admin_api_stats():
+    """API endpoint for real-time admin stats"""
+    try:
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get various statistics
+        cursor.execute("SELECT COUNT(*) FROM user_profiles")
+        total_users = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM sent_emails WHERE DATE(sent_at) = DATE('now')")
+        emails_today = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM automation_runs WHERE status = 'running'")
+        active_runs = cursor.fetchone()[0]
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'total_users': total_users,
+            'emails_today': emails_today,
+            'active_runs': active_runs
+        })
+    
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/user/<email>')
+@admin_required
+def admin_user_detail(email):
+    """View detailed information about a specific user"""
+    try:
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get user profile
+        cursor.execute("SELECT * FROM user_profiles WHERE email = ?", (email,))
+        user = dict(cursor.fetchone())
+        
+        # Get user's sent emails
+        cursor.execute("""
+            SELECT * FROM sent_emails 
+            WHERE user_email = ? 
+            ORDER BY sent_at DESC
+        """, (email,))
+        sent_emails = [dict(row) for row in cursor.fetchall()]
+        
+        # Get user's automation runs
+        cursor.execute("""
+            SELECT * FROM automation_runs 
+            WHERE user_email = ? 
+            ORDER BY started_at DESC
+        """, (email,))
+        automation_runs = [dict(row) for row in cursor.fetchall()]
+        
+        # Get user's job posts
+        cursor.execute("""
+            SELECT * FROM job_posts 
+            WHERE user_email = ? 
+            ORDER BY created_at DESC
+        """, (email,))
+        job_posts = [dict(row) for row in cursor.fetchall()]
+        
+        # Get user's subscription info
+        cursor.execute("""
+            SELECT * FROM subscriptions 
+            WHERE user_email = ?
+        """, (email,))
+        subscription_row = cursor.fetchone()
+        subscription = dict(subscription_row) if subscription_row else None
+        
+        conn.close()
+        
+        return render_template('admin_user_detail.html',
+                             user=user,
+                             sent_emails=sent_emails,
+                             automation_runs=automation_runs,
+                             job_posts=job_posts,
+                             subscription=subscription)
+    
+    except Exception as e:
+        print(f"Admin user detail error: {e}")
+        flash(f"Error loading user details: {str(e)}", "danger")
+        return redirect(url_for('admin_panel'))
+
+@app.route('/admin/upgrade_user', methods=['POST'])
+@admin_required
+def admin_upgrade_user():
+    """Admin endpoint to upgrade user to Pro without payment"""
+    try:
+        data = request.get_json()
+        user_email = data.get('email')
+        duration_days = int(data.get('duration_days', 365))  # Default 1 year
+        
+        if not user_email:
+            return jsonify({'success': False, 'message': 'Email is required'}), 400
+        
+        # Check if user exists
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT email FROM user_profiles WHERE email = ?", (user_email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            conn.close()
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        
+        # Calculate expiration date
+        from datetime import datetime, timedelta
+        expires_at = (datetime.now() + timedelta(days=duration_days)).isoformat()
+        
+        # Create or update subscription
+        subscription_data = {
+            'plan': 'pro',
+            'status': 'active',
+            'razorpay_order_id': None,
+            'razorpay_payment_id': None,
+            'razorpay_subscription_id': 'ADMIN_UPGRADE',
+            'amount': 0,
+            'coupon_code': 'ADMIN_GRANT',
+            'expires_at': expires_at
+        }
+        
+        db.create_or_update_subscription(user_email, subscription_data)
+        conn.close()
+        
+        print(f"✅ Admin upgraded {user_email} to Pro until {expires_at}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'User upgraded to Pro for {duration_days} days',
+            'expires_at': expires_at
+        })
+        
+    except Exception as e:
+        print(f"❌ Admin upgrade error: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/downgrade_user', methods=['POST'])
+@admin_required
+def admin_downgrade_user():
+    """Admin endpoint to downgrade user to Free plan"""
+    try:
+        data = request.get_json()
+        user_email = data.get('email')
+        
+        if not user_email:
+            return jsonify({'success': False, 'message': 'Email is required'}), 400
+        
+        # Update subscription to free
+        subscription_data = {
+            'plan': 'free',
+            'status': 'inactive',
+            'razorpay_order_id': None,
+            'razorpay_payment_id': None,
+            'razorpay_subscription_id': None,
+            'amount': 0,
+            'coupon_code': None,
+            'expires_at': None
+        }
+        
+        db.create_or_update_subscription(user_email, subscription_data)
+        
+        print(f"✅ Admin downgraded {user_email} to Free plan")
+        
+        return jsonify({
+            'success': True,
+            'message': 'User downgraded to Free plan'
+        })
+        
+    except Exception as e:
+        print(f"❌ Admin downgrade error: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/api/user_count')
+@admin_required
+def admin_get_user_count():
+    """Get user count based on target filter"""
+    try:
+        target = request.args.get('target', 'all')
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        if target == 'all':
+            cursor.execute("SELECT COUNT(*) FROM user_profiles")
+        elif target == 'free':
+            cursor.execute("""
+                SELECT COUNT(*) FROM user_profiles up
+                LEFT JOIN subscriptions s ON up.email = s.user_email
+                WHERE s.plan IS NULL OR s.plan = 'free' OR s.status != 'active'
+            """)
+        elif target == 'pro':
+            cursor.execute("""
+                SELECT COUNT(*) FROM user_profiles up
+                INNER JOIN subscriptions s ON up.email = s.user_email
+                WHERE s.plan = 'pro' AND s.status = 'active'
+            """)
+        
+        count = cursor.fetchone()[0]
+        conn.close()
+        
+        return jsonify({'success': True, 'count': count})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/send_promotional_email', methods=['POST'])
+@admin_required
+def admin_send_promotional_email():
+    """Send promotional email to selected users"""
+    try:
+        data = request.get_json()
+        subject = data.get('subject', '')
+        body = data.get('body', '')
+        target = data.get('target', 'all')
+        
+        if not subject or not body:
+            return jsonify({'success': False, 'message': 'Subject and body are required'}), 400
+        
+        # Get target users
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        if target == 'all':
+            cursor.execute("SELECT email, display_name FROM user_profiles")
+        elif target == 'free':
+            cursor.execute("""
+                SELECT up.email, up.display_name 
+                FROM user_profiles up
+                LEFT JOIN subscriptions s ON up.email = s.user_email
+                WHERE s.plan IS NULL OR s.plan = 'free' OR s.status != 'active'
+            """)
+        elif target == 'pro':
+            cursor.execute("""
+                SELECT up.email, up.display_name 
+                FROM user_profiles up
+                INNER JOIN subscriptions s ON up.email = s.user_email
+                WHERE s.plan = 'pro' AND s.status = 'active'
+            """)
+        
+        users = cursor.fetchall()
+        conn.close()
+        
+        # Send emails
+        sent_count = 0
+        failed_count = 0
+        
+        # Gmail SMTP settings
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = SMTP_USER
+        sender_password = SMTP_PASSWORD
+        
+        for user in users:
+            user_email = user[0]
+            user_name = user[1] or 'User'
+            
+            try:
+                # Get user subscription plan
+                subscription = db.get_subscription(user_email)
+                user_plan = subscription.get('plan', 'free')
+                
+                # Replace placeholders in body
+                personalized_body = body.replace('{name}', user_name)
+                personalized_body = personalized_body.replace('{email}', user_email)
+                personalized_body = personalized_body.replace('{plan}', user_plan.upper())
+                
+                # Create email
+                msg = MIMEMultipart()
+                msg["From"] = f"JustMailIt <{sender_email}>"
+                msg["To"] = user_email
+                msg["Subject"] = subject
+                msg["Reply-To"] = sender_email
+                
+                msg.attach(MIMEText(personalized_body, "plain", "utf-8"))
+                
+                # Send email
+                server = smtplib.SMTP(smtp_server, smtp_port)
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, user_email, msg.as_string())
+                server.quit()
+                
+                sent_count += 1
+                print(f"✅ Promotional email sent to {user_email}")
+                
+            except Exception as email_error:
+                failed_count += 1
+                print(f"❌ Failed to send promotional email to {user_email}: {str(email_error)}")
+        
+        return jsonify({
+            'success': True,
+            'sent': sent_count,
+            'failed': failed_count,
+            'message': f'Sent {sent_count} emails successfully'
+        })
+        
+    except Exception as e:
+        print(f"❌ Promotional email error: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/scrape_jobs')
+@admin_required
+def admin_scrape_jobs():
+    """Admin endpoint to scrape jobs without sending emails - SSE stream"""
+    from flask import Response, stream_with_context
+    import queue
+    import threading
+    
+    def generate():
+        # Get parameters
+        custom_url = request.args.get('url', '').strip()
+        skills = request.args.get('skills', '').strip()
+        scrolls = int(request.args.get('scrolls', 10))
+        
+        # Use admin's session email instead of requiring user input
+        user_email = session.get('user', 'admin@justmailit.in')
+        
+        # Build LinkedIn search URL based on skills (if custom URL not provided)
+        if custom_url:
+            url = custom_url
+            log(f"📍 Using custom URL: {url}")
+        elif skills:
+            # Build search URL using skills like the main automation
+            from urllib.parse import urlencode
+            skill_list = [s.strip() for s in skills.split(',')]
+            search_keywords = ' OR '.join(f'{skill.strip()} hiring' for skill in skill_list)
+            
+            base_url = "https://www.linkedin.com/search/results/content/?"
+            params = {
+                'datePosted': '"past-week"',
+                'keywords': search_keywords
+            }
+            url = base_url + urlencode(params)
+            log(f"🔍 Built search URL for skills: {skills}")
+            log(f"📍 Search URL: {url}")
+        else:
+            # Default to feed if no URL or skills provided
+            url = 'https://www.linkedin.com/feed/'
+            log(f"📍 Using default feed URL: {url}")
+        
+        # Create a queue for messages
+        message_queue = queue.Queue()
+        
+        def send_event(msg):
+            """Send SSE event"""
+            message_queue.put(msg)
+        
+        def log(msg):
+            """Log and send message"""
+            print(msg)
+            send_event(msg)
+        
+        def scrape_jobs_thread():
+            """Background thread for scraping"""
+            driver = None
+            try:
+                log("🚀 Starting admin job scraping...")
+                log(f"👤 Admin user: {user_email}")
+                log(f"📍 URL: {url}")
+                log(f"🔢 Scrolls: {scrolls}")
+                if skills:
+                    log(f"🎯 Skills filter: {skills}")
+                
+                log("⚙️ Initializing Chrome driver...")
+                
+                # Initialize Chrome driver
+                from selenium import webdriver
+                from selenium.webdriver.chrome.options import Options
+                from selenium.webdriver.common.by import By
+                from selenium.webdriver.support.ui import WebDriverWait
+                from selenium.webdriver.support import expected_conditions as EC
+                import time
+                
+                chrome_options = Options()
+                chrome_options.add_argument("--headless")
+                chrome_options.add_argument("--no-sandbox")
+                chrome_options.add_argument("--disable-dev-shm-usage")
+                chrome_options.add_argument("--disable-gpu")
+                chrome_options.add_argument("--window-size=1920,1080")
+                
+                # Use profile for login persistence
+                profile_dir = os.path.join(os.getcwd(), "chrome-profile")
+                chrome_options.add_argument(f"user-data-dir={profile_dir}")
+                chrome_options.add_argument("--profile-directory=Default")
+                
+                log("🌐 Launching Chrome...")
+                driver = webdriver.Chrome(options=chrome_options)
+                
+                log(f"🔗 Opening URL: {url}")
+                driver.get(url)
+                time.sleep(5)
+                
+                # Scroll and collect posts
+                log(f"📜 Starting to scroll ({scrolls} times)...")
+                last_height = driver.execute_script("return document.body.scrollHeight")
+                
+                for i in range(scrolls):
+                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(3)
+                    
+                    new_height = driver.execute_script("return document.body.scrollHeight")
+                    log(f"📜 Scrolling... ({i+1}/{scrolls})")
+                    
+                    if new_height == last_height:
+                        log("✅ Reached end of feed")
+                        break
+                    last_height = new_height
+                
+                log("⏳ Waiting for posts to load...")
+                wait = WebDriverWait(driver, 20)
+                
+                # Try multiple selectors for job posts
+                selectors = [
+                    ".feed-shared-update-v2",
+                    "article.ember-view",
+                    ".update-components-actor",
+                    ".social-details-social-activity"
+                ]
+                
+                job_posts = []
+                for selector in selectors:
+                    try:
+                        elements = wait.until(
+                            EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector))
+                        )
+                        if elements:
+                            log(f"✅ Found {len(elements)} posts using selector: {selector}")
+                            job_posts = elements
+                            break
+                    except Exception as e:
+                        log(f"⚠️ Selector {selector} failed")
+                        continue
+                
+                if not job_posts:
+                    log("❌ No job posts found")
+                    send_event("completed")
+                    return
+                
+                all_emails = set()
+                jobs_saved = 0
+                
+                log(f"🔍 Scanning {len(job_posts)} posts for job opportunities...")
+                
+                for idx, post in enumerate(job_posts):
+                    try:
+                        # Extract post content
+                        title_selectors = [
+                            ".feed-shared-text",
+                            ".feed-shared-text-view",
+                            ".update-components-text",
+                            ".share-update-card__update-text",
+                            ".feed-shared-update-v2__description",
+                            "span.break-words"
+                        ]
+                        
+                        title_elem = None
+                        for selector in title_selectors:
+                            try:
+                                title_elem = post.find_element(By.CSS_SELECTOR, selector)
+                                if title_elem:
+                                    break
+                            except:
+                                continue
+                        
+                        if not title_elem:
+                            continue
+                        
+                        title = title_elem.text
+                        full_text = title
+                        
+                        # Filter by skills if provided (additional filtering on top of search)
+                        if skills and not custom_url:
+                            # If we built the search URL, jobs should already be filtered
+                            # This is just an additional check
+                            skill_list = [s.strip().lower() for s in skills.split(',')]
+                            if not any(skill in full_text.lower() for skill in skill_list):
+                                continue
+                        
+                        # Extract company
+                        company_selectors = [
+                            ".feed-shared-actor__name",
+                            ".update-components-actor__name",
+                            ".share-update-card__actor-name",
+                            ".feed-shared-actor__sub-description"
+                        ]
+                        
+                        company_elem = None
+                        for selector in company_selectors:
+                            try:
+                                company_elem = post.find_element(By.CSS_SELECTOR, selector)
+                                if company_elem:
+                                    break
+                            except:
+                                continue
+                        
+                        company = company_elem.text if company_elem else "Company Not Found"
+                        description = full_text[:200] + "..." if len(full_text) > 200 else full_text
+                        
+                        # Find mailto links
+                        mailtos = post.find_elements(By.XPATH, ".//a[contains(@href, 'mailto:')]")
+                        
+                        for m in mailtos:
+                            email = m.get_attribute("href").replace("mailto:", "")
+                            all_emails.add(email)
+                            
+                            # Save job post for ALL USERS (visible to everyone)
+                            job_post = {
+                                "title": title,
+                                "company": company,
+                                "description": description,
+                                "full_text": full_text,
+                                "email": email,
+                                "location": "Remote/On-site",
+                                "job_type": "Full-time",
+                                "posted_date": datetime.now().strftime("%Y-%m-%d"),
+                                "url": url,
+                                "job_url": url,
+                                "skills": skills.split(',') if skills else []
+                            }
+                            
+                            # Save for the specified user AND make it visible to all users
+                            save_job_post(job_post, user_email)
+                            # Also save without user_email so it appears for everyone
+                            save_job_post(job_post, None)
+                            jobs_saved += 1
+                            log(f"💾 Saved job from {company} - {email} (visible to all users)")
+                    
+                    except Exception as e:
+                        continue
+                
+                log(f"📧 Found {len(all_emails)} unique email(s)")
+                log(f"💾 Saved {jobs_saved} job post(s) to database (visible to all users)")
+                log("✅ Automation completed!")
+                send_event("completed")
+                
+            except Exception as e:
+                error_msg = f"❌ Error: {str(e)}"
+                log(error_msg)
+                print(f"ADMIN SCRAPING ERROR: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                send_event("error")
+            
+            finally:
+                if driver:
+                    try:
+                        driver.quit()
+                        log("🧹 Browser closed")
+                    except:
+                        pass
+        
+        # Start scraping in background thread
+        thread = threading.Thread(target=scrape_jobs_thread)
+        thread.daemon = True
+        thread.start()
+        
+        # Stream messages from queue
+        while True:
+            try:
+                msg = message_queue.get(timeout=1)
+                yield f"data: {msg}\n\n"
+                
+                if msg in ['completed', 'error']:
+                    break
+            except queue.Empty:
+                # Check if thread is still alive
+                if not thread.is_alive():
+                    break
+                continue
+    
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')
 
 
 if __name__ == "__main__":

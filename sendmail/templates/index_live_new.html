@@ -116,7 +116,7 @@
   <!-- Navigation Bar -->
   <nav class="navbar navbar-expand-lg mb-4">
     <div class="container">
-      <a class="navbar-brand" href="/"><i class="bi bi-linkedin me-2"></i>JustMailIt</a>
+      <a class="navbar-brand" href="/"><i class="bi bi-envelope-paper me-2"></i>JustMailIt</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -185,9 +185,12 @@
             </div>
           </div>
 
-          <div class="d-grid mt-4">
+          <div class="d-grid gap-2 mt-4">
             <button type="submit" id="runBtn" class="btn btn-primary">
               <i class="bi bi-play-circle me-2"></i>Run Automation
+            </button>
+            <button type="button" id="stopBtn" class="btn btn-danger" style="display: none;" onclick="stopAutomation()">
+              <i class="bi bi-stop-circle me-2"></i>Stop Automation
             </button>
           </div>
         </form>
@@ -248,7 +251,7 @@
         </div>
       </div>
 
-      <footer>Developed by <b>Manu Chaturvedi</b> • Flask + Selenium LinkedIn Bot</footer>
+      <footer>Developed by <b>Manu Chaturvedi</b> • Flask Automation Dashboard</footer>
     </div>
   </div>
 
@@ -323,14 +326,35 @@
       progressBar.style.width = "0%";
       runBtn.disabled = true;
       runBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Running...';
+      document.getElementById('stopBtn').style.display = 'block';
       isAutomationRunning = true;
       statusPill.style.display = 'block';
       saveState();
 
       const formData = new FormData(form);
-      const res = await fetch("/run", { method: "POST", body: formData });
+      const res = await fetch("/run_automation", { method: "POST", body: formData });
       if (res.ok) listenProgress();
     });
+
+    async function stopAutomation() {
+      if (!confirm('Are you sure you want to stop the automation?')) {
+        return;
+      }
+      
+      try {
+        const res = await fetch('/stop_automation', { method: 'POST' });
+        const data = await res.json();
+        
+        if (data.success) {
+          progressBox.innerHTML += `\n[${new Date().toLocaleTimeString()}] 🛑 Stopping automation...\n`;
+          document.getElementById('stopBtn').disabled = true;
+          document.getElementById('stopBtn').innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Stopping...';
+        }
+      } catch (error) {
+        console.error('Error stopping automation:', error);
+        alert('Failed to stop automation. Please refresh the page.');
+      }
+    }
 
     const stats = {
       emailsFound: 0,
@@ -387,11 +411,12 @@
 
       updateStats();
 
-      // Check for completion message
-      if (msg.includes("✅ Automation completed successfully")) {
+      // Check for completion or stop message
+      if (msg.includes("✅ Automation completed successfully") || msg.includes("🛑 Stop requested") || msg.includes("Automation stopped")) {
         // Re-enable the run button
         runBtn.disabled = false;
         runBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Run Automation';
+        document.getElementById('stopBtn').style.display = 'none';
         isAutomationRunning = false;
         localStorage.removeItem(STATE_KEY);
         statusPill.style.display = 'none';

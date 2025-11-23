@@ -77,9 +77,9 @@ def cleanup_chrome_processes():
             os.system('pkill -9 chromedriver 2>/dev/null || true')
             # Extra cleanup for zombie processes
             os.system('pkill -9 -f "defunct.*chrome" 2>/dev/null || true')
-        print("🧹 Chrome processes cleaned up")
+        print("[DONE] Chrome processes cleaned up")
     except Exception as e:
-        print(f"⚠️ Chrome cleanup failed: {e}")
+        print(f"[WARN] Chrome cleanup failed: {e}")
 
 def extract_resume_info(resume_path):
     """Extract key information from resume file"""
@@ -92,7 +92,7 @@ def extract_resume_info(resume_path):
             for page in pdf_reader.pages:
                 text += page.extract_text()
         
-        print(f"📄 Extracted text length: {len(text)} characters")
+        print(f"[INFO] Extracted text length: {len(text)} characters")
         
         # Extract name (usually first few lines, look for capitalized words)
         lines = [line.strip() for line in text.split('\n') if line.strip()]
@@ -138,7 +138,7 @@ def extract_resume_info(resume_path):
             years = exp_match.group(1)
             experience = f"{years}+ years experienced"
         
-        print(f"✅ Extracted - Name: {name}, Skills: {len(skills)}, Email: {email}, Phone: {phone}")
+        print(f"[OK] Extracted - Name: {name}, Skills: {len(skills)}, Email: {email}, Phone: {phone}")
         
         return {
             'name': name,
@@ -148,7 +148,7 @@ def extract_resume_info(resume_path):
             'phone': phone
         }
     except Exception as e:
-        print(f"❌ Resume parsing error: {str(e)}")
+        print(f"[ERROR] Resume parsing error: {str(e)}")
         import traceback
         traceback.print_exc()
         return {
@@ -250,9 +250,9 @@ RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "i4GM8FcOw34g438OMecg2z78
 try:
     import razorpay
     razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-    print(f"✅ Razorpay Payment Gateway initialized")
+    print(f"[OK] Razorpay Payment Gateway initialized")
 except ImportError:
-    print("⚠️ Razorpay SDK not installed. Payment features will be limited.")
+    print("[WARN] Razorpay SDK not installed. Payment features will be limited.")
     razorpay_client = None
 
 # Optional persistent Chrome profile directory helps preserve LinkedIn login state.
@@ -273,6 +273,8 @@ LINKEDIN_PASSWORD = "Jpking@232"
 automation_driver = None
 verification_code_submitted = None
 verification_code_value = None
+automation_stop_flag = False
+automation_running = False
 
 def is_duplicate_job_post(post, existing_posts=None, user_email=None):
     """Check if a job post is a duplicate based on email, title, and company."""
@@ -305,7 +307,7 @@ def is_duplicate_job_post(post, existing_posts=None, user_email=None):
         return False
         
     except Exception as e:
-        print(f"❌ Error checking for duplicate job post: {str(e)}")
+        print(f"[ERROR] Error checking for duplicate job post: {str(e)}")
         # If we can't check duplicates, assume it's not a duplicate
         return False
 
@@ -336,11 +338,11 @@ def load_job_posts():
                 post_data['email'] = post_data['recruiter_email']
             posts.append(analyzer.analyze_post(post_data))
         
-        print(f"✅ Loaded {len(posts)} job posts from SQLite database")
+        print(f"[OK] Loaded {len(posts)} job posts from SQLite database")
         return posts
 
     except Exception as e:
-        print(f"❌ Error loading from SQLite: {str(e)}")
+        print(f"[ERROR] Error loading from SQLite: {str(e)}")
         # Continue to try local storage
 
     try:
@@ -348,7 +350,7 @@ def load_job_posts():
             posts = json.load(f)
             # Analyze each post from local storage
             posts = [analyzer.analyze_post(post) for post in posts]
-            print(f"✅ Loaded {len(posts)} job posts from local storage")
+            print(f"[OK] Loaded {len(posts)} job posts from local storage")
             return posts
     except FileNotFoundError:
         return []
@@ -358,7 +360,7 @@ def save_job_post(post, user_email=None):
     try:
         # First check if this is a duplicate
         if is_duplicate_job_post(post, user_email=user_email):
-            print(f"⚠️ Duplicate job post found for {post.get('company')} - {post.get('title')}")
+            print(f"[WARN] Duplicate job post found for {post.get('company')} - {post.get('title')}")
             return False
             
         # Save to SQLite first
@@ -373,7 +375,7 @@ def save_job_post(post, user_email=None):
                 
                 # Save to SQLite using Database class
                 db.save_job_posts(user_email, [post_to_save])
-                print(f"✅ Job post saved to SQLite database")
+                print(f"[OK] Job post saved to SQLite database")
                 
                 # Notify connected clients
                 try:
@@ -384,7 +386,7 @@ def save_job_post(post, user_email=None):
                 return True
                     
             except Exception as e:
-                print(f"❌ Error saving to SQLite: {str(e)}")
+                print(f"[ERROR] Error saving to SQLite: {str(e)}")
                 # Continue to local storage as fallback
         
         # Fallback to local storage
@@ -400,15 +402,15 @@ def save_job_post(post, user_email=None):
             except Exception:
                 pass
                 
-            print(f"✅ Job post saved to local storage")
+            print(f"[OK] Job post saved to local storage")
             return True
             
         except Exception as e:
-            print(f"❌ Error saving to local storage: {str(e)}")
+            print(f"[ERROR] Error saving to local storage: {str(e)}")
             return False
             
     except Exception as e:
-        print(f"❌ Error in save_job_post: {str(e)}")
+        print(f"[ERROR] Error in save_job_post: {str(e)}")
         return False
 
 
@@ -427,7 +429,7 @@ def load_sent_emails(user_email=None):
         # Load from SQLite database
         if user_email:
             emails = db.get_sent_emails(user_email)
-            print(f"✅ Loaded {len(emails)} emails from SQLite database")
+            print(f"[OK] Loaded {len(emails)} emails from SQLite database")
             return emails
         else:
             # Get all emails (no user filter)
@@ -443,11 +445,11 @@ def load_sent_emails(user_email=None):
             conn.close()
             
             emails = [dict(row) for row in rows]
-            print(f"✅ Loaded {len(emails)} emails from SQLite database")
+            print(f"[OK] Loaded {len(emails)} emails from SQLite database")
             return emails
             
     except Exception as e:
-        print(f"❌ Error loading from SQLite: {str(e)}")
+        print(f"[ERROR] Error loading from SQLite: {str(e)}")
         # Continue to try local storage
         
         # Fallback to local file
@@ -461,7 +463,7 @@ def load_sent_emails(user_email=None):
                 
                 # Sort by sent time descending
                 emails.sort(key=lambda x: x.get('sent_at', ''), reverse=True)
-                print(f"✅ Loaded {len(emails)} emails from local storage")
+                print(f"[OK] Loaded {len(emails)} emails from local storage")
                 return emails
                 
         except FileNotFoundError:
@@ -469,7 +471,7 @@ def load_sent_emails(user_email=None):
             return []
             
     except Exception as e:
-        print(f"❌ Error in load_sent_emails: {str(e)}")
+        print(f"[ERROR] Error in load_sent_emails: {str(e)}")
         return []
 
 
@@ -502,10 +504,10 @@ def get_user_email_stats(user_email):
             if 'cc' not in email:
                 email['cc'] = user_email
         
-        print(f"✅ Processed {len(emails)} email records for user {user_email}")
+        print(f"[OK] Processed {len(emails)} email records for user {user_email}")
         return emails, stats
     except Exception as e:
-        print(f"❌ Error querying SQLite: {str(e)}")
+        print(f"[ERROR] Error querying SQLite: {str(e)}")
         return None, {}
 
 def prepare_email_record(record, run_id=None, user_email=None):
@@ -531,11 +533,11 @@ def prepare_email_record(record, run_id=None, user_email=None):
 def count_emails_sent_today(user_email):
     """Count how many emails a user has sent today. Returns tuple (count, error_message)."""
     try:
-        print(f"📧 Counting emails for user: {user_email}")
+        print(f"[EMAIL] Counting emails for user: {user_email}")
         
         from datetime import date
         today = date.today()
-        print(f"📅 Today's date: {today}")
+        print(f"[DATE] Today's date: {today}")
         
         # Query SQLite for emails sent today
         conn = db.get_connection()
@@ -553,19 +555,19 @@ def count_emails_sent_today(user_email):
         conn.close()
         
         emails_today = result['count'] if result else 0
-        print(f"✅ Total emails sent today: {emails_today}")
+        print(f"[OK] Total emails sent today: {emails_today}")
         return emails_today, None
         
     except Exception as e:
         error_msg = f"Error counting emails: {str(e)}"
-        print(f"❌ {error_msg}")
+        print(f"[ERROR] {error_msg}")
         return 0, error_msg
 
 
 def check_email_limit(user_email):
     """Check if user has reached their daily email limit. Returns (can_send, emails_sent, message)."""
     try:
-        print(f"🔍 Checking email limit for user: {user_email}")
+        print(f"[DEBUG] Checking email limit for user: {user_email}")
         
         # Get user subscription from SQLite
         subscription = db.get_subscription(user_email)
@@ -575,28 +577,28 @@ def check_email_limit(user_email):
         
         # Pro users have no limit
         if user_plan != 'free':
-            print(f"✅ Pro user - no limits")
+            print(f"[OK] Pro user - no limits")
             return True, 0, None
         
         # Count today's emails for free users
         emails_today, error = count_emails_sent_today(user_email)
         
-        print(f"📊 Emails sent today: {emails_today}/10")
+        print(f"[COUNT] Emails sent today: {emails_today}/10")
         
         if error:
             # If we can't check reliably, allow (fail open)
-            print(f"⚠️ Error counting emails: {error}, allowing send")
+            print(f"[WARN] Error counting emails: {error}, allowing send")
             return True, 0, None
         
         if emails_today >= 10:
             print(f"🔒 LIMIT REACHED! User has sent {emails_today} emails today")
             return False, emails_today, f"Daily limit reached! You've sent {emails_today}/10 emails today. Upgrade to Pro for unlimited emails."
         
-        print(f"✅ Limit check passed - can send")
+        print(f"[OK] Limit check passed - can send")
         return True, emails_today, None
         
     except Exception as e:
-        print(f"❌ Error checking email limit: {str(e)}")
+        print(f"[ERROR] Error checking email limit: {str(e)}")
         # Fail open - allow if we can't check
         return True, 0, None
 
@@ -625,11 +627,11 @@ def save_sent_email(record, run_id=None, user_email=None):
         except Exception:
             pass
         
-        print(f"✅ Saved email record to SQLite: {record.get('email')}")
+        print(f"[OK] Saved email record to SQLite: {record.get('email')}")
         return True
             
     except Exception as e:
-        print(f"❌ Error in save_sent_email: {str(e)}")
+        print(f"[ERROR] Error in save_sent_email: {str(e)}")
         
         # Fallback to local storage
         try:
@@ -641,7 +643,7 @@ def save_sent_email(record, run_id=None, user_email=None):
                     r.get('subject') == record.get('subject') and
                     r.get('run_id') == record.get('run_id') and
                     r.get('user_email') == record.get('user_email')):
-                    print(f"⚠️ Duplicate email record found in local storage: {record.get('email')}")
+                    print(f"[WARN] Duplicate email record found in local storage: {record.get('email')}")
                     return False
             
             # No duplicate found, append and save
@@ -655,11 +657,11 @@ def save_sent_email(record, run_id=None, user_email=None):
             except Exception:
                 pass
                 
-            print(f"✅ Saved email record to local storage: {record.get('email')}")
+            print(f"[OK] Saved email record to local storage: {record.get('email')}")
             return True
             
         except Exception as local_error:
-            print(f"❌ Error saving to local storage: {str(local_error)}")
+            print(f"[ERROR] Error saving to local storage: {str(local_error)}")
             return False
 app.secret_key = "super-secret-key-change-this"
 
@@ -675,37 +677,37 @@ def initialize_firebase():
         firebase_json_b64 = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_JSON')
         
         if firebase_json_b64:
-            print("🔑 Loading Firebase credentials from environment variable")
+            print("[LOGIN] Loading Firebase credentials from environment variable")
             # Decode base64 and parse JSON
             firebase_json_str = base64.b64decode(firebase_json_b64).decode('utf-8')
             firebase_config = json.loads(firebase_json_str)
             cred = credentials.Certificate(firebase_config)
             firebase_admin.initialize_app(cred)
-            print("✅ Firebase initialized from environment variable")
+            print("[OK] Firebase initialized from environment variable")
             return True
             
         else:
             # Fallback to local file (for development)
             cred_path = os.path.join(os.path.dirname(__file__), "justmailit-d6f2d-firebase-adminsdk-fbsvc-552f0c36ab.json")
             if os.path.exists(cred_path):
-                print(f"🔑 Loading Firebase credentials from local file: {cred_path}")
+                print(f"[LOGIN] Loading Firebase credentials from local file: {cred_path}")
                 cred = credentials.Certificate(cred_path)
                 firebase_admin.initialize_app(cred)
-                print("✅ Firebase initialized from local file")
+                print("[OK] Firebase initialized from local file")
                 return True
             else:
-                print("⚠️ No Firebase credentials found - running without Firebase")
+                print("[WARN] No Firebase credentials found - running without Firebase")
                 return False
                 
     except Exception as e:
-        print(f"❌ Firebase initialization failed: {e}")
+        print(f"[ERROR] Firebase initialization failed: {e}")
         return False
 
 # Initialize Firebase
 firebase_initialized = initialize_firebase()
 
-print("✅ Using SQLite database for data storage")
-print("✅ Firebase is used for authentication only")
+print("[OK] Using SQLite database for data storage")
+print("[OK] Firebase is used for authentication only")
 
 
 # --- LOGIN CONTROL ---
@@ -736,7 +738,7 @@ def login():
         session["user"] = user_email
         
         # Log user in immediately
-        print(f"✅ {user_email} logged in successfully!")
+        print(f"[OK] {user_email} logged in successfully!")
         
         # Create or update user profile in SQLite
         try:
@@ -745,18 +747,18 @@ def login():
                 display_name=display_name or decoded_token.get('name', ''),
                 photo_url=decoded_token.get('picture')
             )
-            print(f"✅ User profile updated in database: {user_email}")
+            print(f"[OK] User profile updated in database: {user_email}")
         except Exception as profile_error:
-            print(f"⚠️ Profile creation/check error: {profile_error}")
+            print(f"[WARN] Profile creation/check error: {profile_error}")
             # Continue login even if profile update fails
             if "429" in str(profile_error) or "Quota exceeded" in str(profile_error):
-                print(f"⚠️ Firestore quota exceeded - login successful but profile not synced")
+                print(f"[WARN] Firestore quota exceeded - login successful but profile not synced")
             else:
-                print(f"⚠️ Profile sync error (non-critical): {profile_error}")
+                print(f"[WARN] Profile sync error (non-critical): {profile_error}")
         
         return jsonify({"status": "success"}), 200
     except Exception as e:
-        print(f"❌ Login failed: {e}")
+        print(f"[ERROR] Login failed: {e}")
         return jsonify({"error": str(e)}), 401
 
 
@@ -768,10 +770,10 @@ def session_login():
         decoded_token = auth.verify_id_token(id_token)
         user_email = decoded_token["email"]
         session["user"] = user_email
-        print(f"✅ {user_email} logged in successfully!")
+        print(f"[OK] {user_email} logged in successfully!")
         return jsonify({"status": "success"}), 200
     except Exception as e:
-        print(f"❌ Login failed: {e}")
+        print(f"[ERROR] Login failed: {e}")
         return jsonify({"error": str(e)}), 401
 
 
@@ -936,7 +938,7 @@ def save_profile():
             resume_data = resume.read()
             resume_filename = resume.filename
             
-            print(f"📄 Resume uploaded: {resume_filename}")
+            print(f"[INFO] Resume uploaded: {resume_filename}")
             print(f"   Size: {len(resume_data)} bytes")
             print(f"   Type: {resume.content_type}")
     
@@ -954,14 +956,14 @@ def save_profile():
             resume_filename=resume_filename
         )
         
-        print(f"✅ Profile updated for {user_email}")
+        print(f"[OK] Profile updated for {user_email}")
         print(f"   - Email Subject: {email_subject[:50] if email_subject else 'None'}...")
         print(f"   - Search Role: {search_role}")
         print(f"   - Resume: {resume_filename if resume_filename else 'None'}")
         
         return jsonify({"status": "success"})
     except Exception as e:
-        print(f"❌ Error saving profile: {str(e)}")
+        print(f"[ERROR] Error saving profile: {str(e)}")
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
@@ -989,6 +991,41 @@ def careers():
 def blog():
     """Blog page"""
     return render_template("blog.html")
+
+@app.route("/blog/priya-success-story")
+def blog_priya_success_story():
+    """Priya's Success Story"""
+    return render_template("blog_priya_success_story.html")
+
+@app.route("/blog/rahul-success-story")
+def blog_rahul_success_story():
+    """Rahul's Success Story"""
+    return render_template("blog_rahul_success_story.html")
+
+@app.route("/blog/email-subject-lines")
+def blog_email_subject_lines():
+    """Email Subject Lines Guide"""
+    return render_template("blog_email_subject_lines.html")
+
+@app.route("/blog/email-personalization-guide")
+def blog_email_personalization_guide():
+    """Email Personalization Guide"""
+    return render_template("blog_email_personalization_guide.html")
+
+@app.route("/blog/best-time-to-send")
+def blog_best_time_to_send():
+    """Best Time to Send Emails"""
+    return render_template("blog_best_time_to_send.html")
+
+@app.route("/blog/avoiding-spam-filters")
+def blog_avoiding_spam_filters():
+    """Avoiding Spam Filters Guide"""
+    return render_template("blog_avoiding_spam_filters.html")
+
+@app.route("/blog/post")
+def blog_post():
+    """Generic Blog Post"""
+    return render_template("blog_post.html")
 
 @app.route("/contact")
 def contact():
@@ -1046,7 +1083,7 @@ def home():
     
     if sent_emails is None:
         # Fallback to local storage if SQLite query failed
-        print("⚠️ Falling back to local storage")
+        print("[WARN] Falling back to local storage")
         sent_emails = load_sent_emails(user_email)
         stats = {
             "sent": sum(1 for r in sent_emails if r.get("status") == "sent"),
@@ -1110,11 +1147,11 @@ def home():
     job_posts = []
     try:
         job_posts = db.get_job_posts(user_email, limit=12)
-        print(f"✅ Loaded {len(job_posts)} job posts for user {user_email}")
+        print(f"[OK] Loaded {len(job_posts)} job posts for user {user_email}")
         if job_posts:
-            print(f"📋 First job post: {job_posts[0].get('title', 'No title')}")
+            print(f"[PLAN] First job post: {job_posts[0].get('title', 'No title')}")
     except Exception as e:
-        print(f"❌ Error loading job posts: {e}")
+        print(f"[ERROR] Error loading job posts: {e}")
         import traceback
         traceback.print_exc()
     
@@ -1125,9 +1162,9 @@ def home():
         for email_record in emails:
             if email_record.get('status') == 'sent' and email_record.get('recipient_email'):
                 sent_emails.add(email_record['recipient_email'])
-        print(f"📧 User {user_email} has sent to {len(sent_emails)} unique emails")
+        print(f"[EMAIL] User {user_email} has sent to {len(sent_emails)} unique emails")
     except Exception as e:
-        print(f"⚠️ Error loading sent emails: {str(e)}")
+        print(f"[WARN] Error loading sent emails: {str(e)}")
     
     # Mark posts that were already sent and extract company from email
     for post in job_posts:
@@ -1147,7 +1184,7 @@ def home():
             if email and '@' in email:
                 post['company'] = extract_company_from_email(email)
     
-    print(f"📊 Dashboard stats for {user_email}:")
+    print(f"[COUNT] Dashboard stats for {user_email}:")
     print(f"   Total Jobs: {stats.get('total_jobs', 0)}")
     print(f"   Job Posts Array Length: {len(job_posts)}")
     print(f"   Already Sent Count: {sum(1 for p in job_posts if p.get('already_sent'))}")
@@ -1190,9 +1227,9 @@ def job_posts():
             if email_record.get('status') == 'sent' and email_record.get('recipient_email'):
                 sent_emails.add(email_record['recipient_email'])
         
-        print(f"📧 User {user_email} has sent to {len(sent_emails)} unique emails")
+        print(f"[EMAIL] User {user_email} has sent to {len(sent_emails)} unique emails")
     except Exception as e:
-        print(f"⚠️ Error loading sent emails: {str(e)}")
+        print(f"[WARN] Error loading sent emails: {str(e)}")
     
     # Mark posts that were already sent and extract company from email
     for post in posts:
@@ -1238,7 +1275,7 @@ def send_job_email():
         # CHECK DAILY EMAIL LIMIT
         can_send, emails_sent, limit_message = check_email_limit(user_email)
         if not can_send:
-            print(f"🚫 Blocking send - limit reached!")
+            print(f"[STOP] Blocking send - limit reached!")
             return jsonify({
                 "success": False, 
                 "message": limit_message,
@@ -1246,7 +1283,7 @@ def send_job_email():
                 "upgrade_url": "/pricing"
             }), 403
         
-        print(f"✅ Email limit check passed. Sent today: {emails_sent}/10")
+        print(f"[OK] Email limit check passed. Sent today: {emails_sent}/10")
         
         # Get user's saved profile data from SQLite
         try:
@@ -1274,10 +1311,10 @@ def send_job_email():
             with open(resume_path, 'wb') as f:
                 f.write(resume_bytes)
             
-            print(f"📧 Sending email to {job_email} for {job_company}")
+            print(f"[EMAIL] Sending email to {job_email} for {job_company}")
             
         except Exception as e:
-            print(f"❌ Error getting profile data: {str(e)}")
+            print(f"[ERROR] Error getting profile data: {str(e)}")
             return jsonify({"success": False, "message": "Error loading profile data"}), 500
         
         # Check for duplicate using SQLite
@@ -1292,7 +1329,7 @@ def send_job_email():
                         "message": f"Already sent to this email on {last_sent}"
                     }), 400
         except Exception as e:
-            print(f"⚠️ Error checking duplicates: {str(e)}")
+            print(f"[WARN] Error checking duplicates: {str(e)}")
         
         # Send the email - using mail@justmailit.in via Gmail SMTP
         smtp_server = "smtp.gmail.com"
@@ -1333,7 +1370,7 @@ def send_job_email():
             server.sendmail(sender_email, recipients, msg.as_string())
             server.quit()
             
-            print(f"✅ Email sent successfully to {job_email} from {sender_email} (copy sent to user: {user_email})")
+            print(f"[OK] Email sent successfully to {job_email} from {sender_email} (copy sent to user: {user_email})")
             
             # Save to sent emails with proper record format
             run_id = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -1363,7 +1400,7 @@ def send_job_email():
             })
             
         except Exception as e:
-            print(f"❌ Error sending email: {str(e)}")
+            print(f"[ERROR] Error sending email: {str(e)}")
             
             # Save failure with proper record format
             run_id = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -1385,7 +1422,7 @@ def send_job_email():
             }), 500
             
     except Exception as e:
-        print(f"❌ Error in send_job_email: {str(e)}")
+        print(f"[ERROR] Error in send_job_email: {str(e)}")
         return jsonify({"success": False, "message": str(e)}), 500
 
 
@@ -1400,7 +1437,7 @@ def sent_emails_page():
     
     if records is None:
         records = load_sent_emails(user_email)
-        print(f"📁 Loaded {len(records)} emails from local storage")
+        print(f"[FOLDER] Loaded {len(records)} emails from local storage")
     
     # Group emails by run_id with enhanced stats
     runs = {}
@@ -1472,7 +1509,7 @@ def sent_email_stats_api():
             stats = {k: stats.get(k, 0) for k in ('sent', 'skipped', 'failed', 'total')}
         return jsonify(stats)
     except Exception as e:
-        print(f"❌ Error in /api/sent_email_stats: {e}")
+        print(f"[ERROR] Error in /api/sent_email_stats: {e}")
         return jsonify({'error': str(e)}), 500
 
 
@@ -1516,7 +1553,7 @@ def submit_2fa_code():
             "message": "Code submitted successfully. Automation will continue..."
         })
     except Exception as e:
-        log(f"❌ Error submitting 2FA code: {str(e)}")
+        log(f"[ERROR] Error submitting 2FA code: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/generate_email_template', methods=['POST'])
@@ -1546,7 +1583,7 @@ def generate_email_template():
             # Also save to profile
             db.create_or_update_profile(user_email, resume_filename=resume_filename)
             
-            print(f"✅ Resume saved: {resume_path}")
+            print(f"[OK] Resume saved: {resume_path}")
         else:
             # Try to use saved resume
             user_folder = os.path.join('uploads', user_email.replace('@', '_at_').replace('.', '_'))
@@ -1556,7 +1593,7 @@ def generate_email_template():
                     # Use most recent resume
                     resume_files.sort(reverse=True)
                     resume_path = os.path.join(user_folder, resume_files[0])
-                    print(f"📄 Using saved resume: {resume_path}")
+                    print(f"[INFO] Using saved resume: {resume_path}")
         
         # If no resume found, return error
         if not resume_path or not os.path.exists(resume_path):
@@ -1568,11 +1605,11 @@ def generate_email_template():
         
         # Extract resume info
         resume_info = extract_resume_info(resume_path)
-        print(f"📋 Resume Info Extracted: {resume_info}")
+        print(f"[PLAN] Resume Info Extracted: {resume_info}")
         
         # Generate templates
         templates = generate_email_templates(role, resume_info)
-        print(f"📧 Templates Generated: Subjects={templates['subjects']}, Has Contact={templates['has_contact']}")
+        print(f"[EMAIL] Templates Generated: Subjects={templates['subjects']}, Has Contact={templates['has_contact']}")
         
         return jsonify({
             'status': 'success',
@@ -1583,7 +1620,7 @@ def generate_email_template():
         })
     
     except Exception as e:
-        print(f"❌ Error generating template: {str(e)}")
+        print(f"[ERROR] Error generating template: {str(e)}")
         import traceback
         traceback.print_exc()
         return jsonify({
@@ -1595,7 +1632,7 @@ def generate_email_template():
 @login_required
 def progress_stream():
     """Server-Sent Events endpoint that streams log messages to the client."""
-    print("🔌 Progress stream connection established")
+    print("[CONN] Progress stream connection established")
     
     def event_stream():
         q = Queue()
@@ -1612,17 +1649,17 @@ def progress_stream():
                     yield f"data: {msg}\n\n"
                 except Empty:
                     # heartbeat to keep connection alive
-                    print("💓 Sending heartbeat")
+                    print("[BEAT] Sending heartbeat")
                     yield "data: \n\n"
         except GeneratorExit:
             # Client disconnected
-            print("🔌 Client disconnected")
+            print("[CONN] Client disconnected")
             with clients_lock:
                 try:
                     clients.remove(q)
                     print(f"👥 Remaining clients: {len(clients)}")
                 except ValueError:
-                    print("❌ Client queue not found")
+                    print("[ERROR] Client queue not found")
 
     return Response(event_stream(), mimetype='text/event-stream')
 
@@ -1630,7 +1667,7 @@ def progress_stream():
 def linkedin_login(driver, email, password):
     """Log into LinkedIn using email and password."""
     try:
-        log("🔐 Attempting LinkedIn login...")
+        log("[LOAD] Attempting LinkedIn login...")
         
         # Navigate to LinkedIn login page
         driver.get("https://www.linkedin.com/login")
@@ -1643,18 +1680,18 @@ def linkedin_login(driver, email, password):
         email_field = wait.until(EC.presence_of_element_located((By.ID, "username")))
         email_field.clear()
         email_field.send_keys(email)
-        log("📧 Email entered")
+        log("[EMAIL] Email entered")
         
         # Find password field
         password_field = driver.find_element(By.ID, "password")
         password_field.clear()
         password_field.send_keys(password)
-        log("🔑 Password entered")
+        log("[LOGIN] Password entered")
         
         # Click sign in button
         sign_in_button = driver.find_element(By.XPATH, "//button[@type='submit']")
         sign_in_button.click()
-        log("🚀 Sign in button clicked")
+        log("[*] Sign in button clicked")
         
         # Wait for login to complete - check for feed or home page
         time.sleep(5)
@@ -1662,11 +1699,11 @@ def linkedin_login(driver, email, password):
         # Check if login was successful
         current_url = driver.current_url
         if "feed" in current_url or "home" in current_url or "mynetwork" in current_url:
-            log("✅ LinkedIn login successful!")
+            log("[OK] LinkedIn login successful!")
             return True
         elif "checkpoint" in current_url or "challenge" in current_url:
             log("=" * 70)
-            log("⚠️ LinkedIn requires additional verification (2FA/challenge)")
+            log("[WARN] LinkedIn requires additional verification (2FA/challenge)")
             log(f"� Current URL: {current_url}")
             log("=" * 70)
             
@@ -1676,18 +1713,18 @@ def linkedin_login(driver, email, password):
                 driver.save_screenshot(screenshot_path)
                 log(f"📸 Screenshot saved: {screenshot_path}")
             except Exception as ss_error:
-                log(f"⚠️ Could not save screenshot: {str(ss_error)}")
+                log(f"[WARN] Could not save screenshot: {str(ss_error)}")
             
             # Save page HTML
             try:
                 html_path = "/tmp/linkedin_2fa_challenge.html"
                 with open(html_path, 'w', encoding='utf-8') as f:
                     f.write(driver.page_source)
-                log(f"📄 Page HTML saved: {html_path}")
+                log(f"[INFO] Page HTML saved: {html_path}")
             except Exception as html_error:
-                log(f"⚠️ Could not save HTML: {str(html_error)}")
+                log(f"[WARN] Could not save HTML: {str(html_error)}")
             
-            log("�🔍 Waiting for 2FA verification code...")
+            log("�[DEBUG] Waiting for 2FA verification code...")
             
             # Wait for verification code input field
             try:
@@ -1706,7 +1743,7 @@ def linkedin_login(driver, email, password):
                     try:
                         code_input = driver.find_element(By.CSS_SELECTOR, selector)
                         if code_input and code_input.is_displayed():
-                            log(f"✅ Found verification input field: {selector}")
+                            log(f"[OK] Found verification input field: {selector}")
                             break
                     except:
                         continue
@@ -1716,13 +1753,13 @@ def linkedin_login(driver, email, password):
                     
                     log("📱 2FA code input field detected")
                     log("=" * 70)
-                    log("🔐 ENTER YOUR 2FA CODE VIA WEB INTERFACE:")
+                    log("[LOAD] ENTER YOUR 2FA CODE VIA WEB INTERFACE:")
                     log("   1. Check your email/phone for LinkedIn verification code")
                     log("   2. A modal will appear on the web page")
                     log("   3. Enter your 6-digit code in the input field")
                     log("   4. Click 'Submit Code' button")
                     log("   5. Automation will enter the code and continue")
-                    log("⏳ Waiting for code submission (max 5 minutes)...")
+                    log("[WAIT] Waiting for code submission (max 5 minutes)...")
                     log("=" * 70)
                     
                     # Reset verification state
@@ -1736,15 +1773,15 @@ def linkedin_login(driver, email, password):
                         time.sleep(1)
                         elapsed += 1
                         if elapsed % 15 == 0:
-                            log(f"⏳ Still waiting for 2FA code... ({elapsed}s elapsed)")
+                            log(f"[WAIT] Still waiting for 2FA code... ({elapsed}s elapsed)")
                     
                     if verification_code_submitted and verification_code_value:
-                        log(f"✅ Received code, entering it now...")
+                        log(f"[OK] Received code, entering it now...")
                         
                         # Enter the code
                         code_input.clear()
                         code_input.send_keys(verification_code_value)
-                        log("✅ Code entered into LinkedIn form")
+                        log("[OK] Code entered into LinkedIn form")
                         time.sleep(1)
                         
                         # Find and click submit button
@@ -1763,40 +1800,40 @@ def linkedin_login(driver, email, password):
                                 submit_button = driver.find_element(By.CSS_SELECTOR, btn_selector)
                                 if submit_button and submit_button.is_displayed():
                                     submit_button.click()
-                                    log(f"✅ Submit button clicked")
+                                    log(f"[OK] Submit button clicked")
                                     break
                             except:
                                 continue
                         
                         if not submit_button:
-                            log("⚠️ Could not find submit button, using Enter key...")
+                            log("[WARN] Could not find submit button, using Enter key...")
                             code_input.send_keys(Keys.RETURN)
                         
                         # Wait for redirect
-                        log("⏳ Waiting for LinkedIn to verify...")
+                        log("[WAIT] Waiting for LinkedIn to verify...")
                         time.sleep(3)
                         wait = WebDriverWait(driver, 30)
                         try:
                             wait.until(lambda d: "feed" in d.current_url or "home" in d.current_url or "mynetwork" in d.current_url)
                             log("=" * 70)
-                            log("✅ Verification completed successfully!")
-                            log(f"✅ Redirected to: {driver.current_url}")
+                            log("[OK] Verification completed successfully!")
+                            log(f"[OK] Redirected to: {driver.current_url}")
                             log("=" * 70)
                             return True
                         except:
-                            log("❌ Verification may have failed - check code")
+                            log("[ERROR] Verification may have failed - check code")
                             return False
                     else:
                         log("⏰ Timeout waiting for 2FA code")
                         return False
                 else:
-                    log("⚠️ Could not find verification input field")
+                    log("[WARN] Could not find verification input field")
                     log("=" * 70)
-                    log("⏳ WAITING FOR MANUAL VERIFICATION:")
+                    log("[WAIT] WAITING FOR MANUAL VERIFICATION:")
                     log("   1. Complete the verification challenge on LinkedIn")
                     log("   2. You should be redirected to feed/home")
                     log("   3. Automation will detect completion and resume")
-                    log("⏳ Maximum wait time: 5 minutes")
+                    log("[WAIT] Maximum wait time: 5 minutes")
                     log("=" * 70)
                     
                     # Wait for URL to change to feed/home (verification completed)
@@ -1804,8 +1841,8 @@ def linkedin_login(driver, email, password):
                     wait.until(lambda d: "feed" in d.current_url or "home" in d.current_url or "mynetwork" in d.current_url)
                     
                     log("=" * 70)
-                    log("✅ Verification completed!")
-                    log(f"✅ Redirected to: {driver.current_url}")
+                    log("[OK] Verification completed!")
+                    log(f"[OK] Redirected to: {driver.current_url}")
                     log("=" * 70)
                     return True
                     
@@ -1813,20 +1850,20 @@ def linkedin_login(driver, email, password):
                 log("=" * 70)
                 log(f"⏰ Verification timeout or error: {str(verification_error)}")
                 log(f"⏰ Current URL after timeout: {driver.current_url}")
-                log("⚠️ Please check LinkedIn and try again")
+                log("[WARN] Please check LinkedIn and try again")
                 log("=" * 70)
                 return False
         else:
-            log("❌ LinkedIn login failed - checking for error messages")
+            log("[ERROR] LinkedIn login failed - checking for error messages")
             try:
                 error_element = driver.find_element(By.CLASS_NAME, "alert-error")
-                log(f"❌ Login error: {error_element.text}")
+                log(f"[ERROR] Login error: {error_element.text}")
             except:
-                log("❌ Login failed - unknown error")
+                log("[ERROR] Login failed - unknown error")
             return False
             
     except Exception as e:
-        log(f"❌ Error during LinkedIn login: {str(e)}")
+        log(f"[ERROR] Error during LinkedIn login: {str(e)}")
         return False
 
 
@@ -1835,10 +1872,10 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
     # Wrap EVERYTHING in try-catch to catch silent failures
     try:
         print("=" * 80, flush=True)
-        print("🚀 DEBUG: run_automation FUNCTION CALLED", flush=True)
-        print(f"🚀 DEBUG: Thread ID: {threading.current_thread().ident}", flush=True)
-        print(f"🚀 DEBUG: Thread Name: {threading.current_thread().name}", flush=True)
-        print(f"🚀 DEBUG: Parameters received:", flush=True)
+        print("[*] DEBUG: run_automation FUNCTION CALLED", flush=True)
+        print(f"[*] DEBUG: Thread ID: {threading.current_thread().ident}", flush=True)
+        print(f"[*] DEBUG: Thread Name: {threading.current_thread().name}", flush=True)
+        print(f"[*] DEBUG: Parameters received:", flush=True)
         print(f"    - subject: {subject}", flush=True)
         print(f"    - email_content length: {len(email_content) if email_content else 0}", flush=True)
         print(f"    - attachment_path: {attachment_path}", flush=True)
@@ -1849,23 +1886,23 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         print(f"    - search_time: {search_time}", flush=True)
         print("=" * 80, flush=True)
     except Exception as top_error:
-        print(f"❌ CRITICAL: Error in function entry: {str(top_error)}", flush=True)
+        print(f"[ERROR] CRITICAL: Error in function entry: {str(top_error)}", flush=True)
         import traceback
         traceback.print_exc()
         return
     
-    log("🚀 Starting automation...")
+    log("[*] Starting automation...")
     log(f"📝 Run ID: {run_id}")
     if user_email:
-        log(f"👤 User: {user_email}")
+        log(f"[@] User: {user_email}")
     # Initialize resources referenced in finally/cleanup
     driver = None
     all_emails = set()
 
     try:
-        print("✅ DEBUG: Entered main try block")
+        print("[OK] DEBUG: Entered main try block")
         log("⚙️ Initializing automation process...")
-        print("✅ DEBUG: About to set email credentials")
+        print("[OK] DEBUG: About to set email credentials")
         # Log initial state
         log("⚙️ Initializing automation process...")
 
@@ -1883,7 +1920,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
             options.add_argument("--headless=new")
             log("🔇 Running Chrome in headless mode")
         else:
-            log("👁️ Running Chrome in visible mode (headless disabled)")
+            log("[VISIBLE] Running Chrome in visible mode (headless disabled)")
         
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--no-sandbox")
@@ -1897,7 +1934,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         # Use appropriate profile directory based on environment
         if os.environ.get('CHROME_BIN'):  # Docker/Cloud environment
             profile_dir = "/tmp/chrome-profile"
-            log("🌐 Using Docker Chrome profile directory")
+            log("[WWW] Using Docker Chrome profile directory")
         else:  # Local Windows environment
             profile_dir = r"D:\Profile"
             log("🏠 Using Windows Chrome profile directory")
@@ -1907,9 +1944,9 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         log(f"🗂 Using Chrome profile directory: {profile_dir}")
 
         options.page_load_strategy = 'normal'
-        log("✅ Chrome options configured")
+        log("[OK] Chrome options configured")
     except Exception as e:
-        error_msg = f"❌ Error during initialization: {str(e)}"
+        error_msg = f"[ERROR] Error during initialization: {str(e)}"
         log(error_msg)
         print(error_msg)
         raise
@@ -1918,33 +1955,33 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
     
     try:
         log("=" * 60)
-        log("🔍 DEBUG: Starting Chrome initialization")
-        log(f"🔍 DEBUG: CHROME_BIN env = {os.environ.get('CHROME_BIN')}")
-        log(f"🔍 DEBUG: CHROMEDRIVER_PATH env = {os.environ.get('CHROMEDRIVER_PATH')}")
+        log("[DEBUG] DEBUG: Starting Chrome initialization")
+        log(f"[DEBUG] DEBUG: CHROME_BIN env = {os.environ.get('CHROME_BIN')}")
+        log(f"[DEBUG] DEBUG: CHROMEDRIVER_PATH env = {os.environ.get('CHROMEDRIVER_PATH')}")
         log("=" * 60)
         
         # Use explicit ChromeDriver path in Docker/Cloud, auto-install locally
         if os.environ.get('CHROMEDRIVER_PATH'):
             chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
-            log(f"🔧 Using ChromeDriver from: {chromedriver_path}")
+            log(f"[INSTALL] Using ChromeDriver from: {chromedriver_path}")
             
             # Verify ChromeDriver exists
             if os.path.exists(chromedriver_path):
-                log(f"✅ ChromeDriver file exists at {chromedriver_path}")
+                log(f"[OK] ChromeDriver file exists at {chromedriver_path}")
             else:
-                log(f"❌ ChromeDriver file NOT FOUND at {chromedriver_path}")
+                log(f"[ERROR] ChromeDriver file NOT FOUND at {chromedriver_path}")
                 raise FileNotFoundError(f"ChromeDriver not found at {chromedriver_path}")
             
             service = Service(chromedriver_path)
-            log("✅ Service object created")
+            log("[OK] Service object created")
         else:
             from webdriver_manager.chrome import ChromeDriverManager
             log("🔄 Installing ChromeDriver via webdriver_manager...")
             service = Service(ChromeDriverManager().install())
-            log("✅ ChromeDriver installed via webdriver_manager")
+            log("[OK] ChromeDriver installed via webdriver_manager")
         
-        log("🚀 DEBUG: About to launch Chrome browser...")
-        log(f"🚀 DEBUG: Chrome binary location from options: {options.binary_location if hasattr(options, 'binary_location') and options.binary_location else 'Not set'}")
+        log("[*] DEBUG: About to launch Chrome browser...")
+        log(f"[*] DEBUG: Chrome binary location from options: {options.binary_location if hasattr(options, 'binary_location') and options.binary_location else 'Not set'}")
         
         driver = webdriver.Chrome(service=service, options=options)
         
@@ -1952,34 +1989,34 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         global automation_driver
         automation_driver = driver
         
-        log("✅ Chrome launched successfully!")
-        log(f"✅ Chrome version: {driver.capabilities.get('browserVersion', 'unknown')}")
-        log(f"✅ ChromeDriver version: {driver.capabilities.get('chrome', {}).get('chromedriverVersion', 'unknown')}")
-        print("✅ Chrome instance ready")
+        log("[OK] Chrome launched successfully!")
+        log(f"[OK] Chrome version: {driver.capabilities.get('browserVersion', 'unknown')}")
+        log(f"[OK] ChromeDriver version: {driver.capabilities.get('chrome', {}).get('chromedriverVersion', 'unknown')}")
+        print("[OK] Chrome instance ready")
 
         # Login logic: check existing profile first, fallback to email/password
         login_successful = False
 
         # First, try to use existing profile
         log("=" * 60)
-        log("🔍 DEBUG: Starting LinkedIn login check...")
-        log("🔍 DEBUG: Navigating to LinkedIn feed...")
+        log("[DEBUG] DEBUG: Starting LinkedIn login check...")
+        log("[DEBUG] DEBUG: Navigating to LinkedIn feed...")
         
         try:
             driver.get("https://www.linkedin.com/feed/")
-            log(f"✅ DEBUG: Page loaded, current URL: {driver.current_url}")
-            log(f"✅ DEBUG: Page title: {driver.title}")
+            log(f"[OK] DEBUG: Page loaded, current URL: {driver.current_url}")
+            log(f"[OK] DEBUG: Page title: {driver.title}")
         except Exception as nav_error:
-            log(f"❌ DEBUG: Navigation error: {str(nav_error)}")
+            log(f"[ERROR] DEBUG: Navigation error: {str(nav_error)}")
             raise
         
-        log("⏳ DEBUG: Waiting 5 seconds for page to settle...")
+        log("[WAIT] DEBUG: Waiting 5 seconds for page to settle...")
         time.sleep(5)  # Increased wait time
-        log(f"✅ DEBUG: After wait, URL: {driver.current_url}")
+        log(f"[OK] DEBUG: After wait, URL: {driver.current_url}")
 
         # Better login check: look for elements that only exist when logged in
         try:
-            log("🔍 DEBUG: Checking login indicators...")
+            log("[DEBUG] DEBUG: Checking login indicators...")
             # Check for multiple indicators of being logged in
             login_indicators = [
                 ".global-nav__me",  # User profile dropdown
@@ -1991,82 +2028,82 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
             logged_in = False
             for indicator in login_indicators:
                 try:
-                    log(f"🔍 DEBUG: Checking indicator: {indicator}")
+                    log(f"[DEBUG] DEBUG: Checking indicator: {indicator}")
                     elements = driver.find_elements(By.CSS_SELECTOR, indicator)
-                    log(f"🔍 DEBUG: Found {len(elements)} elements for {indicator}")
+                    log(f"[DEBUG] DEBUG: Found {len(elements)} elements for {indicator}")
                     if elements:
                         logged_in = True
-                        log(f"✅ DEBUG: Login confirmed via indicator: {indicator}")
+                        log(f"[OK] DEBUG: Login confirmed via indicator: {indicator}")
                         break
                 except Exception as ind_error:
-                    log(f"⚠️ DEBUG: Error checking {indicator}: {str(ind_error)}")
+                    log(f"[WARN] DEBUG: Error checking {indicator}: {str(ind_error)}")
                     continue
 
             # Also check URL - if redirected to login page, definitely not logged in
             current_url = driver.current_url
-            log(f"🔍 DEBUG: Final URL check: {current_url}")
+            log(f"[DEBUG] DEBUG: Final URL check: {current_url}")
             
             if "login" in current_url or "authwall" in current_url:
                 logged_in = False
-                log("⚠️ Redirected to login page - not logged in")
+                log("[WARN] Redirected to login page - not logged in")
             elif logged_in:
-                log("✅ Existing profile login successful!")
+                log("[OK] Existing profile login successful!")
                 login_successful = True
             else:
-                log("⚠️ Could not find login indicators, profile may not be logged in")
-                log(f"🔍 DEBUG: Page source length: {len(driver.page_source)}")
+                log("[WARN] Could not find login indicators, profile may not be logged in")
+                log(f"[DEBUG] DEBUG: Page source length: {len(driver.page_source)}")
                 # Save page source for debugging
                 try:
                     with open('/tmp/linkedin_debug.html', 'w', encoding='utf-8') as f:
                         f.write(driver.page_source)
-                    log("📄 DEBUG: Page source saved to /tmp/linkedin_debug.html")
+                    log("[INFO] DEBUG: Page source saved to /tmp/linkedin_debug.html")
                 except:
                     pass
 
         except Exception as e:
-            log(f"❌ DEBUG: Error checking login status: {str(e)}")
-            log(f"❌ DEBUG: Error type: {type(e).__name__}")
+            log(f"[ERROR] DEBUG: Error checking login status: {str(e)}")
+            log(f"[ERROR] DEBUG: Error type: {type(e).__name__}")
             import traceback
-            log(f"❌ DEBUG: Traceback: {traceback.format_exc()}")
+            log(f"[ERROR] DEBUG: Traceback: {traceback.format_exc()}")
             
             # Check URL as fallback
             try:
                 current_url = driver.current_url
-                log(f"🔍 DEBUG: Fallback URL check: {current_url}")
+                log(f"[DEBUG] DEBUG: Fallback URL check: {current_url}")
                 if "feed" in current_url or "home" in current_url or "mynetwork" in current_url:
-                    log("✅ Existing profile login successful! (URL check)")
+                    log("[OK] Existing profile login successful! (URL check)")
                     login_successful = True
                 else:
-                    log("⚠️ Profile not logged in (URL check failed)")
+                    log("[WARN] Profile not logged in (URL check failed)")
             except Exception as url_error:
-                log(f"❌ DEBUG: Error getting URL in fallback: {str(url_error)}")
+                log(f"[ERROR] DEBUG: Error getting URL in fallback: {str(url_error)}")
 
         if not login_successful:
             log("=" * 60)
-            log("🔍 DEBUG: Profile not logged in, checking for email/password login...")
-            log(f"🔍 DEBUG: LINKEDIN_EMAIL env = {'SET' if LINKEDIN_EMAIL else 'NOT SET'}")
-            log(f"🔍 DEBUG: LINKEDIN_PASSWORD env = {'SET' if LINKEDIN_PASSWORD else 'NOT SET'}")
+            log("[DEBUG] DEBUG: Profile not logged in, checking for email/password login...")
+            log(f"[DEBUG] DEBUG: LINKEDIN_EMAIL env = {'SET' if LINKEDIN_EMAIL else 'NOT SET'}")
+            log(f"[DEBUG] DEBUG: LINKEDIN_PASSWORD env = {'SET' if LINKEDIN_PASSWORD else 'NOT SET'}")
             log("=" * 60)
             log("🔄 Profile not logged in, attempting email/password login")
 
         if not login_successful and LINKEDIN_EMAIL and LINKEDIN_PASSWORD:
             # Use email/password login - this will save session in the same profile directory
-            log("🔐 Attempting email/password login...")
+            log("[LOAD] Attempting email/password login...")
             login_result = linkedin_login(driver, LINKEDIN_EMAIL, LINKEDIN_PASSWORD)
             if login_result:
                 login_successful = True
-                log("✅ Email/password login successful - session saved to profile")
+                log("[OK] Email/password login successful - session saved to profile")
             else:
-                log("❌ Email/password login failed")
+                log("[ERROR] Email/password login failed")
 
         if not login_successful:
-            log("❌ No login method succeeded - automation may fail")
+            log("[ERROR] No login method succeeded - automation may fail")
         else:
-            log("✅ Proceeding with job search...")
+            log("[OK] Proceeding with job search...")
         
         # Continue with job search...
     except Exception as e:
-        error_msg = f"❌ Failed to launch Chrome: {str(e)}"
+        error_msg = f"[ERROR] Failed to launch Chrome: {str(e)}"
         log(error_msg)
         print(error_msg)
         raise
@@ -2095,13 +2132,19 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         # URL encode parameters
         from urllib.parse import urlencode
         search_url = base_url + urlencode(params)
-        log(f"🔍 Using search URL: {search_url}")
+        log(f"[DEBUG] Using search URL: {search_url}")
         
         search_urls = [search_url]
         all_emails = set()
 
         for url in search_urls:
-            log(f"🌐 Opening {url}")
+            # Check stop flag
+            global automation_stop_flag
+            if automation_stop_flag:
+                log("[STOP!] Automation stopped by user")
+                return
+            
+            log(f"[WWW] Opening {url}")
             driver.get(url)
             time.sleep(5)
             # Scroll with dynamic wait
@@ -2110,6 +2153,11 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
             max_attempts = 18
             
             while scroll_attempts < max_attempts:
+                # Check stop flag
+                if automation_stop_flag:
+                    log("[STOP!] Automation stopped by user")
+                    return
+                
                 # Scroll down
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(3)  # Wait for content to load
@@ -2122,13 +2170,13 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
 
                 last_height = new_height
                 scroll_attempts += 1
-                log(f"📜 Scrolling... ({scroll_attempts}/{max_attempts})")
+                log(f"[SCROLL] Scrolling... ({scroll_attempts}/{max_attempts})")
             
             # Add wait for job posts
             from selenium.webdriver.support.ui import WebDriverWait
             from selenium.webdriver.support import expected_conditions as EC
             
-            log("⏳ Waiting for posts to load...")
+            log("[WAIT] Waiting for posts to load...")
             wait = WebDriverWait(driver, 20)
             
             # Try multiple possible selectors for job posts
@@ -2147,18 +2195,23 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                         EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector))
                     )
                     if elements:
-                        log(f"✅ Found posts using selector: {selector}")
+                        log(f"[OK] Found posts using selector: {selector}")
                         job_posts = elements
                         break
                 except Exception as e:
-                    log(f"⚠️ Selector {selector} failed: {str(e)}")
+                    log(f"[WARN] Selector {selector} failed: {str(e)}")
                     continue
             
             if not job_posts:
-                log("❌ No job posts found with any selector")
+                log("[ERROR] No job posts found with any selector")
                 return
                 
             for post in job_posts:
+                # Check stop flag
+                if automation_stop_flag:
+                    log("[STOP!] Automation stopped by user")
+                    return
+                
                 try:
                     # Try multiple selectors for title and description
                     title_selectors = [
@@ -2230,7 +2283,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     log(f"Error extracting job post: {e}")
                     continue
 
-        log(f"📧 Found {len(all_emails)} email(s).")
+        log(f"[EMAIL] Found {len(all_emails)} email(s).")
 
         # CHECK EMAIL LIMIT FOR FREE USERS BEFORE SENDING
         skipped_emails = []
@@ -2259,25 +2312,25 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     emails_today = result['count'] if result else 0
                     
                     if emails_today >= 10:
-                        print(f"❌ Daily limit reached! Free users can send 10 emails per day. Already sent: {emails_today}")
-                        print("⚠️ Stopping automation. Upgrade to Pro for unlimited emails.")
-                        send_event(f"<div class='upgrade-prompt'><h4>🚀 Daily Limit Reached!</h4><p>You've sent all 10 emails available on the Free plan today.</p><p><strong>Missing opportunities for {len(all_emails)} potential jobs!</strong></p><a href='/pricing' class='btn-upgrade'>Upgrade to Pro for Unlimited Emails</a></div>")
+                        print(f"[ERROR] Daily limit reached! Free users can send 10 emails per day. Already sent: {emails_today}")
+                        print("[WARN] Stopping automation. Upgrade to Pro for unlimited emails.")
+                        send_event(f"<div class='upgrade-prompt'><h4>[*] Daily Limit Reached!</h4><p>You've sent all 10 emails available on the Free plan today.</p><p><strong>Missing opportunities for {len(all_emails)} potential jobs!</strong></p><a href='/pricing' class='btn-upgrade'>Upgrade to Pro for Unlimited Emails</a></div>")
                         return  # Stop the automation
                     
                     # Check if we're about to exceed the limit
                     emails_to_send = len(all_emails)
                     if emails_today + emails_to_send > 10:
                         max_can_send = 10 - emails_today
-                        print(f"⚠️ Can only send {max_can_send} more emails today (already sent {emails_today}/10)")
+                        print(f"[WARN] Can only send {max_can_send} more emails today (already sent {emails_today}/10)")
                         # Store skipped emails for upgrade prompt
                         all_emails_list = list(all_emails)
                         skipped_emails = all_emails_list[max_can_send:]
                         all_emails = set(all_emails_list[:max_can_send])  # Limit to remaining quota
-                        print(f"📊 Will send {len(all_emails)} emails, {len(skipped_emails)} will be skipped due to free plan limit")
+                        print(f"[COUNT] Will send {len(all_emails)} emails, {len(skipped_emails)} will be skipped due to free plan limit")
                     
-                    print(f"✅ Email limit check passed. Plan: {user_plan}, Sent today: {emails_today}/10")
+                    print(f"[OK] Email limit check passed. Plan: {user_plan}, Sent today: {emails_today}/10")
             except Exception as e:
-                print(f"⚠️ Could not check email limit: {str(e)}")
+                print(f"[WARN] Could not check email limit: {str(e)}")
 
         # Function to check if email was already sent (using SQLite)
         def is_duplicate_email(email, subject):
@@ -2301,20 +2354,25 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 return False, None
                 
             except Exception as e:
-                print(f"❌ Error checking for duplicate email: {str(e)}")
+                print(f"[ERROR] Error checking for duplicate email: {str(e)}")
                 # If we can't check reliably, assume it might be a duplicate
                 return True, None
 
         # Send emails with enhanced duplicate checking
         emails_sent_count = 0
         for receiver_email in all_emails:
+            # Check stop flag
+            if automation_stop_flag:
+                log("[STOP!] Automation stopped by user")
+                break
+            
             try:
                 # Check if this exact email+subject was already sent
                 is_duplicate, last_sent = is_duplicate_email(receiver_email, subject)
                 
                 if is_duplicate:
                     when = f" (last sent: {last_sent})" if last_sent else ""
-                    print(f"⚠️ Already sent to {receiver_email} with subject '{subject}'{when} — skipping.")
+                    print(f"[WARN] Already sent to {receiver_email} with subject '{subject}'{when} — skipping.")
                     
                     # Record skip with detailed reason
                     save_sent_email({
@@ -2358,7 +2416,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
 
                 # Extract company name from email for better UX
                 company_name = extract_company_from_email(receiver_email)
-                send_event(f"📧 Sending email to {company_name}...")
+                send_event(f"[EMAIL] Sending email to {company_name}...")
                 send_event(f"EMAIL_PENDING:{receiver_email}")
                 
                 server = smtplib.SMTP(smtp_server, smtp_port)
@@ -2372,9 +2430,9 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 server.quit()
 
                 emails_sent_count += 1
-                send_event(f"✅ Email sent to {company_name} successfully!")
+                send_event(f"[OK] Email sent to {company_name} successfully!")
                 send_event(f"EMAIL_SENT:{receiver_email}")
-                print(f"✅ Sent to {receiver_email} (CC: {cc_email})")
+                print(f"[OK] Sent to {receiver_email} (CC: {cc_email})")
                 # Persist sent email record
                 save_sent_email({
                     "email": receiver_email,
@@ -2386,7 +2444,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     "source_url": ",".join(search_urls)
                 }, run_id, user_email)
             except Exception as e:
-                log(f"❌ Failed to send email to {receiver_email}: {e}")
+                log(f"[ERROR] Failed to send email to {receiver_email}: {e}")
                 # Persist failure
                 try:
                     save_sent_email({
@@ -2403,23 +2461,31 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     pass
 
     finally:
+        global automation_running, automation_stop_flag
+        automation_running = False
+        
         try:
             # Force close any remaining Chrome instances
             if driver:
                 try:
                     driver.quit()
-                    print("✅ Driver quit successfully")
+                    print("[OK] Driver quit successfully")
                 except Exception as quit_error:
-                    print(f"⚠️ Driver quit failed: {str(quit_error)}")
+                    print(f"[WARN] Driver quit failed: {str(quit_error)}")
             
             # Always cleanup Chrome processes (even if driver.quit() fails)
             cleanup_chrome_processes()
-            print("🧹 Browser and Chrome instances closed.")
+            print("[DONE] Browser and Chrome instances closed.")
 
             # Send completion status back to the frontend
-            send_event(f"<div class='success-message'>🎉 Automation completed! Sent {emails_sent_count} emails successfully.</div>")
-            print("✅ Automation completed successfully!")
-            print(f"📊 Summary:")
+            if automation_stop_flag:
+                send_event(f"<div class='warning-message'>[STOP!] Automation stopped by user. Sent {emails_sent_count} emails before stopping.</div>")
+                print("[STOP!] Automation stopped by user")
+            else:
+                send_event(f"<div class='success-message'>[COMPLETE] Automation completed! Sent {emails_sent_count} emails successfully.</div>")
+                print("[OK] Automation completed successfully!")
+            
+            print(f"[COUNT] Summary:")
             print(f"   - Emails found: {len(all_emails)}")
             print(f"   - Emails sent: {emails_sent_count}")
             
@@ -2439,7 +2505,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     <p class='upgrade-cta'>💎 Upgrade to Pro for unlimited emails and never miss an opportunity!</p>
                     <a href='/pricing' class='btn-upgrade-big'>Upgrade to Pro Now</a>
                 </div>""")
-                print(f"📋 Skipped {len(skipped_emails)} emails due to free plan limit")
+                print(f"[PLAN] Skipped {len(skipped_emails)} emails due to free plan limit")
             
             # Return status if this was called from a route
             return {
@@ -2449,7 +2515,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
             }
             
         except Exception as e:
-            log(f"❌ Error during cleanup: {str(e)}")
+            log(f"[ERROR] Error during cleanup: {str(e)}")
             # Still try to kill Chrome processes even if everything else fails
             try:
                 cleanup_chrome_processes()
@@ -2458,19 +2524,47 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
 
 
 # --- START AUTOMATION ---
+@app.route("/stop_automation", methods=["POST"])
+@login_required
+def stop_automation():
+    """Stop the running automation"""
+    global automation_stop_flag, automation_driver
+    
+    user_email = session.get("user")
+    print(f"[STOP!] Stop automation requested by: {user_email}")
+    
+    automation_stop_flag = True
+    log("[STOP!] Stop requested - automation will terminate soon...")
+    
+    # Try to close the browser immediately
+    if automation_driver:
+        try:
+            automation_driver.quit()
+            print("[OK] Browser closed")
+        except Exception as e:
+            print(f"[WARN] Error closing browser: {e}")
+    
+    return jsonify({"success": True, "message": "Automation stop requested"})
+
 @app.route("/run_automation", methods=["POST"])
 @login_required
 def send_email():
-    print("📥 Received automation request")
+    global automation_stop_flag, automation_running
+    
+    print("[REQ] Received automation request")
+    
+    # Reset stop flag
+    automation_stop_flag = False
+    automation_running = True
     
     # Get the logged-in user's email for CC
     user_email = session.get("user")
-    print(f"👤 User email: {user_email}")
+    print(f"[@] User email: {user_email}")
     
     # CHECK EMAIL LIMIT BEFORE STARTING AUTOMATION
     can_send, emails_sent, limit_message = check_email_limit(user_email)
     if not can_send:
-        print(f"🚫 Blocking automation - limit reached!")
+        print(f"[STOP] Blocking automation - limit reached!")
         return jsonify({
             "success": False,
             "error": limit_message,
@@ -2478,7 +2572,7 @@ def send_email():
             "upgrade_url": "/pricing"
         }), 403
     
-    print(f"✅ Email limit check passed. Sent today: {emails_sent}/10")
+    print(f"[OK] Email limit check passed. Sent today: {emails_sent}/10")
     
     # Get form data
     subject = request.form.get("subject", "Application")
@@ -2493,8 +2587,8 @@ def send_email():
         # For now, we'll just log it
         print(f"Search preferences: role={search_role}, time={search_time_period}")
     except Exception as e:
-        print(f"⚠️ Could not save search preferences: {e}")
-    print(f"📧 Subject: {subject}")
+        print(f"[WARN] Could not save search preferences: {e}")
+    print(f"[EMAIL] Subject: {subject}")
     print(f"📝 Content length: {len(email_content)} characters")
     print(f"📎 Using saved resume: {use_saved_resume}")
     
@@ -2509,7 +2603,7 @@ def send_email():
                 resume_filename = profile_data.get('resume_filename')
                 
                 if resume_blob and resume_filename:
-                    print(f"📄 Retrieving saved resume: {resume_filename}")
+                    print(f"[INFO] Retrieving saved resume: {resume_filename}")
                     
                     try:
                         # Write BLOB to temporary file
@@ -2519,11 +2613,11 @@ def send_email():
                         with open(resume_path, 'wb') as f:
                             f.write(resume_blob)
                         
-                        print(f"✅ Resume restored to temporary file: {resume_path}")
-                        print(f"✅ Resume size: {len(resume_blob)} bytes")
+                        print(f"[OK] Resume restored to temporary file: {resume_path}")
+                        print(f"[OK] Resume size: {len(resume_blob)} bytes")
                         
                     except Exception as write_error:
-                        print(f"❌ Error writing resume: {str(write_error)}")
+                        print(f"[ERROR] Error writing resume: {str(write_error)}")
                         flash("Error loading saved resume. Please upload a new resume.", "error")
                         return redirect(url_for("send_page"))
                 else:
@@ -2533,7 +2627,7 @@ def send_email():
                 flash("Profile not found. Please upload a resume.", "error")
                 return redirect(url_for("send_page"))
         except Exception as e:
-            print(f"❌ Error accessing profile: {str(e)}")
+            print(f"[ERROR] Error accessing profile: {str(e)}")
             import traceback
             traceback.print_exc()
             flash("Error accessing profile. Please upload a resume.", "error")
@@ -2541,13 +2635,13 @@ def send_email():
     else:
         # Handle new file upload - save to temporary location
         if "resume" not in request.files:
-            print("❌ No resume file in request")
+            print("[ERROR] No resume file in request")
             flash("Please upload a resume or use your saved resume.", "error")
             return redirect(url_for("send_page"))
             
         resume = request.files["resume"]
         if resume.filename == "":
-            print("❌ Empty resume filename")
+            print("[ERROR] Empty resume filename")
             flash("No resume file selected. Please choose a file or use your saved resume.", "error")
             return redirect(url_for("send_page"))
 
@@ -2555,20 +2649,20 @@ def send_email():
         temp_dir = tempfile.gettempdir()
         resume_path = os.path.join(temp_dir, f"{user_email}_{resume.filename}")
         resume.save(resume_path)
-        print(f"📄 Resume saved to temporary file: {resume_path}")
+        print(f"[INFO] Resume saved to temporary file: {resume_path}")
 
     # Clean up any existing Chrome instances before starting
-    print("🧹 DEBUG: Cleaning up Chrome processes...")
+    print("[DONE] DEBUG: Cleaning up Chrome processes...")
     cleanup_chrome_processes()
-    print("✅ DEBUG: Chrome cleanup complete")
+    print("[OK] DEBUG: Chrome cleanup complete")
 
     # Generate a unique run ID
     run_id = datetime.now().strftime('%Y%m%d_%H%M%S')
-    print(f"🆔 DEBUG: Generated run_id: {run_id}")
+    print(f"[#] DEBUG: Generated run_id: {run_id}")
 
     # Initialize automation run in SQLite
     try:
-        print("💾 DEBUG: Saving automation run to SQLite...")
+        print("[SAVE] DEBUG: Saving automation run to SQLite...")
         save_automation_run(run_id, user_email, {
             'subject': subject,
             'usesSavedResume': use_saved_resume,
@@ -2576,15 +2670,15 @@ def send_email():
             'searchRole': search_role,
             'searchTimePeriod': search_time_period
         })
-        print("✅ DEBUG: Automation run saved to SQLite")
+        print("[OK] DEBUG: Automation run saved to SQLite")
     except Exception as e:
-        print(f"⚠️ Could not save automation run: {e}")
+        print(f"[WARN] Could not save automation run: {e}")
 
     # Start automation in background thread
     print("=" * 60)
-    print("🧵 DEBUG: Starting automation thread...")
-    print(f"🧵 DEBUG: Thread args: subject={subject}, content_len={len(email_content)}, resume={resume_path}")
-    print(f"🧵 DEBUG: Thread args: run_id={run_id}, user={user_email}, role={search_role}, time={search_time_period}")
+    print("[THREAD] DEBUG: Starting automation thread...")
+    print(f"[THREAD] DEBUG: Thread args: subject={subject}, content_len={len(email_content)}, resume={resume_path}")
+    print(f"[THREAD] DEBUG: Thread args: run_id={run_id}, user={user_email}, role={search_role}, time={search_time_period}")
     print("=" * 60)
     
     # Fixed argument order to match function signature:
@@ -2595,10 +2689,10 @@ def send_email():
         daemon=True
     )
     thread.start()
-    print(f"✅ DEBUG: Thread started, thread is alive: {thread.is_alive()}")
-    print(f"✅ DEBUG: Thread name: {thread.name}")
+    print(f"[OK] DEBUG: Thread started, thread is alive: {thread.is_alive()}")
+    print(f"[OK] DEBUG: Thread name: {thread.name}")
 
-    flash("🚀 Automation started in background. Check console logs for updates.", "success")
+    flash("[*] Automation started in background. Check console logs for updates.", "success")
     return redirect(url_for("send_page"))
 
 
@@ -2640,7 +2734,7 @@ def create_payment():
                 if profile.get('display_name'):
                     user_name = profile.get('display_name')
         except Exception as e:
-            print(f"⚠️ Could not fetch user profile: {e}")
+            print(f"[WARN] Could not fetch user profile: {e}")
         
         # Generate unique order ID
         order_id = f"JMI_{int(time.time())}_{plan}"
@@ -2670,7 +2764,7 @@ def create_payment():
             conn.commit()
             conn.close()
         except Exception as e:
-            print(f"⚠️ Could not store pending payment: {e}")
+            print(f"[WARN] Could not store pending payment: {e}")
         
         # Prepare prefill data
         prefill_data = {
@@ -2695,7 +2789,7 @@ def create_payment():
         })
         
     except Exception as e:
-        print(f"❌ Payment creation error: {e}")
+        print(f"[ERROR] Payment creation error: {e}")
         return jsonify({
             'success': False,
             'error': f'Failed to create payment: {str(e)}'
@@ -2722,7 +2816,7 @@ def payment_webhook():
                     webhook_secret
                 )
             except Exception as e:
-                print(f"⚠️ Webhook signature verification failed: {e}")
+                print(f"[WARN] Webhook signature verification failed: {e}")
                 return jsonify({'success': False, 'error': 'Invalid signature'}), 400
         
         # Handle payment.captured event
@@ -2757,14 +2851,14 @@ def payment_webhook():
                         # Activate subscription
                         activate_subscription(user_email, plan, amount, doc_order_id)
                         
-                        print(f"✅ Payment webhook: {user_email} upgraded to {plan} (Payment ID: {razorpay_payment_id})")
+                        print(f"[OK] Payment webhook: {user_email} upgraded to {plan} (Payment ID: {razorpay_payment_id})")
                 except Exception as e:
-                    print(f"⚠️ Could not process webhook: {e}")
+                    print(f"[WARN] Could not process webhook: {e}")
         
         return jsonify({'success': True}), 200
         
     except Exception as e:
-        print(f"❌ Webhook error: {e}")
+        print(f"[ERROR] Webhook error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -2797,9 +2891,9 @@ def payment_success():
                     'razorpay_signature': razorpay_signature
                 }
                 razorpay_client.utility.verify_payment_signature(params_dict)
-                print(f"✅ Payment signature verified: {razorpay_payment_id}")
+                print(f"[OK] Payment signature verified: {razorpay_payment_id}")
             except Exception as e:
-                print(f"❌ Payment signature verification failed: {e}")
+                print(f"[ERROR] Payment signature verification failed: {e}")
                 return jsonify({'success': False, 'error': 'Invalid payment signature'})
         
         # Get payment details from SQLite
@@ -2819,7 +2913,7 @@ def payment_success():
                 # Activate subscription
                 activate_subscription(user_email, plan, amount, our_order_id)
                 
-                print(f"✅ Payment success: {user_email} upgraded to {plan} (Payment ID: {razorpay_payment_id})")
+                print(f"[OK] Payment success: {user_email} upgraded to {plan} (Payment ID: {razorpay_payment_id})")
                 
                 return jsonify({
                     'success': True,
@@ -2829,11 +2923,11 @@ def payment_success():
             else:
                 return jsonify({'success': False, 'error': 'Payment record not found'})
         except Exception as e:
-            print(f"❌ Error processing payment: {e}")
+            print(f"[ERROR] Error processing payment: {e}")
             return jsonify({'success': False, 'error': 'Payment processing failed'})
         
     except Exception as e:
-        print(f"❌ Payment success handler error: {e}")
+        print(f"[ERROR] Payment success handler error: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 
@@ -2852,10 +2946,10 @@ def activate_subscription(user_email, plan, price, order_id):
         }
         
         db.create_or_update_subscription(user_email, subscription_data)
-        print(f"✅ Subscription activated: {user_email} - {plan} plan")
+        print(f"[OK] Subscription activated: {user_email} - {plan} plan")
         
     except Exception as e:
-        print(f"❌ Activate subscription error: {e}")
+        print(f"[ERROR] Activate subscription error: {e}")
 
 
 @app.route("/check_payment_status/<order_id>", methods=["GET"])
@@ -2912,7 +3006,7 @@ def check_payment_status(order_id):
         })
         
     except Exception as e:
-        print(f"❌ Payment status check error: {e}")
+        print(f"[ERROR] Payment status check error: {e}")
         return jsonify({
             'success': False,
             'error': 'Failed to check payment status'
@@ -3200,7 +3294,7 @@ def admin_upgrade_user():
         db.create_or_update_subscription(user_email, subscription_data)
         conn.close()
         
-        print(f"✅ Admin upgraded {user_email} to Pro until {expires_at}")
+        print(f"[OK] Admin upgraded {user_email} to Pro until {expires_at}")
         
         return jsonify({
             'success': True,
@@ -3209,7 +3303,7 @@ def admin_upgrade_user():
         })
         
     except Exception as e:
-        print(f"❌ Admin upgrade error: {str(e)}")
+        print(f"[ERROR] Admin upgrade error: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/admin/downgrade_user', methods=['POST'])
@@ -3237,7 +3331,7 @@ def admin_downgrade_user():
         
         db.create_or_update_subscription(user_email, subscription_data)
         
-        print(f"✅ Admin downgraded {user_email} to Free plan")
+        print(f"[OK] Admin downgraded {user_email} to Free plan")
         
         return jsonify({
             'success': True,
@@ -3245,7 +3339,7 @@ def admin_downgrade_user():
         })
         
     except Exception as e:
-        print(f"❌ Admin downgrade error: {str(e)}")
+        print(f"[ERROR] Admin downgrade error: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/admin/api/user_count')
@@ -3359,11 +3453,11 @@ def admin_send_promotional_email():
                 server.quit()
                 
                 sent_count += 1
-                print(f"✅ Promotional email sent to {user_email}")
+                print(f"[OK] Promotional email sent to {user_email}")
                 
             except Exception as email_error:
                 failed_count += 1
-                print(f"❌ Failed to send promotional email to {user_email}: {str(email_error)}")
+                print(f"[ERROR] Failed to send promotional email to {user_email}: {str(email_error)}")
         
         return jsonify({
             'success': True,
@@ -3373,7 +3467,7 @@ def admin_send_promotional_email():
         })
         
     except Exception as e:
-        print(f"❌ Promotional email error: {str(e)}")
+        print(f"[ERROR] Promotional email error: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/admin/scrape_jobs')
@@ -3409,7 +3503,7 @@ def admin_scrape_jobs():
                 'keywords': search_keywords
             }
             url = base_url + urlencode(params)
-            log(f"🔍 Built search URL for skills: {skills}")
+            log(f"[DEBUG] Built search URL for skills: {skills}")
             log(f"📍 Search URL: {url}")
         else:
             # Default to feed if no URL or skills provided
@@ -3432,8 +3526,8 @@ def admin_scrape_jobs():
             """Background thread for scraping"""
             driver = None
             try:
-                log("🚀 Starting admin job scraping...")
-                log(f"👤 Admin user: {user_email}")
+                log("[*] Starting admin job scraping...")
+                log(f"[@] Admin user: {user_email}")
                 log(f"📍 URL: {url}")
                 log(f"🔢 Scrolls: {scrolls}")
                 if skills:
@@ -3461,7 +3555,7 @@ def admin_scrape_jobs():
                 chrome_options.add_argument(f"user-data-dir={profile_dir}")
                 chrome_options.add_argument("--profile-directory=Default")
                 
-                log("🌐 Launching Chrome...")
+                log("[WWW] Launching Chrome...")
                 driver = webdriver.Chrome(options=chrome_options)
                 
                 log(f"🔗 Opening URL: {url}")
@@ -3469,7 +3563,7 @@ def admin_scrape_jobs():
                 time.sleep(5)
                 
                 # Scroll and collect posts
-                log(f"📜 Starting to scroll ({scrolls} times)...")
+                log(f"[SCROLL] Starting to scroll ({scrolls} times)...")
                 last_height = driver.execute_script("return document.body.scrollHeight")
                 
                 for i in range(scrolls):
@@ -3477,14 +3571,14 @@ def admin_scrape_jobs():
                     time.sleep(3)
                     
                     new_height = driver.execute_script("return document.body.scrollHeight")
-                    log(f"📜 Scrolling... ({i+1}/{scrolls})")
+                    log(f"[SCROLL] Scrolling... ({i+1}/{scrolls})")
                     
                     if new_height == last_height:
-                        log("✅ Reached end of feed")
+                        log("[OK] Reached end of feed")
                         break
                     last_height = new_height
                 
-                log("⏳ Waiting for posts to load...")
+                log("[WAIT] Waiting for posts to load...")
                 wait = WebDriverWait(driver, 20)
                 
                 # Try multiple selectors for job posts
@@ -3502,22 +3596,22 @@ def admin_scrape_jobs():
                             EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector))
                         )
                         if elements:
-                            log(f"✅ Found {len(elements)} posts using selector: {selector}")
+                            log(f"[OK] Found {len(elements)} posts using selector: {selector}")
                             job_posts = elements
                             break
                     except Exception as e:
-                        log(f"⚠️ Selector {selector} failed")
+                        log(f"[WARN] Selector {selector} failed")
                         continue
                 
                 if not job_posts:
-                    log("❌ No job posts found")
+                    log("[ERROR] No job posts found")
                     send_event("completed")
                     return
                 
                 all_emails = set()
                 jobs_saved = 0
                 
-                log(f"🔍 Scanning {len(job_posts)} posts for job opportunities...")
+                log(f"[DEBUG] Scanning {len(job_posts)} posts for job opportunities...")
                 
                 for idx, post in enumerate(job_posts):
                     try:
@@ -3601,18 +3695,18 @@ def admin_scrape_jobs():
                             # Also save without user_email so it appears for everyone
                             save_job_post(job_post, None)
                             jobs_saved += 1
-                            log(f"💾 Saved job from {company} - {email} (visible to all users)")
+                            log(f"[SAVE] Saved job from {company} - {email} (visible to all users)")
                     
                     except Exception as e:
                         continue
                 
-                log(f"📧 Found {len(all_emails)} unique email(s)")
-                log(f"💾 Saved {jobs_saved} job post(s) to database (visible to all users)")
-                log("✅ Automation completed!")
+                log(f"[EMAIL] Found {len(all_emails)} unique email(s)")
+                log(f"[SAVE] Saved {jobs_saved} job post(s) to database (visible to all users)")
+                log("[OK] Automation completed!")
                 send_event("completed")
                 
             except Exception as e:
-                error_msg = f"❌ Error: {str(e)}"
+                error_msg = f"[ERROR] Error: {str(e)}"
                 log(error_msg)
                 print(f"ADMIN SCRAPING ERROR: {str(e)}")
                 import traceback
@@ -3623,7 +3717,7 @@ def admin_scrape_jobs():
                 if driver:
                     try:
                         driver.quit()
-                        log("🧹 Browser closed")
+                        log("[DONE] Browser closed")
                     except:
                         pass
         
@@ -3658,7 +3752,7 @@ if __name__ == "__main__":
     # Get port from environment variable (Render provides this)
     port = int(os.environ.get("PORT", 5000))
     print(f"\n{'='*60}")
-    print(f"🚀 SERVER STARTING ON PORT {port}")
+    print(f"[*] SERVER STARTING ON PORT {port}")
     print(f"{'='*60}\n")
     # Use 0.0.0.0 to accept connections from all interfaces
     app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)

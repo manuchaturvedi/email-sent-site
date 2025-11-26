@@ -1,0 +1,92 @@
+"""
+Job Analyzer Module - Simplified version for cloud deployment
+Analyzes job posts and extracts relevant information
+"""
+
+class JobAnalyzer:
+    def __init__(self):
+        """Initialize the job analyzer"""
+        # Lazy-loaded NLP model for AI-based location extraction
+        self._nlp = None
+        self._loaded_nlp = False
+    
+    def analyze_post(self, post_data):
+        """
+        Analyze a job post and extract/enhance information
+        
+        Args:
+            post_data: Dictionary containing job post information
+            
+        Returns:
+            Enhanced job post data with additional fields
+        """
+        # Start with the original post data
+        analyzed_post = post_data.copy()
+        
+        # Extract and normalize job title/position
+        if ''title'' in analyzed_post and analyzed_post[''title'']:
+            analyzed_post[''title''] = self._normalize_title(analyzed_post[''title''])
+        
+        # Extract company name if not present
+        if ''company'' not in analyzed_post or not analyzed_post[''company'']:
+            analyzed_post[''company''] = self._extract_company(post_data)
+        else:
+            # If placeholder value present, attempt recovery with improved heuristics
+            if analyzed_post[''company''] in [''Company Not Specified'', ''Company Not Found'']:
+                recovered = self._extract_company(post_data)
+                if recovered not in [''Company Not Specified'', ''Company Not Found'']:
+                    analyzed_post[''company''] = recovered
+        
+        # Extract location if not present
+        if ''location'' not in analyzed_post or not analyzed_post[''location'']:
+            analyzed_post[''location''] = self._extract_location(post_data)
+        else:
+            if analyzed_post[''location''] in [''Remote/On-site'', ''Location Not Specified'', ''Remote / On-site'']:
+                new_loc = self._extract_location(post_data)
+                if new_loc and new_loc != analyzed_post[''location'']:
+                    analyzed_post[''location''] = new_loc
+        
+        # Extract skills if not present
+        if ''skills'' not in analyzed_post or not analyzed_post[''skills'']:
+            analyzed_post[''skills''] = self._extract_skills(post_data)
+        
+        # Extract seniority level
+        analyzed_post[''seniority''] = self._extract_seniority(post_data)
+        
+        # Ensure required fields have defaults
+        analyzed_post.setdefault(''job_type'', self._extract_job_type(post_data))
+        analyzed_post.setdefault(''posted_date'', '''')
+        analyzed_post.setdefault(''url'', '''')
+
+        # Optional: invoke Groq LLM for richer structured extraction if key present
+        try:
+            llm_data = self._extract_with_llm(post_data.get(''full_text'') or f"{post_data.get(''title'','''')}\n{post_data.get(''description'','''')}")
+            if llm_data:
+                # llm_data may be JSON string or dict
+                import json
+                if isinstance(llm_data, str):
+                    try:
+                        llm_data = json.loads(llm_data)
+                    except Exception:
+                        llm_data = {}
+                if isinstance(llm_data, dict):
+                    # Merge without overwriting non-placeholder existing values
+                    for k, v in llm_data.items():
+                        if v in [None, '''', [], {}]:
+                            continue
+                        existing = analyzed_post.get(k)
+                        placeholders = [''Company Not Specified'', ''Company Not Found'', ''Location Not Specified'', ''Remote/On-site'', ''Remote / On-site'']
+                        if (not existing) or (isinstance(existing, str) and existing in placeholders):
+                            analyzed_post[k] = v
+                        # Allow location array -> primary city if list
+                        if k == ''location'' and isinstance(v, list) and v:
+                            analyzed_post[''location''] = v[0]
+                        # Special merge for skills list
+                        if k == ''skills'' and isinstance(v, list):
+                            base = analyzed_post.get(''skills'', [])
+                            merged = base + [s for s in v if s not in base]
+                            analyzed_post[''skills''] = merged
+        except Exception:
+            pass
+        
+        return analyzed_post

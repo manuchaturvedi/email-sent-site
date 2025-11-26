@@ -9,72 +9,216 @@
 
   <style>
     body {
-      background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      font-family: "Poppins", sans-serif;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 20px 0;
     }
 
     .card {
       border: none;
-      border-radius: 20px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.98);
     }
 
     .form-control, .form-select {
-      border-radius: 10px;
-      padding: 10px 14px;
+      border-radius: 12px;
+      padding: 14px 18px;
+      border: 2px solid #e5e7eb;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+      background: #f9fafb;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+      background: #ffffff;
+      outline: none;
+    }
+
+    .form-label {
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-label i {
+      color: #667eea;
+      font-size: 1.1rem;
     }
 
     .btn-primary {
-      background: linear-gradient(90deg, #0072ff, #00c6ff);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border: none;
-      border-radius: 10px;
-      transition: 0.3s;
-      font-weight: 500;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      padding: 16px;
+      font-size: 1.05rem;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
 
     .btn-primary:hover {
-      transform: scale(1.03);
-      box-shadow: 0 6px 14px rgba(0, 114, 255, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
     }
 
     h3 {
-      font-weight: 600;
-      color: #333;
+      font-weight: 700;
+      color: #1f2937;
+      font-size: 1.75rem;
     }
 
     .header-icon {
-      font-size: 2.5rem;
-      color: #0072ff;
-      margin-right: 10px;
+      font-size: 3rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .alert {
-      border-radius: 12px;
+      border-radius: 16px;
       font-weight: 500;
+      border: none;
+    }
+
+    .form-text {
+      color: #6b7280;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    .form-text a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .form-text a:hover {
+      text-decoration: underline;
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 140px;
+    }
+
+    input[type="file"].form-control {
+      padding: 12px 16px;
+      cursor: pointer;
+    }
+
+    input[type="file"].form-control::file-selector-button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 12px;
+      transition: all 0.2s;
+    }
+
+    input[type="file"].form-control::file-selector-button:hover {
+      transform: scale(1.05);
+    }
+
+    .mb-3 {
+      margin-bottom: 1.75rem !important;
     }
 
     footer {
       text-align: center;
-      color: #f5f5f5;
+      color: #f3f4f6;
       font-size: 0.9rem;
       margin-top: 30px;
-      opacity: 0.8;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+
+    /* Floating label effect */
+    .form-group {
+      position: relative;
+    }
+
+    /* Smooth animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    /* Better focus states */
+    input:focus, textarea:focus, select:focus {
+      transform: translateY(-1px);
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .card {
+        border-radius: 20px;
+        margin: 10px;
+      }
+
+      h3 {
+        font-size: 1.5rem;
+      }
+
+      .header-icon {
+        font-size: 2.5rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container py-5">
-    <div class="col-lg-6 col-md-8 col-sm-10 mx-auto">
+    <div class="col-lg-7 col-md-9 col-sm-11 mx-auto">
       <div class="card p-4 p-md-5">
-        <div class="d-flex align-items-center mb-3">
+        <div class="text-center mb-4">
           <i class="bi bi-rocket-takeoff header-icon"></i>
-          <h3>Email Automation</h3>
+          <h3 class="mt-3">Email Automation</h3>
+          <p class="text-muted mb-0" style="font-size: 0.95rem;">
+            Automate job applications with AI-powered efficiency
+          </p>
         </div>
-        <p class="text-muted mb-4">
-          Automate sending job applications using your saved LinkedIn profile (<b>D:\Profile</b>).
-          Just fill your details below and click <b>Run Automation</b>.
-        </p>
+
+        <!-- AI Email Template Generator Welcome Section -->
+        <div class="alert mb-4" style="background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1)); border: 2px solid rgba(102,126,234,0.3); border-radius: 16px; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(102,126,234,0.1); border-radius: 50%; filter: blur(30px);"></div>
+          <div class="text-center" style="position: relative; z-index: 1;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">✨</div>
+            <h5 class="mb-2" style="font-weight: 700; color: #667eea;">
+              Not sure what to write?
+            </h5>
+            <p class="text-muted small mb-3" style="font-size: 0.9rem;">Let AI craft the perfect email from your resume!</p>
+            <button type="button" class="btn btn-sm" onclick="window.location.href='/send'" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.7rem 1.75rem; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 12px rgba(102,126,234,0.3); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 18px rgba(102,126,234,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.3)'">
+              <i class="bi bi-magic me-2"></i>Generate with AI
+            </button>
+          </div>
+        </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
@@ -88,38 +232,63 @@
         {% endwith %}
 
         <form method="POST" enctype="multipart/form-data">
+          <!-- Sender Email -->
           <div class="mb-3">
-            <label class="form-label"><i class="bi bi-envelope-at me-2"></i>Sender Email (Gmail)</label>
+            <label class="form-label">
+              <i class="bi bi-envelope-at-fill"></i>
+              <span>Sender Email</span>
+            </label>
             <input type="email" name="sender_email" class="form-control" placeholder="yourname@gmail.com" required>
           </div>
 
+          <!-- App Password -->
           <div class="mb-3">
-            <label class="form-label"><i class="bi bi-shield-lock me-2"></i>Google App Password</label>
+            <label class="form-label">
+              <i class="bi bi-shield-lock-fill"></i>
+              <span>Google App Password</span>
+            </label>
             <input type="password" name="sender_app_password" class="form-control" placeholder="16-character App Password" required>
             <div class="form-text">
-              Generate your App Password at 
-              <a href="https://myaccount.google.com/apppasswords" target="_blank">Google App Passwords</a>.
+              <i class="bi bi-info-circle-fill me-1"></i>
+              Generate at <a href="https://myaccount.google.com/apppasswords" target="_blank">Google App Passwords</a>
             </div>
           </div>
 
+          <!-- Email Subject -->
           <div class="mb-3">
-            <label class="form-label"><i class="bi bi-card-text me-2"></i>Email Subject</label>
-            <input type="text" name="subject" class="form-control" placeholder="Application for DevOps Engineer..." required>
+            <label class="form-label">
+              <i class="bi bi-card-text"></i>
+              <span>Email Subject</span>
+            </label>
+            <input type="text" name="subject" class="form-control" placeholder="Application for DevOps Engineer Position - [Your Name]" required>
           </div>
 
+          <!-- Email Content -->
           <div class="mb-3">
-            <label class="form-label"><i class="bi bi-chat-left-dots me-2"></i>Email Content</label>
-            <textarea name="content" class="form-control" rows="6" placeholder="Your message..." required></textarea>
+            <label class="form-label">
+              <i class="bi bi-chat-dots-fill"></i>
+              <span>Email Content</span>
+            </label>
+            <textarea name="content" class="form-control" rows="7" placeholder="Dear Hiring Manager,&#10;&#10;I am writing to express my interest in..." required></textarea>
           </div>
 
+          <!-- Resume Upload -->
           <div class="mb-3">
-            <label class="form-label"><i class="bi bi-paperclip me-2"></i>Upload Resume (PDF/DOC)</label>
-            <input type="file" name="resume" class="form-control" required>
+            <label class="form-label">
+              <i class="bi bi-paperclip"></i>
+              <span>Resume Attachment</span>
+            </label>
+            <input type="file" name="resume" class="form-control" accept=".pdf,.doc,.docx" required>
+            <div class="form-text">
+              <i class="bi bi-file-earmark-pdf-fill me-1" style="color: #ef4444;"></i>
+              PDF format recommended for best compatibility
+            </div>
           </div>
 
+          <!-- Submit Button -->
           <div class="d-grid mt-4">
             <button type="submit" class="btn btn-primary btn-lg">
-              <i class="bi bi-send-check-fill me-2"></i>Run Automation
+              <i class="bi bi-send-fill me-2"></i>Start Automation
             </button>
           </div>
         </form>

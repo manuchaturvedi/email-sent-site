@@ -26,6 +26,10 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from datetime import datetime
 import json
 import platform
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 app = Flask(__name__)
@@ -63,6 +67,116 @@ def extract_company_from_email(email):
         return company_name if company_name else "Unknown Company"
     except:
         return "Unknown Company"
+
+def parse_skills(skills_string):
+    """Parse skills from string - handles both commas and spaces as separators"""
+    if not skills_string:
+        return []
+    
+    import re
+    # Replace commas with spaces, then split by spaces and filter empty strings
+    # This handles: "python,java", "python, java", "python java", "python  java"
+    skills_string = skills_string.replace(',', ' ')
+    skill_list = [s.strip() for s in skills_string.split() if s.strip()]
+    return skill_list
+
+def send_upgrade_notification_email(user_email, user_name, plan, duration_days=None, upgraded_by='self'):
+    """Send email notification when user is upgraded to Pro"""
+    try:
+        # Gmail SMTP settings
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = "mail@justmailit.in"
+        smtp_user = "manudrive06@gmail.com"
+        sender_password = "ozds nrqo gduy mnwd"
+        
+        # Calculate expiry date
+        from datetime import datetime, timedelta
+        if duration_days:
+            expiry_date = (datetime.now() + timedelta(days=duration_days)).strftime('%B %d, %Y')
+        else:
+            expiry_date = (datetime.now() + timedelta(days=30)).strftime('%B %d, %Y')
+        
+        # Email subject and body based on who upgraded
+        if upgraded_by == 'admin':
+            subject = "🎉 Your JustMailIt Account Has Been Upgraded to Pro!"
+            body = f"""Hi {user_name},
+
+Great news! Your JustMailIt account has been upgraded to Pro plan by our admin team!
+
+✨ Your Pro Benefits:
+• Unlimited job applications - no more daily limits
+• Priority support from our team
+• Advanced AI-powered job matching
+• Extended profile customization
+• No restrictions on email sending
+
+📅 Your Pro plan is active until: {expiry_date}
+
+You can now enjoy unlimited job applications and make the most of your job search!
+
+Login to your dashboard: https://justmailit.in/dashboard
+
+Need help? Reply to this email or visit our support page.
+
+Best regards,
+The JustMailIt Team
+https://justmailit.in
+
+---
+This is an automated notification from JustMailIt.
+"""
+        else:
+            subject = "🎉 Welcome to JustMailIt Pro!"
+            body = f"""Hi {user_name},
+
+Thank you for upgrading to JustMailIt Pro! 🚀
+
+Your payment has been successfully processed, and your Pro subscription is now active.
+
+✨ Your Pro Benefits:
+• Unlimited job applications - send as many emails as you need
+• Priority support from our team
+• Advanced AI-powered job matching
+• Extended profile customization
+• No daily email limits
+
+📅 Your subscription is valid until: {expiry_date}
+
+Start sending unlimited job applications now: https://justmailit.in/dashboard
+
+If you have any questions or need assistance, feel free to reach out to us.
+
+Best regards,
+The JustMailIt Team
+https://justmailit.in
+
+---
+This is an automated confirmation from JustMailIt.
+"""
+        
+        # Create email message
+        msg = MIMEMultipart()
+        msg["From"] = f"JustMailIt <{sender_email}>"
+        msg["To"] = user_email
+        msg["Subject"] = subject
+        msg["Reply-To"] = sender_email
+        
+        msg.attach(MIMEText(body, "plain", "utf-8"))
+        
+        # Send email
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_user, sender_password)
+        server.sendmail(sender_email, user_email, msg.as_string())
+        server.quit()
+        
+        print(f"[OK] Upgrade notification email sent to {user_email}")
+        return True
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to send upgrade notification email: {str(e)}")
+        return False
 
 def cleanup_chrome_processes():
     """Cross-platform Chrome process cleanup - kills all Chrome/Chromium processes"""
@@ -314,7 +428,9 @@ def is_duplicate_job_post(post, existing_posts=None, user_email=None):
 def load_job_posts():
     """Load job posts from SQLite or fall back to local JSON storage."""
     # Initialize job analyzer
+    print("[DEBUG] Initializing JobAnalyzer...")
     analyzer = JobAnalyzer()
+    print("[DEBUG] JobAnalyzer initialized")
 
     try:
         # Load from SQLite database
@@ -330,13 +446,17 @@ def load_job_posts():
         conn.close()
         
         posts = []
-        for row in rows:
+        for i, row in enumerate(rows):
             post_data = dict(row)
             post_data['skills'] = json.loads(post_data['skills']) if post_data.get('skills') else []
             # Map recruiter_email to email for template compatibility
             if 'recruiter_email' in post_data and post_data['recruiter_email']:
                 post_data['email'] = post_data['recruiter_email']
-            posts.append(analyzer.analyze_post(post_data))
+            
+            print(f"[DEBUG] Analyzing post {i+1}/{len(rows)}: {post_data.get('description', '')[:50]}...")
+            analyzed = analyzer.analyze_post(post_data)
+            print(f"[DEBUG] Result location: {analyzed.get('location')}")
+            posts.append(analyzed)
         
         print(f"[OK] Loaded {len(posts)} job posts from SQLite database")
         return posts
@@ -1252,7 +1372,11 @@ def job_posts():
     
     # Sort posts by date, newest first
     posts.sort(key=lambda x: x["posted_date"], reverse=True)
-    return render_template("job_posts.html", job_posts=posts)
+    
+    # Pass current date as formatted string to template
+    from datetime import datetime
+    current_date = datetime.now().strftime('%b %d, %Y')
+    return render_template("job_posts.html", job_posts=posts, current_date=current_date)
 
 
 @app.route("/send_job_email", methods=["POST"])
@@ -1869,6 +1993,8 @@ def linkedin_login(driver, email, password):
 
 # --- AUTOMATION FUNCTION ---
 def run_automation(subject, email_content, attachment_path, cc_email, run_id=None, user_email=None, search_role=None, search_time=None):
+    global automation_stop_flag, automation_running, automation_driver
+    
     # Wrap EVERYTHING in try-catch to catch silent failures
     try:
         print("=" * 80, flush=True)
@@ -2118,8 +2244,8 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         if not search_time:
             search_time = profile_data.get('searchTimePeriod', 'past-week')
         
-        # Convert roles to LinkedIn search format
-        roles = [role.strip() for role in search_role.split(',')]
+        # Convert roles to LinkedIn search format - handle both commas and spaces
+        roles = parse_skills(search_role)
         search_keywords = ' OR '.join(f'{role.strip()} hiring' for role in roles)
         
         # Build LinkedIn search URL
@@ -2139,7 +2265,6 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
 
         for url in search_urls:
             # Check stop flag
-            global automation_stop_flag
             if automation_stop_flag:
                 log("[STOP!] Automation stopped by user")
                 return
@@ -2360,6 +2485,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
 
         # Send emails with enhanced duplicate checking
         emails_sent_count = 0
+        
         for receiver_email in all_emails:
             # Check stop flag
             if automation_stop_flag:
@@ -2461,7 +2587,6 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     pass
 
     finally:
-        global automation_running, automation_stop_flag
         automation_running = False
         
         try:
@@ -2479,11 +2604,13 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
 
             # Send completion status back to the frontend
             if automation_stop_flag:
-                send_event(f"<div class='warning-message'>[STOP!] Automation stopped by user. Sent {emails_sent_count} emails before stopping.</div>")
+                send_event(f"[STOP] Automation stopped by user. Sent {emails_sent_count} emails before stopping.")
                 print("[STOP!] Automation stopped by user")
+                # Mark automation as not running in finally block
             else:
-                send_event(f"<div class='success-message'>[COMPLETE] Automation completed! Sent {emails_sent_count} emails successfully.</div>")
+                send_event(f"[OK] Automation completed successfully! Sent {emails_sent_count} emails.")
                 print("[OK] Automation completed successfully!")
+                # Mark automation as not running in finally block
             
             print(f"[COUNT] Summary:")
             print(f"   - Emails found: {len(all_emails)}")
@@ -2545,6 +2672,27 @@ def stop_automation():
             print(f"[WARN] Error closing browser: {e}")
     
     return jsonify({"success": True, "message": "Automation stop requested"})
+
+@app.route("/check_automation_status", methods=["GET"])
+@login_required
+def check_automation_status():
+    """Check if automation is actually running and reset if stale"""
+    global automation_running, automation_driver
+    
+    # If automation_running is True but no driver exists, it's a stale session
+    if automation_running and (automation_driver is None or not hasattr(automation_driver, 'session_id')):
+        print("[CLEANUP] Detected stale automation session - resetting")
+        automation_running = False
+        return jsonify({
+            "is_running": False,
+            "was_stale": True,
+            "message": "Stale session cleaned up"
+        })
+    
+    return jsonify({
+        "is_running": automation_running,
+        "was_stale": False
+    })
 
 @app.route("/run_automation", methods=["POST"])
 @login_required
@@ -2948,6 +3096,18 @@ def activate_subscription(user_email, plan, price, order_id):
         db.create_or_update_subscription(user_email, subscription_data)
         print(f"[OK] Subscription activated: {user_email} - {plan} plan")
         
+        # Get user name
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT display_name FROM user_profiles WHERE email = ?", (user_email,))
+        user_data = cursor.fetchone()
+        conn.close()
+        
+        user_name = user_data['display_name'] if user_data and user_data['display_name'] else user_email.split('@')[0]
+        
+        # Send upgrade notification email
+        send_upgrade_notification_email(user_email, user_name, plan, duration_days=30, upgraded_by='self')
+        
     except Exception as e:
         print(f"[ERROR] Activate subscription error: {e}")
 
@@ -3296,6 +3456,18 @@ def admin_upgrade_user():
         
         print(f"[OK] Admin upgraded {user_email} to Pro until {expires_at}")
         
+        # Get user name
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT display_name FROM user_profiles WHERE email = ?", (user_email,))
+        user_data = cursor.fetchone()
+        conn.close()
+        
+        user_name = user_data['display_name'] if user_data and user_data['display_name'] else user_email.split('@')[0]
+        
+        # Send upgrade notification email
+        send_upgrade_notification_email(user_email, user_name, 'pro', duration_days, upgraded_by='admin')
+        
         return jsonify({
             'success': True,
             'message': f'User upgraded to Pro for {duration_days} days',
@@ -3416,11 +3588,12 @@ def admin_send_promotional_email():
         sent_count = 0
         failed_count = 0
         
-        # Gmail SMTP settings
+        # Gmail SMTP settings - using mail@justmailit.in via Gmail SMTP
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
-        sender_email = SMTP_USER
-        sender_password = SMTP_PASSWORD
+        sender_email = "mail@justmailit.in"  # Custom domain email
+        smtp_user = "manudrive06@gmail.com"  # Gmail account for authentication
+        sender_password = "ozds nrqo gduy mnwd"  # Gmail App Password
         
         for user in users:
             user_email = user[0]
@@ -3445,10 +3618,10 @@ def admin_send_promotional_email():
                 
                 msg.attach(MIMEText(personalized_body, "plain", "utf-8"))
                 
-                # Send email
+                # Send email - authenticate with Gmail, send as mail@justmailit.in
                 server = smtplib.SMTP(smtp_server, smtp_port)
                 server.starttls()
-                server.login(sender_email, sender_password)
+                server.login(smtp_user, sender_password)  # Authenticate with Gmail
                 server.sendmail(sender_email, user_email, msg.as_string())
                 server.quit()
                 
@@ -3479,6 +3652,18 @@ def admin_scrape_jobs():
     import threading
     
     def generate():
+        # Create a queue for messages
+        message_queue = queue.Queue()
+        
+        def send_event(msg):
+            """Send SSE event"""
+            message_queue.put(msg)
+        
+        def log(msg):
+            """Log and send message"""
+            print(msg)
+            send_event(msg)
+        
         # Get parameters
         custom_url = request.args.get('url', '').strip()
         skills = request.args.get('skills', '').strip()
@@ -3494,7 +3679,7 @@ def admin_scrape_jobs():
         elif skills:
             # Build search URL using skills like the main automation
             from urllib.parse import urlencode
-            skill_list = [s.strip() for s in skills.split(',')]
+            skill_list = parse_skills(skills)
             search_keywords = ' OR '.join(f'{skill.strip()} hiring' for skill in skill_list)
             
             base_url = "https://www.linkedin.com/search/results/content/?"
@@ -3509,18 +3694,6 @@ def admin_scrape_jobs():
             # Default to feed if no URL or skills provided
             url = 'https://www.linkedin.com/feed/'
             log(f"📍 Using default feed URL: {url}")
-        
-        # Create a queue for messages
-        message_queue = queue.Queue()
-        
-        def send_event(msg):
-            """Send SSE event"""
-            message_queue.put(msg)
-        
-        def log(msg):
-            """Log and send message"""
-            print(msg)
-            send_event(msg)
         
         def scrape_jobs_thread():
             """Background thread for scraping"""
@@ -3544,21 +3717,152 @@ def admin_scrape_jobs():
                 import time
                 
                 chrome_options = Options()
-                chrome_options.add_argument("--headless")
+                
+                # Only use headless mode if HEADLESS environment variable is not set to "false"
+                if os.environ.get('HEADLESS', 'true').lower() != 'false':
+                    chrome_options.add_argument("--headless=new")
+                    log("🔇 Running Chrome in headless mode")
+                else:
+                    log("[VISIBLE] Running Chrome in visible mode")
+                
+                chrome_options.add_argument("--disable-blink-features=AutomationControlled")
                 chrome_options.add_argument("--no-sandbox")
                 chrome_options.add_argument("--disable-dev-shm-usage")
                 chrome_options.add_argument("--disable-gpu")
                 chrome_options.add_argument("--window-size=1920,1080")
+                chrome_options.add_argument("--disable-extensions")
+                chrome_options.add_argument("--dns-prefetch-disable")
+                chrome_options.add_argument("--disable-features=VizDisplayCompositor")
                 
-                # Use profile for login persistence
-                profile_dir = os.path.join(os.getcwd(), "chrome-profile")
-                chrome_options.add_argument(f"user-data-dir={profile_dir}")
-                chrome_options.add_argument("--profile-directory=Default")
+                # Use appropriate profile directory based on environment
+                if os.environ.get('CHROME_BIN'):  # Docker/Cloud environment
+                    profile_dir = "/tmp/chrome-profile"
+                    log("[WWW] Using Docker Chrome profile directory")
+                else:  # Local Windows environment
+                    profile_dir = r"D:\Profile"
+                    log("🏠 Using Windows Chrome profile directory")
+                
+                os.makedirs(profile_dir, exist_ok=True)
+                chrome_options.add_argument(f"--user-data-dir={profile_dir}")
+                log(f"🗂 Using Chrome profile directory: {profile_dir}")
+                
+                chrome_options.page_load_strategy = 'normal'
                 
                 log("[WWW] Launching Chrome...")
-                driver = webdriver.Chrome(options=chrome_options)
                 
-                log(f"🔗 Opening URL: {url}")
+                # Use explicit ChromeDriver path in Docker/Cloud, auto-install locally
+                if os.environ.get('CHROMEDRIVER_PATH'):
+                    chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
+                    log(f"[INSTALL] Using ChromeDriver from: {chromedriver_path}")
+                    from selenium.webdriver.chrome.service import Service
+                    service = Service(chromedriver_path)
+                    driver = webdriver.Chrome(service=service, options=chrome_options)
+                else:
+                    from webdriver_manager.chrome import ChromeDriverManager
+                    from selenium.webdriver.chrome.service import Service
+                    log("🔄 Installing ChromeDriver via webdriver_manager...")
+                    service = Service(ChromeDriverManager().install())
+                    driver = webdriver.Chrome(service=service, options=chrome_options)
+                
+                log("[OK] Chrome launched successfully!")
+                
+                # Login check: Try existing profile first
+                log("[AUTH] Checking LinkedIn login status...")
+                log("[DEBUG] Navigating to LinkedIn feed...")
+                
+                driver.get("https://www.linkedin.com/feed/")
+                log(f"[OK] Page loaded, current URL: {driver.current_url}")
+                time.sleep(5)  # Wait for page to settle
+                
+                # Check for multiple indicators of being logged in
+                login_indicators = [
+                    ".global-nav__me",
+                    ".feed-identity-module",
+                    "[data-control-name='nav.settings_and_privacy']",
+                    ".nav-item__profile-member-photo"
+                ]
+                
+                logged_in = False
+                for indicator in login_indicators:
+                    try:
+                        elements = driver.find_elements(By.CSS_SELECTOR, indicator)
+                        if elements:
+                            logged_in = True
+                            log(f"[OK] Login confirmed via indicator: {indicator}")
+                            break
+                    except:
+                        continue
+                
+                # Check URL for redirect to login
+                current_url = driver.current_url
+                if "login" in current_url or "authwall" in current_url:
+                    logged_in = False
+                    log("[WARN] Redirected to login page")
+                
+                if logged_in:
+                    log("[OK] ✓ Already logged in via existing profile!")
+                else:
+                    log("[LOGIN] Profile not logged in, attempting credential login...")
+                    
+                    # Get LinkedIn credentials from environment or database
+                    linkedin_email = os.environ.get('LINKEDIN_EMAIL')
+                    linkedin_password = os.environ.get('LINKEDIN_PASSWORD')
+                    
+                    if not linkedin_email or not linkedin_password:
+                        # Try database
+                        conn = db.get_connection()
+                        cursor = conn.cursor()
+                        cursor.execute('SELECT linkedin_email, linkedin_password FROM user_profiles WHERE email = ?', (user_email,))
+                        creds = cursor.fetchone()
+                        conn.close()
+                        
+                        if creds and creds['linkedin_email'] and creds['linkedin_password']:
+                            linkedin_email = creds['linkedin_email']
+                            linkedin_password = creds['linkedin_password']
+                    
+                    if linkedin_email and linkedin_password:
+                        try:
+                            log("[LOGIN] Navigating to login page...")
+                            driver.get("https://www.linkedin.com/login")
+                            time.sleep(2)
+                            
+                            log("[LOGIN] Entering credentials...")
+                            email_field = driver.find_element(By.ID, "username")
+                            email_field.send_keys(linkedin_email)
+                            
+                            password_field = driver.find_element(By.ID, "password")
+                            password_field.send_keys(linkedin_password)
+                            
+                            login_btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
+                            login_btn.click()
+                            
+                            log("[LOGIN] Waiting for login...")
+                            time.sleep(8)  # Wait longer for login
+                            
+                            # Verify login success
+                            current_url = driver.current_url
+                            if "feed" in current_url or "checkpoint" in current_url:
+                                log("[OK] ✓ Login successful!")
+                                
+                                # Handle 2FA if needed
+                                if "checkpoint" in current_url:
+                                    log("[2FA] Two-factor authentication required")
+                                    log("[2FA] Please complete 2FA in the browser...")
+                                    log("[2FA] Waiting 60 seconds for manual verification...")
+                                    time.sleep(60)
+                            else:
+                                log(f"[WARN] Login unclear, current URL: {current_url}")
+                        
+                        except Exception as login_error:
+                            log(f"[ERROR] Login error: {str(login_error)}")
+                            log("[INFO] Continuing with current session...")
+                    else:
+                        log("[WARN] No LinkedIn credentials found")
+                        log("[INFO] Set LINKEDIN_EMAIL and LINKEDIN_PASSWORD env vars")
+                        log("[INFO] Or add credentials in user profile")
+                
+                # Now navigate to target URL
+                log(f"🔗 Navigating to: {url}")
                 driver.get(url)
                 time.sleep(5)
                 
@@ -3644,7 +3948,7 @@ def admin_scrape_jobs():
                         if skills and not custom_url:
                             # If we built the search URL, jobs should already be filtered
                             # This is just an additional check
-                            skill_list = [s.strip().lower() for s in skills.split(',')]
+                            skill_list = [s.strip().lower() for s in parse_skills(skills)]
                             if not any(skill in full_text.lower() for skill in skill_list):
                                 continue
                         
@@ -3687,7 +3991,7 @@ def admin_scrape_jobs():
                                 "posted_date": datetime.now().strftime("%Y-%m-%d"),
                                 "url": url,
                                 "job_url": url,
-                                "skills": skills.split(',') if skills else []
+                                "skills": parse_skills(skills) if skills else []
                             }
                             
                             # Save for the specified user AND make it visible to all users

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register - JustMailIt</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+
+  <style>
+    :root{
+      --primary:#a8e6cf;
+      --accent:#8b9fff;
+      --muted:#6b7280;
+      --card-bg:#ffffff;
+      --vertical-gap: clamp(16px, 3vh, 48px);
+      --gradient-start: #818cf8;
+      --gradient-end: #a8e6cf;
+    }
+
+    html,body{height:100%;}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+
+    .split {
+      display: flex;
+      min-height: 100vh;
+      align-items: stretch;
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .split::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .left {
+      flex: 1 1 48%;
+      color: #fff;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 240px;
+      box-sizing: border-box;
+      max-width: 720px;
+    }
+
+    .left .logo {
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 24px;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .feature-slider {
+      margin-top: 36px;
+      position: relative;
+      max-width: 560px;
+      padding: 12px 12px 40px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 18px 36px rgba(15,23,42,0.22);
+      overflow: hidden;
+    }
+
+    .feature-slide {
+      display: none;
+      align-items: flex-start;
+      gap: 16px;
+      color: #ffffff;
+      font-size: 17px;
+      line-height: 1.5;
+      padding: 18px 20px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      animation: slideFade 0.7s ease forwards;
+    }
+
+    .feature-slide.active { display: flex; }
+
+    .feature-slide .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(200,245,224,0.32);
+      color: #ffffff;
+      font-size: 22px;
+    }
+
+    .feature-slide-content { flex: 1; }
+
+    .feature-slide h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .feature-slide p {
+      margin: 0;
+      color: rgba(255,255,255,0.78);
+      font-size: 15px;
+    }
+
+    .feature-slider-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .feature-slider-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.4);
+      border: none;
+      padding: 0;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .feature-slider-dot.active {
+      width: 36px;
+      background: #ffffff;
+    }
+
+    .feature-slider-dot:focus-visible {
+      outline: 2px solid rgba(255,255,255,0.8);
+      outline-offset: 3px;
+    }
+
+    @keyframes slideFade {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .left h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      margin: 0 0 16px;
+      line-height: 1.2;
+    }
+
+    .left p {
+      color: rgba(255,255,255,0.85);
+      max-width: 540px;
+      font-size: clamp(16px, 1.8vw, 18px);
+      line-height: 1.5;
+    }
+
+    .right {
+      flex: 1 1 52%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      box-sizing: border-box;
+      min-height: 100vh;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      margin: auto;
+    }
+
+    .auth-card .card {
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .card-body {
+      padding: 24px;
+    }
+
+    .social-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: 10px;
+      padding: 12px 16px;
+      border: 1px solid #eef2ff;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .social-icon {
+      width: 22px;
+      height: 22px;
+    }
+
+    .social-btn:hover { background: #f8fafc; }
+    .social-btn.disabled { opacity: 0.6; cursor: not-allowed; border-color: #e6e6e6; background: #fafafa; }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff) !important;
+      color: #ffffff !important;
+      border: none !important;
+      padding: 16px !important;
+      border-radius: 12px !important;
+      width: 100% !important;
+      font-weight: 600 !important;
+      font-size: 16px !important;
+      transition: all 0.3s ease !important;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+      display: inline-block !important;
+      text-align: center !important;
+    }
+
+    .primary-btn:hover,
+    .primary-btn:focus,
+    .primary-btn:active {
+      background: linear-gradient(135deg, #8b9fff, #7dd4b0) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4) !important;
+      color: #ffffff !important;
+    }
+
+    .muted { color: var(--muted); font-size: 14px; }
+
+    .or-sep {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .or-sep hr {
+      flex: 1;
+      border: none;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .form-control {
+      padding: 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      width: 100%;
+      font-size: 15px;
+      transition: all 0.2s ease;
+      background: rgba(255,255,255,0.9);
+    }
+
+    .form-control:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(168,230,207,0.1);
+      background: #ffffff;
+    }
+
+    .form-control::placeholder { color: #9ca3af; }
+
+    .alert-info {
+      background: #dbeafe;
+      border: 1px solid #93c5fd;
+      color: #1e40af;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    @media (max-width: 1024px) {
+      .split { flex-direction: column; }
+      .left { padding: 48px 24px; text-align: center; }
+      .left p { margin: 0 auto; }
+      .right { padding: 24px 16px; }
+    }
+
+    @media (max-width: 640px) {
+      .left { padding: 32px 20px; }
+      .card-body { padding: 20px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="split">
+    <div class="left">
+      <div class="logo">
+        <i class="bi bi-envelope-at"></i>
+        JustMailIt
+      </div>
+      <h1>Start Your Journey</h1>
+      <p>Join thousands of job seekers who are automating their outreach and landing more interviews with JustMailIt.</p>
+      <div class="feature-slider" aria-label="Key Features" aria-live="polite">
+        <div class="feature-slide active">
+          <div class="icon">
+            <i class="bi bi-shield-check"></i>
+          </div>
+          <div class="feature-slide-content">
+            <h3>Secure & Private</h3>
+            <p>Your data is encrypted and protected with industry-standard security measures.</p>
+          </div>
+        </div>
+        <div class="feature-slide">
+          <div class="icon">
+            <i class="bi bi-lightning-charge"></i>
+          </div>
+          <div class="feature-slide-content">
+            <h3>Quick Setup</h3>
+            <p>Get started in minutes with our intuitive onboarding process and smart automation.</p>
+          </div>
+        </div>
+        <div class="feature-slide">
+          <div class="icon">
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <div class="feature-slide-content">
+            <h3>Proven Results</h3>
+            <p>Join successful job seekers who have increased their response rates by 300%.</p>
+          </div>
+        </div>
+        <div class="feature-slider-nav" role="group" aria-label="Feature steps">
+          <button class="feature-slider-dot active" type="button" aria-label="Feature 1"></button>
+          <button class="feature-slider-dot" type="button" aria-label="Feature 2"></button>
+          <button class="feature-slider-dot" type="button" aria-label="Feature 3"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="auth-card">
+        <div class="card">
+          <div class="card-body">
+            <h3 style="margin:0 0 8px;font-size:28px;font-weight:700">Create Account</h3>
+            <div class="muted" style="margin-bottom:24px">Get started with JustMailIt today</div>
+
+            <div class="alert-info">
+              <i class="bi bi-info-circle-fill" style="font-size:18px;margin-top:2px"></i>
+              <div>You'll need to verify your email address before you can sign in.</div>
+            </div>
+
+            <div id="signupForm">
+              <div class="mb-2">
+                <input id="signupName" type="text" class="form-control" placeholder="Full Name (optional)" />
+              </div>
+              <div class="mb-2">
+                <input id="signupEmail" type="email" class="form-control" placeholder="Email Address" required />
+              </div>
+              <div class="mb-2">
+                <input id="signupPassword" type="password" class="form-control" placeholder="Password (minimum 6 characters)" required />
+              </div>
+              <div class="mb-2">
+                <input id="signupPassword2" type="password" class="form-control" placeholder="Confirm Password" required />
+              </div>
+              <button class="primary-btn" onclick="signup()">Create Account</button>
+              <div id="signupMsg" class="muted" style="margin-top:10px;min-height:20px"></div>
+            </div>
+
+            <div class="or-sep">
+              <hr><div class="muted">Or sign up with</div><hr>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <button class="social-btn" id="google-signup" onclick="signupWithGoogle()" style="cursor: pointer;">
+                <i class="bi bi-google" style="font-size: 22px; color: #DB4437;"></i>
+                <div style="flex:1;text-align:center">Continue with Google</div>
+              </button>
+              <button class="social-btn" id="facebook-signup" onclick="signupWithFacebook()" style="cursor: pointer;">
+                <i class="bi bi-facebook" style="font-size: 22px; color: #1877F2;"></i>
+                <div style="flex:1;text-align:center">Continue with Facebook</div>
+              </button>
+            </div>
+
+            <div style="margin-top:24px;font-size:14px;color:#6b7280;text-align:center;padding:16px;background:rgba(168,230,207,0.1);border-radius:12px">
+              Already have an account? <a href="/login" style="color:#8b9fff;font-weight:600;text-decoration:none">Sign In</a>
+            </div>
+
+            <div style="margin-top:16px;font-size:13px;color:#6b7280;text-align:center">
+              By continuing you agree to our <a href="#" style="color:#a8e6cf">Terms of Service</a> and <a href="#" style="color:#a8e6cf">Privacy Policy</a>.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAqEkQOtCzx7rOf5pbHlDBHN-Cc_uOnRQw",
+      authDomain: "justmailit-d6f2d.firebaseapp.com",
+      projectId: "justmailit-d6f2d",
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+
+    let featureSliderTimer;
+
+    // Auto-rotate the left-panel feature slider
+    function initFeatureSlider(){
+      const slides = Array.from(document.querySelectorAll('.feature-slide'));
+      const dots = Array.from(document.querySelectorAll('.feature-slider-dot'));
+      if (!slides.length || slides.length !== dots.length) { return; }
+
+      let activeIndex = 0;
+
+      const activate = (index) => {
+        slides[activeIndex].classList.remove('active');
+        dots[activeIndex].classList.remove('active');
+        slides[index].classList.add('active');
+        dots[index].classList.add('active');
+        activeIndex = index;
+      };
+
+      const startAuto = () => {
+        clearInterval(featureSliderTimer);
+        featureSliderTimer = setInterval(() => {
+          const nextIndex = (activeIndex + 1) % slides.length;
+          activate(nextIndex);
+        }, 6000);
+      };
+
+      dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+          if (index === activeIndex) { return; }
+          activate(index);
+          startAuto();
+        });
+      });
+
+      startAuto();
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      initFeatureSlider();
+    });
+
+    async function signup(){
+      const email = document.getElementById('signupEmail').value;
+      const p1 = document.getElementById('signupPassword').value;
+      const p2 = document.getElementById('signupPassword2').value;
+      const msg = document.getElementById('signupMsg');
+      
+      if(!email || !p1){ 
+        msg.textContent = '⚠️ Please enter email and password.'; 
+        msg.style.color = '#f59e0b';
+        return; 
+      }
+      if(p1.length < 6){ 
+        msg.textContent = '⚠️ Password must be at least 6 characters.'; 
+        msg.style.color = '#f59e0b';
+        return; 
+      }
+      if(p1 !== p2){ 
+        msg.textContent = '⚠️ Passwords do not match.'; 
+        msg.style.color = '#f59e0b';
+        return; 
+      }
+      
+      try{
+        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, p1);
+        
+        // Send email verification
+        await userCredential.user.sendEmailVerification();
+        
+        msg.textContent = '✅ Account created! Please check your email to verify your account.';
+        msg.style.color = '#10b981';
+        
+        // Sign out the user until they verify email
+        await firebase.auth().signOut();
+        
+        setTimeout(()=>{ 
+          window.location.href='/login'; 
+        }, 3000);
+        
+      }catch(e){ 
+        msg.textContent = '❌ ' + e.message; 
+        msg.style.color = '#ef4444';
+      }
+    }
+
+    async function signupWithGoogle(){
+      const msg = document.getElementById('signupMsg');
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const result = await firebase.auth().signInWithPopup(provider);
+        const idToken = await result.user.getIdToken();
+        const res = await fetch('/sessionLogin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken})});
+        if(res.ok){ 
+          msg.textContent = '✅ Account created! Redirecting...'; 
+          msg.style.color = '#10b981';
+          setTimeout(()=>window.location.href='/',800); 
+        }
+        else { 
+          msg.textContent = '❌ Authentication failed.'; 
+          msg.style.color = '#ef4444';
+        }
+      } catch(e) {
+        msg.textContent = '❌ ' + e.message;
+        msg.style.color = '#ef4444';
+      }
+    }
+
+    async function signupWithFacebook(){
+      const msg = document.getElementById('signupMsg');
+      try {
+        const provider = new firebase.auth.FacebookAuthProvider();
+        const result = await firebase.auth().signInWithPopup(provider);
+        const idToken = await result.user.getIdToken();
+        const res = await fetch('/sessionLogin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken})});
+        if(res.ok){ 
+          msg.textContent = '✅ Account created! Redirecting...'; 
+          msg.style.color = '#10b981';
+          setTimeout(()=>window.location.href='/',800); 
+        }
+        else { 
+          msg.textContent = '❌ Authentication failed.'; 
+          msg.style.color = '#ef4444';
+        }
+      } catch(e) {
+        msg.textContent = '❌ ' + e.message;
+        msg.style.color = '#ef4444';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -253,6 +253,17 @@
     }
   }
 
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9) translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
   .campaign-card {
     animation: fadeInUp 0.6s ease-out;
   }
@@ -889,6 +900,9 @@
           <button type="button" id="stopBtn" class="btn btn-danger btn-lg" style="display: none;" onclick="stopAutomation()">
             <i class="bi bi-stop-circle me-2"></i>Stop Automation
           </button>
+          <button type="button" id="resetBtn" class="btn btn-warning btn-sm" style="display: none;" onclick="resetStuckAutomation()">
+            <i class="bi bi-arrow-clockwise me-2"></i>Reset Stuck Session
+          </button>
           <div class="text-center text-muted small mt-2">
             The automation runs in the background and you'll see live progress below
           </div>
@@ -1075,6 +1089,48 @@ async function stopAutomation() {
     stopBtn.innerHTML = '<i class="bi bi-stop-circle me-2"></i>Stop Automation';
   }
 }
+
+// Reset stuck automation session
+async function resetStuckAutomation() {
+  if (!confirm('This will reset the automation status. Use this if the automation appears stuck. Continue?')) {
+    return;
+  }
+  
+  const resetBtn = document.getElementById('resetBtn');
+  const runBtn = document.getElementById('runBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  
+  resetBtn.disabled = true;
+  resetBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Resetting...';
+  
+  try {
+    const response = await fetch('/check_automation_status');
+    const data = await response.json();
+    
+    // Reset UI
+    runBtn.disabled = false;
+    runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
+    stopBtn.style.display = 'none';
+    resetBtn.style.display = 'none';
+    
+    // Close any open event sources
+    if (window.progressEventSource) {
+      window.progressEventSource.close();
+      window.progressEventSource = null;
+    }
+    
+    const progressBox = document.getElementById('progressBox');
+    progressBox.innerHTML += '\n[RESET] Session reset successfully. You can start a new automation.\n';
+    
+    alert('Session reset successfully! You can now start a new automation.');
+  } catch (error) {
+    console.error('Error resetting automation:', error);
+    alert('Failed to reset session. Please refresh the page.');
+    resetBtn.disabled = false;
+    resetBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Reset Stuck Session';
+  }
+}
+
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1270,8 +1326,63 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check if there's an active automation running on the server
   async function checkActiveAutomation() {
     try {
-      // This will be connected via the SSE stream if automation is running
-      listenProgress();
+      // Check with backend if automation is actually running
+      const response = await fetch('/check_automation_status');
+      const data = await response.json();
+      
+      if (data.was_stale) {
+        console.log('[CLEANUP] Stale automation session was cleaned up');
+        // Reset UI to initial state
+        const runBtn = document.getElementById('runBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        if (runBtn) {
+          runBtn.disabled = false;
+          runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
+        }
+        if (stopBtn) {
+          stopBtn.style.display = 'none';
+        }
+        if (resetBtn) {
+          resetBtn.style.display = 'none';
+        }
+        
+        // Show notification
+        const progressBox = document.getElementById('progressBox');
+        if (progressBox) {
+          progressBox.innerHTML = '[INFO] Previous session was cleaned up. You can start a new automation.\n';
+        }
+        return;
+      }
+      
+      if (data.is_running) {
+        console.log('[INFO] Automation is running, connecting to progress stream');
+        // Connect to progress stream if automation is actually running
+        listenProgress();
+        
+        // Show stop button
+        const stopBtn = document.getElementById('stopBtn');
+        if (stopBtn) {
+          stopBtn.style.display = 'block';
+        }
+        
+        const runBtn = document.getElementById('runBtn');
+        if (runBtn) {
+          runBtn.disabled = true;
+          runBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Running...';
+        }
+        
+        // Show reset button after 60 seconds if still running (might be stuck)
+        setTimeout(() => {
+          if (runBtn && runBtn.disabled) {
+            const resetBtn = document.getElementById('resetBtn');
+            if (resetBtn) {
+              resetBtn.style.display = 'block';
+              console.log('[WARN] Automation running for 60+ seconds, showing reset option');
+            }
+          }
+        }, 60000);
+      }
     } catch (err) {
       console.warn('Failed to check active automation:', err);
     }
@@ -1279,6 +1390,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Show upgrade modal as a prominent popup
   function showUpgradeModal(htmlContent) {
+    console.log('[UPGRADE] Showing upgrade modal for skipped emails');
+    
     // Remove any existing upgrade modal
     const existing = document.getElementById('upgradeModalPopup');
     if (existing) existing.remove();
@@ -1288,15 +1401,20 @@ document.addEventListener('DOMContentLoaded', () => {
     tempDiv.innerHTML = htmlContent;
     
     const upgradeDiv = tempDiv.querySelector('.upgrade-prompt-modal') || tempDiv.querySelector('.upgrade-prompt');
-    if (!upgradeDiv) return; // Not an upgrade prompt
+    if (!upgradeDiv) {
+      console.log('[UPGRADE] No upgrade div found in content');
+      return; // Not an upgrade prompt
+    }
 
     // Extract information from the content
     const emailsCountMatch = htmlContent.match(/(\d+) emails couldn't be sent/);
     const emailsSkipped = emailsCountMatch ? emailsCountMatch[1] : '0';
     
+    console.log(`[UPGRADE] Detected ${emailsSkipped} skipped emails`);
+    
     // Don't show modal if no emails were actually skipped
     if (!emailsSkipped || emailsSkipped === '0' || parseInt(emailsSkipped) === 0) {
-      console.log('No emails were skipped, not showing upgrade modal');
+      console.log('[UPGRADE] No emails were skipped, not showing upgrade modal');
       return;
     }
     
@@ -1316,9 +1434,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Create Bootstrap modal with proper styling
     const modalHTML = `
-      <div class="modal fade show" id="upgradeModalPopup" tabindex="-1" style="display: block; background: rgba(0,0,0,0.7);">
+      <div class="modal fade show" id="upgradeModalPopup" tabindex="-1" style="display: block; background: rgba(0,0,0,0.85); z-index: 9999;">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-          <div class="modal-content" style="border: none; border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+          <div class="modal-content" style="border: none; border-radius: 1rem; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: modalSlideIn 0.3s ease-out;">
             <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 1.5rem;">
               <h5 class="modal-title" style="font-weight: bold; font-size: 1.5rem;">
                 🌟 You're Missing Great Opportunities!
@@ -1347,13 +1465,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h5 style="color: #667eea; margin-bottom: 0.5rem;">
                   💎 Upgrade to Pro for Unlimited Emails
                 </h5>
-                <p class="text-muted mb-0">Never miss an opportunity again!</p>
+                <p class="text-muted mb-2">Never miss an opportunity again!</p>
+                <ul class="text-start" style="color: #666; font-size: 0.95rem; list-style: none; padding-left: 0;">
+                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited daily emails</li>
+                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Priority email delivery</li>
+                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Advanced analytics</li>
+                </ul>
               </div>
 
-              <div class="d-grid">
+              <div class="d-grid gap-2">
                 <a href="/pricing" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; font-weight: bold; padding: 1rem;">
                   <i class="bi bi-rocket-takeoff me-2"></i>Upgrade to Pro Now
                 </a>
+                <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('upgradeModalPopup').remove()">
+                  Maybe Later
+                </button>
               </div>
             </div>
           </div>
@@ -1362,6 +1488,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHTML);
+    console.log('[UPGRADE] Modal displayed successfully with', emailsSkipped, 'skipped emails');
   }
 
   // Show relaxing message when automation starts
@@ -2022,7 +2149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Check for upgrade prompt modal and show it as a popup
-    if (msg.includes('upgrade-prompt-modal') || msg.includes('Daily Limit Reached')) {
+    if (msg.includes('upgrade-prompt-modal') || msg.includes('Daily Limit Reached') || msg.includes("emails couldn't be sent")) {
       showUpgradeModal(msg);
     }
 
@@ -2259,13 +2386,14 @@ document.addEventListener('DOMContentLoaded', () => {
       saveProgressState();  // Save state after each message
 
       // Check for completion
-      if (data.includes("🎉 Automation completed") || data.includes("✅ Automation completed")) {
+      if (data.includes("[OK] Automation completed") || data.includes("[STOP] Automation stopped") || 
+          data.includes("🎉 Automation completed") || data.includes("✅ Automation completed")) {
         setTimeout(function() {
           evtSource.close();
           window.progressEventSource = null;
           const runBtn = document.getElementById('runBtn');
           runBtn.disabled = false;
-          runBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Run Again';
+          runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
           
           // Hide stop button
           const stopBtn = document.getElementById('stopBtn');

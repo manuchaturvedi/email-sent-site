@@ -68,6 +68,61 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.6;
+  font-size: 16px;
+}
+
+/* Form Controls - Consistent Sizing */
+.form-control, .form-select {
+  font-size: 0.9375rem !important;
+  padding: 0.625rem 0.875rem !important;
+  border-radius: var(--radius) !important;
+  border: 1.5px solid rgba(139, 159, 255, 0.2) !important;
+}
+
+/* Checkboxes and Radio Buttons - Proper Sizing */
+.form-check-input {
+  width: 1.125rem !important;
+  height: 1.125rem !important;
+  margin-top: 0.1875rem !important;
+  border: 2px solid rgba(139, 159, 255, 0.3) !important;
+  border-radius: 0.25rem !important;
+}
+
+.form-check-input:checked {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+/* Button Sizing - Consistent Across All Pages */
+.btn {
+  font-size: 0.9375rem !important;
+  padding: 0.625rem 1.25rem !important;
+  border-radius: var(--radius) !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn-sm {
+  font-size: 0.875rem !important;
+  padding: 0.5rem 1rem !important;
+}
+
+.btn-lg {
+  font-size: 1.0625rem !important;
+  padding: 0.75rem 1.5rem !important;
+}
+
+/* Icon Sizing */
+.bi {
+  font-size: 1rem;
+}
+
+.icon-lg {
+  font-size: 1.5rem;
+}
+
+.icon-xl {
+  font-size: 2rem;
 }
 
 /* Modern Navbar (glassmorphism) */
@@ -508,17 +563,314 @@ body {
   transform: translateY(-4px);
 }
 
-/* Responsive */
+/* ============================================
+   MOBILE-FIRST RESPONSIVE DESIGN
+   ============================================ */
+
+/* Base mobile optimizations */
+* {
+  -webkit-tap-highlight-color: rgba(168, 230, 207, 0.2);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Touch-friendly minimum sizes */
+button, a, input, select, textarea {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Tablet and Mobile Devices */
+@media (max-width: 992px) {
+  body {
+    font-size: 15px;
+  }
+  
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  h4 { font-size: 1.1rem; }
+  
+  .card-modern {
+    border-radius: var(--radius-md);
+  }
+}
+
+/* Mobile Devices */
 @media (max-width: 768px) {
-  .card-modern-body {
-    padding: var(--spacing);
+  body {
+    font-size: 14px;
+  }
+  
+  /* Container spacing */
+  .container, .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Typography adjustments */
+  h1 { font-size: 1.5rem; line-height: 1.3; }
+  h2 { font-size: 1.35rem; line-height: 1.3; }
+  h3 { font-size: 1.2rem; line-height: 1.4; }
+  h4 { font-size: 1.05rem; line-height: 1.4; }
+  h5 { font-size: 0.95rem; }
+  
+  p { line-height: 1.6; }
+  
+  /* Card improvements */
+  .card, .card-modern {
+    margin-bottom: 1rem;
+    border-radius: var(--radius-md);
+  }
+  
+  .card-body, .card-modern-body {
+    padding: 1rem !important;
+  }
+  
+  .card-header {
+    padding: 0.875rem 1rem;
+  }
+  
+  /* Form elements - larger and touch-friendly */
+  .form-control, .form-select {
+    font-size: 1rem !important;
+    padding: 0.875rem 1rem !important;
+    min-height: 48px;
+    border: 2px solid #e5e7eb;
+    border-radius: var(--radius);
+    -webkit-appearance: none;
+  }
+  
+  .form-control:focus, .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(168, 230, 207, 0.2);
+  }
+  
+  .form-control-lg {
+    padding: 1rem 1.25rem !important;
+    font-size: 1.05rem !important;
+    min-height: 52px;
+  }
+  
+  .form-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  textarea.form-control {
+    min-height: 120px;
+    line-height: 1.5;
+  }
+  
+  select.form-control, .form-select {
+    background-size: 16px 12px;
+    background-position: right 0.75rem center;
+    padding-right: 2.5rem !important;
+  }
+  
+  /* File inputs */
+  input[type="file"].form-control {
+    padding: 0.75rem !important;
+  }
+  
+  input[type="file"].form-control::file-selector-button {
+    padding: 0.5rem 1rem;
+    margin-right: 1rem;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  
+  /* Input groups */
+  .input-group-text {
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+  }
+  
+  /* Buttons - larger and more visible */
+  .btn {
+    padding: 0.875rem 1.5rem !important;
+    font-size: 1rem !important;
+    min-height: 48px;
+    border-radius: var(--radius);
+    font-weight: 600;
+  }
+  
+  .btn-lg {
+    padding: 1rem 2rem !important;
+    font-size: 1.05rem !important;
+    min-height: 56px;
+    border-radius: var(--radius-md);
+  }
+  
+  .btn-sm {
+    padding: 0.625rem 1rem !important;
+    font-size: 0.9rem !important;
+    min-height: 40px;
   }
   
   .btn-modern-primary,
   .btn-modern-secondary,
   .btn-modern-outline {
-    padding: 0.65rem 1.25rem;
+    padding: 0.875rem 1.5rem !important;
+    font-size: 1rem !important;
+    min-height: 48px;
+  }
+  
+  /* Tables - responsive */
+  .table-responsive {
+    border-radius: var(--radius);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .table {
     font-size: 0.9rem;
   }
+  
+  .table td, .table th {
+    padding: 0.75rem 0.5rem;
+    white-space: nowrap;
+  }
+  
+  /* Modals */
+  .modal-dialog {
+    margin: 1rem;
+  }
+  
+  .modal-content {
+    border-radius: var(--radius-md);
+  }
+  
+  .modal-header, .modal-footer {
+    padding: 1rem;
+  }
+  
+  .modal-body {
+    padding: 1rem;
+  }
+  
+  /* Alerts */
+  .alert {
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+    border-radius: var(--radius);
+  }
+  
+  /* Badges and pills */
+  .badge {
+    padding: 0.5em 0.75em;
+    font-size: 0.85rem;
+    border-radius: var(--radius-sm);
+  }
+  
+  /* Spacing utilities - adjusted for mobile */
+  .mb-4, .my-4 { margin-bottom: 1.25rem !important; }
+  .mb-5, .my-5 { margin-bottom: 2rem !important; }
+  .mt-4, .my-4 { margin-top: 1.25rem !important; }
+  .mt-5, .my-5 { margin-top: 2rem !important; }
+  
+  .p-4 { padding: 1.25rem !important; }
+  .p-5 { padding: 1.75rem !important; }
+  
+  /* Grid adjustments */
+  .row {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+  }
+  
+  .row > * {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  /* Flexbox utilities */
+  .d-flex {
+    gap: 0.5rem;
+  }
+  
+  /* Links and text */
+  a {
+    word-break: break-word;
+  }
+  
+  .text-muted {
+    font-size: 0.9rem;
+  }
+  
+  .small, small {
+    font-size: 0.875rem;
+  }
 }
+
+/* Small Mobile Devices */
+@media (max-width: 576px) {
+  body {
+    font-size: 13px;
+  }
+  
+  .container, .container-fluid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  h1 { font-size: 1.35rem; }
+  h2 { font-size: 1.2rem; }
+  h3 { font-size: 1.1rem; }
+  h4 { font-size: 1rem; }
+  
+  .card-body, .card-modern-body {
+    padding: 0.875rem !important;
+  }
+  
+  .form-control, .form-select {
+    font-size: 0.95rem !important;
+    padding: 0.75rem 0.875rem !important;
+  }
+  
+  .btn {
+    padding: 0.75rem 1.25rem !important;
+    font-size: 0.95rem !important;
+  }
+  
+  .btn-lg {
+    padding: 0.875rem 1.5rem !important;
+    font-size: 1rem !important;
+  }
+  
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+}
+
+/* Landscape Mobile */
+@media (max-width: 896px) and (orientation: landscape) {
+  .modal-dialog {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .form-control, textarea.form-control {
+    font-size: 0.95rem !important;
+  }
+}
+
 

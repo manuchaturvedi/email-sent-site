@@ -333,7 +333,7 @@
         JustMailIt
       </div>
       <h1>Simplify Your Job Search</h1>
-      <p>Automate your job search outreach with intelligent email campaigns. Save time while maintaining personalized communication with hiring managers.</p>
+      <p>Automate your job search outreach with intelligent email automation. Save time while maintaining personalized communication with hiring managers.</p>
       <div class="feature-slider" aria-label="Key Features" aria-live="polite">
         <div class="feature-slide active">
           <div class="icon">
@@ -358,7 +358,7 @@
             <i class="bi bi-graph-up-arrow"></i>
           </div>
           <div class="feature-slide-content">
-            <h3>Track & Optimize Campaigns</h3>
+            <h3>Track & Optimize Automation</h3>
             <p>Monitor sent emails, track responses, and analyze success rates to improve your outreach strategy.</p>
           </div>
         </div>
@@ -374,13 +374,8 @@
       <div class="auth-card">
         <div class="card">
           <div class="card-body">
-            <h3 id="authHeading" style="margin:0 0 16px">Sign In</h3>
-            <div class="muted" style="margin-bottom:20px">New to JustMailIt? <a href="#" onclick="showTab('signup')">Create Account</a></div>
-
-            <div class="tabs" role="tablist">
-              <button id="tab-login" class="active" onclick="showTab('login')">Sign In</button>
-              <button id="tab-signup" onclick="showTab('signup')">Sign Up</button>
-            </div>
+            <h3 style="margin:0 0 8px;font-size:28px;font-weight:700">Welcome Back</h3>
+            <div class="muted" style="margin-bottom:24px">Sign in to continue to JustMailIt</div>
 
             <div id="loginForm">
               <div class="mb-2">
@@ -394,23 +389,6 @@
               <div id="loginMsg" class="muted" style="margin-top:10px;min-height:20px"></div>
             </div>
 
-            <div id="signupForm" style="display:none;">
-              <div class="mb-2">
-                <input id="signupName" type="text" class="form-control" placeholder="Full Name (optional)" />
-              </div>
-              <div class="mb-2">
-                <input id="signupEmail" type="email" class="form-control" placeholder="Email Address" required />
-              </div>
-              <div class="mb-2">
-                <input id="signupPassword" type="password" class="form-control" placeholder="Password (minimum 6 characters)" required />
-              </div>
-              <div class="mb-2">
-                <input id="signupPassword2" type="password" class="form-control" placeholder="Confirm Password" required />
-              </div>
-              <button class="primary-btn" onclick="signup()">Create Account</button>
-              <div id="signupMsg" class="muted" style="margin-top:10px;min-height:20px"></div>
-            </div>
-
             <div class="or-sep">
               <hr><div class="muted">Or continue with</div><hr>
             </div>
@@ -420,13 +398,17 @@
                 <i class="bi bi-google" style="font-size: 22px; color: #DB4437;"></i>
                 <div style="flex:1;text-align:center">Continue with Google</div>
               </button>
-              <button class="social-btn" id="linkedin-login" onclick="loginWithLinkedIn()" style="cursor: pointer;">
-                <i class="bi bi-linkedin" style="font-size: 22px; color: #0A66C2;"></i>
-                <div style="flex:1;text-align:center">Continue with LinkedIn</div>
+              <button class="social-btn" id="facebook-login" onclick="loginWithFacebook()" style="cursor: pointer;">
+                <i class="bi bi-facebook" style="font-size: 22px; color: #1877F2;"></i>
+                <div style="flex:1;text-align:center">Continue with Facebook</div>
               </button>
             </div>
 
-            <div style="margin-top:18px;font-size:13px;color:#6b7280;text-align:center">
+            <div style="margin-top:24px;font-size:14px;color:#6b7280;text-align:center;padding:16px;background:rgba(168,230,207,0.1);border-radius:12px">
+              Don't have an account? <a href="/register" style="color:#8b9fff;font-weight:600;text-decoration:none">Register Now</a>
+            </div>
+
+            <div style="margin-top:16px;font-size:13px;color:#6b7280;text-align:center">
               By continuing you agree to our <a href="#" style="color:#a8e6cf">Terms of Service</a> and <a href="#" style="color:#a8e6cf">Privacy Policy</a>.
             </div>
           </div>
@@ -437,28 +419,11 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyDHm2fmm4q_Q6srw3BzCloiPbJCXs0Caqw",
-      authDomain: "linkedin-7c251.firebaseapp.com",
-      projectId: "linkedin-7c251",
+      apiKey: "AIzaSyAqEkQOtCzx7rOf5pbHlDBHN-Cc_uOnRQw",
+      authDomain: "justmailit-d6f2d.firebaseapp.com",
+      projectId: "justmailit-d6f2d",
     };
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-
-    function showTab(tab){
-      const login = document.getElementById('loginForm');
-      const signup = document.getElementById('signupForm');
-      const tabLogin = document.getElementById('tab-login');
-      const tabSignup = document.getElementById('tab-signup');
-      const heading = document.getElementById('authHeading');
-      if(tab === 'signup'){
-        login.style.display = 'none'; signup.style.display = 'block';
-        tabLogin.classList.remove('active'); tabSignup.classList.add('active');
-        heading.textContent = 'Create Account';
-      } else {
-        login.style.display = 'block'; signup.style.display = 'none';
-        tabLogin.classList.add('active'); tabSignup.classList.remove('active');
-        heading.textContent = 'Sign In';
-      }
-    }
 
     let featureSliderTimer;
 
@@ -498,7 +463,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', function(){
-      showTab('login');
       initFeatureSlider();
     });
 
@@ -509,6 +473,15 @@
       if(!email || !password){ msg.textContent = '⚠️ Please enter email and password.'; return; }
       try{
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+        
+        // Check if email is verified
+        if (!userCredential.user.emailVerified) {
+          msg.textContent = '⚠️ Please verify your email before signing in. Check your inbox.';
+          msg.style.color = '#f59e0b';
+          await firebase.auth().signOut();
+          return;
+        }
+        
         const idToken = await userCredential.user.getIdToken();
         const res = await fetch('/sessionLogin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken})});
         if(res.ok){ 
@@ -537,22 +510,6 @@
       }
     }
 
-    async function signup(){
-      const email = document.getElementById('signupEmail').value;
-      const p1 = document.getElementById('signupPassword').value;
-      const p2 = document.getElementById('signupPassword2').value;
-      const msg = document.getElementById('signupMsg');
-      if(!email || !p1){ msg.textContent = '⚠️ Please enter email and password.'; return; }
-      if(p1.length < 6){ msg.textContent = '⚠️ Password must be at least 6 characters.'; return; }
-      if(p1 !== p2){ msg.textContent = '⚠️ Passwords do not match.'; return; }
-      try{
-        await firebase.auth().createUserWithEmailAndPassword(email, p1);
-        msg.textContent = '✅ Account created! Redirecting to sign in...';
-        msg.style.color = '#10b981';
-        setTimeout(()=>{ showTab('login'); }, 1200);
-      }catch(e){ msg.textContent = '❌ ' + e.message; }
-    }
-
     async function loginWithGoogle(){
       const msg = document.getElementById('loginMsg');
       try {
@@ -573,19 +530,15 @@
       }
     }
 
-    async function loginWithLinkedIn(){
+    async function loginWithFacebook(){
       const msg = document.getElementById('loginMsg');
       try {
-        // LinkedIn OAuth using OAuthProvider
-        const provider = new firebase.auth.OAuthProvider('oidc.linkedin');
-        provider.addScope('r_emailaddress');
-        provider.addScope('r_liteprofile');
-        
+        const provider = new firebase.auth.FacebookAuthProvider();
         const result = await firebase.auth().signInWithPopup(provider);
         const idToken = await result.user.getIdToken();
         const res = await fetch('/sessionLogin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken})});
         if(res.ok){ 
-          msg.textContent = '✅ LinkedIn login successful! Redirecting...'; 
+          msg.textContent = '✅ Facebook login successful! Redirecting...'; 
           msg.style.color = '#10b981';
           setTimeout(()=>window.location.href='/',800); 
         }
@@ -594,9 +547,10 @@
         }
       } catch(e) {
         msg.textContent = '❌ ' + e.message;
-        console.error('LinkedIn login error:', e);
       }
     }
+
+    
   </script>
 </body>
 </html>

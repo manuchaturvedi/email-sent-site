@@ -39,7 +39,7 @@
       color: #8b9fff;
       margin-bottom: 1rem;
     }
-    .site-footer{background:linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%);border-top:1px solid #e2e8f0;padding:4rem 0 0;margin-top:6rem}.footer-logo{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#a8e6cf,#8b9fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}.footer-logo i{background:linear-gradient(135deg,#a8e6cf,#8b9fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}.footer-description{color:#64748b;font-size:.95rem;line-height:1.7;margin-bottom:1.5rem;max-width:320px}.footer-link{color:#64748b;text-decoration:none;transition:all .2s ease;display:block;margin-bottom:.65rem;font-size:.925rem;font-weight:500}.footer-link:hover{color:#a8e6cf;transform:translateX(4px)}.footer-heading{color:#1e293b;font-weight:700;font-size:.875rem;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:1px}.social-icon{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;background:#fff;color:#a8e6cf;margin-right:.5rem;transition:all .3s cubic-bezier(.4,0,.2,1);text-decoration:none;font-size:1.1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e2e8f0}.social-icon:hover{background:linear-gradient(135deg,#a8e6cf,#8b9fff);color:#fff;transform:translateY(-4px);box-shadow:0 8px 16px rgba(168,230,207,.2)}.footer-bottom{background:#fff;border-top:1px solid #e2e8f0;padding:2rem 0;margin-top:3.5rem}.footer-copyright{color:#64748b;font-size:.875rem;margin:0}.footer-credits{color:#64748b;font-size:.875rem;margin-top:.5rem}.footer-credits a{color:#a8e6cf;text-decoration:none;font-weight:600}.footer-credits a:hover{text-decoration:underline}.footer-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;background:#fff;border:1px solid #e2e8f0;border-radius:100px;color:#64748b;font-size:.8rem;margin-top:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.05)}.footer-badge i{color:#10b981}
+    .site-footer{background:linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%);border-top:1px solid #e2e8f0;padding:4rem 0 0;margin-top:6rem}.footer-logo{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#a8e6cf,#8b9fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}.footer-logo i{background:linear-gradient(135deg,#a8e6cf,#8b9fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}.footer-description{color:#64748b;font-size:.95rem;line-height:1.7;margin-bottom:1.5rem;max-width:320px}.footer-link{color:#64748b;text-decoration:none;transition:all .2s ease;display:block;margin-bottom:.65rem;font-size:.925rem;font-weight:500}.footer-link:hover{color:#a8e6cf;transform:translateX(4px)}.footer-heading{color:#1e293b;font-weight:700;font-size:.875rem;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:1px}.social-icon{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;background:#fff;color:#a8e6cf;margin-right:.5rem;transition:all .3s cubic-bezier(.4,0,.2,1);text-decoration:none;font-size:1.1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e2e8f0}.social-icon:hover{background:linear-gradient(135deg,#a8e6cf,#8b9fff);color:#fff;transform:translateY(-4px);box-shadow:0 8px 16px rgba(168,230,207,.2)}.footer-bottom{background:#fff;border-top:1px solid #e2e8f0;padding:2rem 0;margin-top:3.5rem}.footer-copyright{color:#64748b;font-size:.875rem;margin:0}.footer-credits{color:#64748b;font-size:.875rem;margin-top:.5rem}.footer-credits a{color:#a8e6cf;text-decoration:none;font-weight:600}.footer-credits a:hover{text-decoration:underline}.footer-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;background:#fff;border:1px solid #e2e8f0;border-radius:100px;color:#64748b;font-size:.8rem;margin-top:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.05)}.footer-badge i{color:#10b981}@media (max-width:768px){.site-footer{padding:2rem 0 0;margin-top:3rem}.footer-logo{font-size:1.25rem}.footer-description{font-size:.875rem;margin-bottom:1rem}.social-icon{width:38px;height:38px;font-size:1rem}.footer-bottom{padding:1.5rem 0}.col-lg-2.col-md-3.col-6{width:50%;margin-bottom:1.5rem}.footer-heading{font-size:.85rem;margin-bottom:1rem}.footer-link{font-size:.875rem;margin-bottom:.5rem}}
   </style>
 </head>
 <body>
@@ -77,39 +77,41 @@
   <section class="py-5">
     <div class="container">
       <div class="row">
-        <div class="col-lg-8 mx-auto">
+        <div class="col-lg-8 mx-auto" style="margin-top: 3rem;">
           <div class="contact-card">
             <h3 class="mb-4">Send us a Message</h3>
-            <form>
+            <div id="contactSuccess" class="alert alert-success" style="display: none;"></div>
+            <div id="contactError" class="alert alert-danger" style="display: none;"></div>
+            <form id="contactForm" onsubmit="handleContactSubmit(event)">
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label class="form-label">First Name</label>
-                  <input type="text" class="form-control" required>
+                  <input type="text" class="form-control" id="firstName" required>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Last Name</label>
-                  <input type="text" class="form-control" required>
+                  <input type="text" class="form-control" id="lastName" required>
                 </div>
               </div>
               <div class="mb-3">
                 <label class="form-label">Email Address</label>
-                <input type="email" class="form-control" required>
+                <input type="email" class="form-control" id="emailAddress" required>
               </div>
               <div class="mb-3">
                 <label class="form-label">Subject</label>
-                <select class="form-select">
-                  <option>General Inquiry</option>
-                  <option>Technical Support</option>
-                  <option>Feature Request</option>
-                  <option>Bug Report</option>
-                  <option>Partnership</option>
+                <select class="form-select" id="subjectSelect" required>
+                  <option value="General Inquiry">General Inquiry</option>
+                  <option value="Technical Support">Technical Support</option>
+                  <option value="Feature Request">Feature Request</option>
+                  <option value="Bug Report">Bug Report</option>
+                  <option value="Partnership">Partnership</option>
                 </select>
               </div>
               <div class="mb-3">
                 <label class="form-label">Message</label>
-                <textarea class="form-control" rows="5" required></textarea>
+                <textarea class="form-control" rows="5" id="messageText" required></textarea>
               </div>
-              <button type="submit" class="btn btn-primary btn-lg" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); border: none; border-radius: 9999px; padding: 12px 40px;">
+              <button type="submit" id="submitBtn" class="btn btn-primary btn-lg" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); border: none; border-radius: 9999px; padding: 12px 40px;">
                 Send Message <i class="bi bi-send-fill ms-2"></i>
               </button>
             </form>
@@ -128,15 +130,15 @@
         <div class="col-md-4">
           <div class="contact-info-card">
             <i class="bi bi-chat-dots-fill contact-icon"></i>
-            <h5>Live Chat</h5>
+            <h5>Live Support</h5>
             <p class="text-muted mb-0">Available 24/7</p>
           </div>
         </div>
         <div class="col-md-4">
           <div class="contact-info-card">
-            <i class="bi bi-github contact-icon"></i>
-            <h5>Open Source</h5>
-            <p class="text-muted mb-0">github.com/manuchaturvedi</p>
+            <i class="bi bi-speedometer2 contact-icon"></i>
+            <h5>Quick Resolution</h5>
+            <p class="text-muted mb-0">12 hour response time</p>
           </div>
         </div>
       </div>
@@ -162,9 +164,6 @@
             </a>
             <a href="mailto:mail@justmailit.in" class="social-icon" aria-label="Email">
               <i class="bi bi-envelope-heart"></i>
-            </a>
-            <a href="https://github.com/manuchaturvedi/email-sent-site" class="social-icon" aria-label="GitHub" target="_blank">
-              <i class="bi bi-github"></i>
             </a>
           </div>
           <div class="footer-badge">
@@ -209,7 +208,7 @@
             <p class="footer-copyright">© 2001-2025 JustMailIt. All rights reserved.</p>
           </div>
           <div class="col-md-6 text-center text-md-end">
-            <p class="footer-credits">Built with ❤️ by JustMailIt Team • <a href="https://github.com/manuchaturvedi/email-sent-site" target="_blank">GitHub</a></p>
+            <p class="footer-credits">Built with ❤️ by JustMailIt Team</p>
           </div>
         </div>
       </div>
@@ -220,7 +219,55 @@
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
   <script>
-    const firebaseConfig={apiKey:"AIzaSyDHm2fmm4q_Q6srw3BzCloiPbJCXs0Caqw",authDomain:"linkedin-7c251.firebaseapp.com",projectId:"linkedin-7c251"};firebase.initializeApp(firebaseConfig);const auth=firebase.auth();function openLoginModal(tab='signin'){document.getElementById('loginModal').classList.add('show');document.body.style.overflow='hidden';switchAuthTab(tab)}function closeLoginModal(){document.getElementById('loginModal').classList.remove('show');document.body.style.overflow='auto';clearMessages()}document.getElementById('loginModal').addEventListener('click',function(e){if(e.target===this){closeLoginModal()}});function switchAuthTab(tab){const tabs=document.querySelectorAll('.auth-tab');const forms=document.querySelectorAll('.auth-form');tabs.forEach(t=>t.classList.remove('active'));forms.forEach(f=>f.classList.remove('active'));if(tab==='signin'){tabs[0].classList.add('active');document.getElementById('signinForm').classList.add('active')}else{tabs[1].classList.add('active');document.getElementById('signupForm').classList.add('active')}clearMessages()}function showError(message){const errorEl=document.getElementById('errorMessage');errorEl.textContent=message;errorEl.classList.add('show');setTimeout(()=>errorEl.classList.remove('show'),5000)}function showSuccess(message){const successEl=document.getElementById('successMessage');successEl.textContent=message;successEl.classList.add('show');setTimeout(()=>successEl.classList.remove('show'),5000)}function clearMessages(){document.getElementById('errorMessage').classList.remove('show');document.getElementById('successMessage').classList.remove('show')}async function handleSignIn(event){event.preventDefault();clearMessages();const email=document.getElementById('signinEmail').value;const password=document.getElementById('signinPassword').value;const btn=document.getElementById('signinBtn');btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split me-2"></i>Signing In...';try{const userCredential=await auth.signInWithEmailAndPassword(email,password);const idToken=await userCredential.user.getIdToken();const response=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken:idToken})});if(response.ok){showSuccess('Sign in successful! Redirecting...');setTimeout(()=>{window.location.href='/dashboard'},1000)}else{throw new Error('Authentication failed')}}catch(error){console.error('Sign in error:',error);let errorMessage='Failed to sign in. ';switch(error.code){case 'auth/user-not-found':errorMessage+='No account found with this email.';break;case 'auth/wrong-password':errorMessage+='Incorrect password.';break;case 'auth/invalid-email':errorMessage+='Invalid email address.';break;case 'auth/user-disabled':errorMessage+='This account has been disabled.';break;default:errorMessage+=error.message}showError(errorMessage);btn.disabled=false;btn.innerHTML='<i class="bi bi-box-arrow-in-right me-2"></i>Sign In'}}async function handleSignUp(event){event.preventDefault();clearMessages();const name=document.getElementById('signupName').value;const email=document.getElementById('signupEmail').value;const password=document.getElementById('signupPassword').value;const confirmPassword=document.getElementById('signupConfirmPassword').value;const btn=document.getElementById('signupBtn');if(password!==confirmPassword){showError('Passwords do not match!');return}if(password.length<6){showError('Password must be at least 6 characters long!');return}btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split me-2"></i>Creating Account...';try{const userCredential=await auth.createUserWithEmailAndPassword(email,password);await userCredential.user.updateProfile({displayName:name});const idToken=await userCredential.user.getIdToken();const response=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken:idToken,displayName:name})});if(response.ok){showSuccess('Account created successfully! Redirecting...');setTimeout(()=>{window.location.href='/dashboard'},1000)}else{throw new Error('Account creation failed')}}catch(error){console.error('Sign up error:',error);let errorMessage='Failed to create account. ';switch(error.code){case 'auth/email-already-in-use':errorMessage+='An account with this email already exists.';break;case 'auth/invalid-email':errorMessage+='Invalid email address.';break;case 'auth/weak-password':errorMessage+='Password is too weak. Use at least 6 characters.';break;default:errorMessage+=error.message}showError(errorMessage);btn.disabled=false;btn.innerHTML='<i class="bi bi-person-plus me-2"></i>Create Account'}}async function handleGoogleAuth(){clearMessages();try{const provider=new firebase.auth.GoogleAuthProvider();const result=await auth.signInWithPopup(provider);const idToken=await result.user.getIdToken();const response=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken:idToken,displayName:result.user.displayName})});if(response.ok){showSuccess('Sign in successful! Redirecting...');setTimeout(()=>{window.location.href='/dashboard'},1000)}else{throw new Error('Authentication failed')}}catch(error){console.error('Google auth error:',error);if(error.code!=='auth/popup-closed-by-user'){showError('Failed to sign in with Google. Please try again.')}}}async function handleForgotPassword(){const email=document.getElementById('signinEmail').value;if(!email){showError('Please enter your email address first.');return}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showError('Please enter a valid email address.');return}clearMessages();try{await auth.sendPasswordResetEmail(email);showSuccess('Password reset email sent! Check your inbox.')}catch(error){console.error('Password reset error:',error);if(error.code==='auth/user-not-found'){showError('No account found with this email address.')}else if(error.code==='auth/invalid-email'){showError('Please enter a valid email address.')}else if(error.code==='auth/too-many-requests'){showError('Too many requests. Please try again later.')}else{showError('Failed to send password reset email. Please try again.')}}}
+    const firebaseConfig={apiKey:"AIzaSyAqEkQOtCzx7rOf5pbHlDBHN-Cc_uOnRQw",authDomain:"justmailit-d6f2d.firebaseapp.com",projectId:"justmailit-d6f2d"};firebase.initializeApp(firebaseConfig);const auth=firebase.auth();function openLoginModal(tab='signin'){document.getElementById('loginModal').classList.add('show');document.body.style.overflow='hidden';switchAuthTab(tab)}function closeLoginModal(){document.getElementById('loginModal').classList.remove('show');document.body.style.overflow='auto';clearMessages()}document.getElementById('loginModal').addEventListener('click',function(e){if(e.target===this){closeLoginModal()}});function switchAuthTab(tab){const tabs=document.querySelectorAll('.auth-tab');const forms=document.querySelectorAll('.auth-form');tabs.forEach(t=>t.classList.remove('active'));forms.forEach(f=>f.classList.remove('active'));if(tab==='signin'){tabs[0].classList.add('active');document.getElementById('signinForm').classList.add('active')}else{tabs[1].classList.add('active');document.getElementById('signupForm').classList.add('active')}clearMessages()}function showError(message){const errorEl=document.getElementById('errorMessage');errorEl.textContent=message;errorEl.classList.add('show');setTimeout(()=>errorEl.classList.remove('show'),5000)}function showSuccess(message){const successEl=document.getElementById('successMessage');successEl.textContent=message;successEl.classList.add('show');setTimeout(()=>successEl.classList.remove('show'),5000)}function clearMessages(){document.getElementById('errorMessage').classList.remove('show');document.getElementById('successMessage').classList.remove('show')}async function handleSignIn(event){event.preventDefault();clearMessages();const email=document.getElementById('signinEmail').value;const password=document.getElementById('signinPassword').value;const btn=document.getElementById('signinBtn');btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split me-2"></i>Signing In...';try{const userCredential=await auth.signInWithEmailAndPassword(email,password);const idToken=await userCredential.user.getIdToken();const response=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken:idToken})});if(response.ok){showSuccess('Sign in successful! Redirecting...');setTimeout(()=>{window.location.href='/dashboard'},1000)}else{throw new Error('Authentication failed')}}catch(error){console.error('Sign in error:',error);let errorMessage='Failed to sign in. ';switch(error.code){case 'auth/user-not-found':errorMessage+='No account found with this email.';break;case 'auth/wrong-password':errorMessage+='Incorrect password.';break;case 'auth/invalid-email':errorMessage+='Invalid email address.';break;case 'auth/user-disabled':errorMessage+='This account has been disabled.';break;default:errorMessage+=error.message}showError(errorMessage);btn.disabled=false;btn.innerHTML='<i class="bi bi-box-arrow-in-right me-2"></i>Sign In'}}async function handleSignUp(event){event.preventDefault();clearMessages();const name=document.getElementById('signupName').value;const email=document.getElementById('signupEmail').value;const password=document.getElementById('signupPassword').value;const confirmPassword=document.getElementById('signupConfirmPassword').value;const btn=document.getElementById('signupBtn');if(password!==confirmPassword){showError('Passwords do not match!');return}if(password.length<6){showError('Password must be at least 6 characters long!');return}btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split me-2"></i>Creating Account...';try{const userCredential=await auth.createUserWithEmailAndPassword(email,password);await userCredential.user.updateProfile({displayName:name});const idToken=await userCredential.user.getIdToken();const response=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken:idToken,displayName:name})});if(response.ok){showSuccess('Account created successfully! Redirecting...');setTimeout(()=>{window.location.href='/dashboard'},1000)}else{throw new Error('Account creation failed')}}catch(error){console.error('Sign up error:',error);let errorMessage='Failed to create account. ';switch(error.code){case 'auth/email-already-in-use':errorMessage+='An account with this email already exists.';break;case 'auth/invalid-email':errorMessage+='Invalid email address.';break;case 'auth/weak-password':errorMessage+='Password is too weak. Use at least 6 characters.';break;default:errorMessage+=error.message}showError(errorMessage);btn.disabled=false;btn.innerHTML='<i class="bi bi-person-plus me-2"></i>Create Account'}}async function handleGoogleAuth(){clearMessages();try{const provider=new firebase.auth.GoogleAuthProvider();const result=await auth.signInWithPopup(provider);const idToken=await result.user.getIdToken();const response=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken:idToken,displayName:result.user.displayName})});if(response.ok){showSuccess('Sign in successful! Redirecting...');setTimeout(()=>{window.location.href='/dashboard'},1000)}else{throw new Error('Authentication failed')}}catch(error){console.error('Google auth error:',error);if(error.code!=='auth/popup-closed-by-user'){showError('Failed to sign in with Google. Please try again.')}}}async function handleForgotPassword(){const email=document.getElementById('signinEmail').value;if(!email){showError('Please enter your email address first.');return}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showError('Please enter a valid email address.');return}clearMessages();try{await auth.sendPasswordResetEmail(email);showSuccess('Password reset email sent! Check your inbox.')}catch(error){console.error('Password reset error:',error);if(error.code==='auth/user-not-found'){showError('No account found with this email address.')}else if(error.code==='auth/invalid-email'){showError('Please enter a valid email address.')}else if(error.code==='auth/too-many-requests'){showError('Too many requests. Please try again later.')}else{showError('Failed to send password reset email. Please try again.')}}}
+    
+    async function handleContactSubmit(event) {
+      event.preventDefault();
+      const successDiv = document.getElementById('contactSuccess');
+      const errorDiv = document.getElementById('contactError');
+      const submitBtn = document.getElementById('submitBtn');
+      
+      successDiv.style.display = 'none';
+      errorDiv.style.display = 'none';
+      
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Sending...';
+      
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            email: document.getElementById('emailAddress').value,
+            subject: document.getElementById('subjectSelect').value,
+            message: document.getElementById('messageText').value
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          successDiv.textContent = '✅ ' + data.message + ' We\'ll get back to you within 24 hours.';
+          successDiv.style.display = 'block';
+          document.getElementById('contactForm').reset();
+          successDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          throw new Error(data.message || 'Failed to send message');
+        }
+      } catch (error) {
+        console.error('Contact form error:', error);
+        errorDiv.textContent = '❌ ' + error.message + ' Please try again or email us directly at mail@justmailit.in';
+        errorDiv.style.display = 'block';
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Send Message <i class="bi bi-send-fill ms-2"></i>';
+      }
+    }
   </script>
 </body>
 </html>

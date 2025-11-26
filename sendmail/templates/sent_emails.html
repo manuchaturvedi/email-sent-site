@@ -178,6 +178,13 @@
   font-weight: 600;
 }
 
+.search-card .input-group-text {
+  background: transparent;
+  border: 2px solid #e5e7eb;
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+}
+
 .table {
   color: #1a1f36;
 }
@@ -206,19 +213,6 @@
   padding: 1rem;
   vertical-align: middle;
   color: #374151;
-}
-
-.auto-refresh-control {
-  background: white;
-  border-radius: 20px;
-  padding: 1rem 1.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border: 1px solid rgba(168,230,207,0.15);
-}
-
-.form-check-input:checked {
-  background-color: var(--gradient-end);
-  border-color: var(--gradient-end);
 }
 
 .collapse {
@@ -276,7 +270,45 @@
   }
   
   .search-card {
-    padding: 1rem;
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+  
+  .search-card .col-md-4,
+  .search-card .col-md-3,
+  .search-card .col-md-2 {
+    width: 100%;
+    margin-bottom: 0.75rem;
+  }
+  
+  .search-card .input-group {
+    margin-bottom: 0;
+  }
+  
+  .search-card .form-control {
+    font-size: 16px !important;
+    padding: 0.875rem 1rem !important;
+    border-radius: 12px !important;
+  }
+  
+  .search-card .input-group .form-control {
+    border-left: none !important;
+    border-radius: 0 12px 12px 0 !important;
+  }
+  
+  .search-card .input-group-text {
+    font-size: 16px;
+    padding: 0.875rem 1rem;
+  }
+  
+  .search-card .btn {
+    width: 100%;
+    font-size: 16px !important;
+    padding: 0.875rem 1.5rem !important;
+  }
+  
+  .search-card .row.g-3 {
+    gap: 0 !important;
   }
   
   .table-responsive {
@@ -291,11 +323,6 @@
   .badge-status {
     font-size: 0.7rem;
     padding: 0.35rem 0.65rem;
-  }
-  
-  .auto-refresh-control {
-    padding: 0.75rem 1rem;
-    border-radius: 16px;
   }
 }
 
@@ -339,17 +366,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- Auto-refresh Control -->
-<div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
-  <div class="auto-refresh-control">
-    <div class="form-check form-switch d-flex align-items-center gap-2">
-      <input class="form-check-input" type="checkbox" id="autoRefreshToggle" checked>
-      <label class="form-check-label small fw-semibold" for="autoRefreshToggle" style="color:#1a1f36;">Auto-refresh</label>
-      <div class="small text-muted" id="refreshTimer"></div>
-    </div>
-  </div>
-</div>
-
 <div class="container py-4">
   <!-- Page Header -->
   <div class="page-header">
@@ -359,6 +375,29 @@
     </h1>
     <p>Track all your automation runs and email delivery status</p>
   </div>
+
+  <!-- Missed Opportunities Alert (Only for Free users with missed jobs) -->
+  {% if total_stats.total_skipped > 0 %}
+  <div class="alert alert-warning mb-4" style="background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(239,68,68,0.1)); border: 2px solid #f59e0b; border-radius: 16px; padding: 1.5rem;">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div style="flex: 1; min-width: 250px;">
+        <h5 class="mb-2" style="color: #f59e0b; font-weight: 700;">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          You've Missed {{ total_stats.total_skipped }} Job Opportunities!
+        </h5>
+        <p class="mb-0" style="color: #6b7280;">
+          These jobs couldn't be contacted due to your Free plan limit. 
+          <strong>Upgrade to Pro for unlimited emails at just ₹19/month!</strong>
+        </p>
+      </div>
+      <div>
+        <a href="/pricing" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-weight: 600; padding: 0.75rem 1.5rem; white-space: nowrap;">
+          <i class="bi bi-rocket-takeoff-fill me-2"></i>Upgrade to Pro
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Overall Stats -->
   <div class="stats-card">
@@ -381,34 +420,51 @@
       </div>
       <div class="col-md stats-item">
         <div class="stats-number secondary-color">{{ total_stats.total_skipped }}</div>
-        <div class="stats-label">Skipped</div>
+        <div class="stats-label">Missed Jobs</div>
       </div>
     </div>
   </div>
 
   <!-- Search Box -->
   <div class="search-card">
-    <div class="row g-3 align-items-center">
-      <div class="col-md-4">
-        <div class="input-group">
-          <span class="input-group-text bg-transparent border-end-0" style="border:2px solid #e5e7eb; border-right:none; border-radius:12px 0 0 12px;">
-            <i class="bi bi-search text-muted"></i>
-          </span>
-          <input id="q" class="form-control border-start-0 ps-0" placeholder="Search email, subject, status..." style="border-left:none;" />
+    <form method="get" action="{{ url_for('sent_emails_page') }}">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-4">
+          <label class="form-label d-md-none mb-2" style="font-weight: 600; color: #374151; font-size: 0.9rem;">
+            <i class="bi bi-search me-1"></i>Search
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0">
+              <i class="bi bi-search text-muted"></i>
+            </span>
+            <input id="q" name="q" class="form-control border-start-0 ps-0" placeholder="Search email, subject, status..." value="{{ request.args.get('q', '') }}" />
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label d-md-none mb-2" style="font-weight: 600; color: #374151; font-size: 0.9rem;">
+            <i class="bi bi-calendar-event me-1"></i>From Date
+          </label>
+          <input id="from" name="from" class="form-control" type="date" placeholder="From date" value="{{ request.args.get('from', '') }}" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label d-md-none mb-2" style="font-weight: 600; color: #374151; font-size: 0.9rem;">
+            <i class="bi bi-calendar-check me-1"></i>To Date
+          </label>
+          <input id="to" name="to" class="form-control" type="date" placeholder="To date" value="{{ request.args.get('to', '') }}" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label d-md-none mb-2" style="font-weight: 600; color: #374151; font-size: 0.9rem; opacity: 0;">Actions</label>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-grow-1 d-md-none" style="background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end)); border: none;">
+              <i class="bi bi-search me-1"></i>Search
+            </button>
+            <button id="reset" type="button" class="btn btn-outline-secondary flex-grow-1" onclick="window.location.href='{{ url_for('sent_emails_page') }}'">
+              <i class="bi bi-arrow-clockwise me-1"></i><span class="d-none d-md-inline">Reset</span><span class="d-md-none">Clear</span>
+            </button>
+          </div>
         </div>
       </div>
-      <div class="col-md-3">
-        <input id="from" class="form-control" type="date" placeholder="From date" />
-      </div>
-      <div class="col-md-3">
-        <input id="to" class="form-control" type="date" placeholder="To date" />
-      </div>
-      <div class="col-md-2">
-        <button id="reset" class="btn btn-outline-secondary w-100">
-          <i class="bi bi-arrow-clockwise me-1"></i>Reset
-        </button>
-      </div>
-    </div>
+    </form>
   </div>
 
   <!-- Runs List -->
@@ -432,7 +488,7 @@
             <i class="bi bi-x-circle me-1"></i>{{ run.stats.failed }} Failed
           </span>
           <span class="badge badge-status skipped">
-            <i class="bi bi-dash-circle me-1"></i>{{ run.stats.skipped }} Skipped
+            <i class="bi bi-dash-circle me-1"></i>{{ run.stats.skipped }} Missed
           </span>
         </div>
       </div>
@@ -463,7 +519,7 @@
                 {% elif email.status == 'failed' %}
                   <span class="badge badge-status failed">✗ Failed</span>
                 {% elif email.status == 'skipped' %}
-                  <span class="badge badge-status skipped">− Skipped</span>
+                  <span class="badge badge-status skipped">− Missed</span>
                 {% else %}
                   <span class="badge bg-secondary">{{ email.status }}</span>
                 {% endif %}
@@ -484,7 +540,7 @@
       <i class="bi bi-inbox"></i>
     </div>
     <h4 class="text-muted mb-3">No Automation Runs Yet</h4>
-    <p class="text-muted mb-4">Start your first email campaign to see results here</p>
+    <p class="text-muted mb-4">Start your first email automation to see results here</p>
     <a href="/send" class="btn btn-lg" style="background:linear-gradient(135deg,#a8e6cf,#8b9fff);color:white;border-radius:12px;padding:1rem 2rem;font-weight:600;">
       <i class="bi bi-play-circle me-2"></i>Start Automation
     </a>
@@ -581,24 +637,6 @@
         firstRunContent.classList.add('show');
       }
     }
-  })();
-</script>
-{% endblock %}
-
-{% block scripts %}
-<script>
-  // Listen for new emails/events and reload the sent_emails page so UI updates
-  (function(){
-    try{
-      const evt = new EventSource('/progress');
-      evt.onmessage = function(e){
-        const d = e.data || '';
-        if(d.startsWith('NEW_EMAIL') || d.startsWith('SENT_EMAIL')){
-          // lightweight: reload to get latest runs and records
-          try{ window.location.reload(); }catch(err){ console.warn('Reload failed', err); }
-        }
-      };
-    }catch(e){ console.warn('SSE not available', e); }
   })();
 </script>
 {% endblock %}

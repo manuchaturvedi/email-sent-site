@@ -2,18 +2,502 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Documentation - JustMailIt</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  <style>body{font-family:'Inter',sans-serif;background:#f8f9fa}.doc-card{background:#fff;padding:2rem;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.05);margin-bottom:1.5rem;transition:transform .2s}.doc-card:hover{transform:translateY(-4px);box-shadow:0 4px 20px rgba(139,159,255,0.2)}.doc-icon{font-size:2.5rem;color:#8b9fff}</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #a8e6cf, #8b9fff);
+      --secondary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --card-shadow: 0 4px 6px rgba(0,0,0,0.07);
+      --card-shadow-hover: 0 8px 25px rgba(139,159,255,0.25);
+      --text-primary: #2d3748;
+      --text-secondary: #6b7280;
+      --border-color: #e5e7eb;
+      --bg-light: #f8f9fa;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .doc-card {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid var(--border-color);
+      height: 100%;
+    }
+
+    .doc-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--card-shadow-hover);
+      border-color: #a8e6cf;
+    }
+
+    .doc-icon {
+      font-size: 3rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+
+    .doc-card h4 {
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .doc-card ul {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 1rem;
+    }
+
+    .doc-card ul li {
+      padding: 0.5rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .doc-card ul li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--success-color);
+      font-weight: bold;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, rgba(168,230,207,0.1) 0%, rgba(139,159,255,0.1) 100%);
+      padding: 3rem 0 2rem;
+      margin-bottom: 3rem;
+      border-radius: 20px;
+      border: 1px solid rgba(168,230,207,0.3);
+    }
+
+    .page-header h1 {
+      color: var(--text-primary);
+      font-size: 2.75rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .page-header .lead {
+      color: var(--text-secondary);
+      font-size: 1.15rem;
+      font-weight: 500;
+    }
+
+    /* File Directory Table Styles */
+    .file-table-section {
+      background: #fff;
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: var(--card-shadow);
+      margin-top: 3rem;
+      border: 1px solid var(--border-color);
+    }
+
+    .file-table-section h2 {
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .file-table-section h2 i {
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+      box-shadow: 0 0 0 1px var(--border-color);
+    }
+
+    .file-table {
+      width: 100%;
+      margin: 0;
+      background: #fff;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .file-table thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .file-table thead th {
+      color: #fff;
+      font-weight: 600;
+      padding: 1rem 1.25rem;
+      text-align: left;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
+
+    .file-table tbody tr {
+      transition: all 0.2s ease;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .file-table tbody tr:hover {
+      background: linear-gradient(90deg, rgba(168,230,207,0.05) 0%, rgba(139,159,255,0.05) 100%);
+      transform: scale(1.01);
+    }
+
+    .file-table tbody td {
+      padding: 1rem 1.25rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    .file-name {
+      font-family: 'Courier New', monospace;
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 0.875rem;
+      word-break: break-all;
+    }
+
+    .file-type-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-python { background: linear-gradient(135deg, #3776ab, #ffd43b); color: #fff; }
+    .badge-html { background: linear-gradient(135deg, #e34c26, #f06529); color: #fff; }
+    .badge-css { background: linear-gradient(135deg, #264de4, #2965f1); color: #fff; }
+    .badge-js { background: linear-gradient(135deg, #f0db4f, #f7df1e); color: #323330; }
+    .badge-markdown { background: linear-gradient(135deg, #083fa1, #0969da); color: #fff; }
+    .badge-docker { background: linear-gradient(135deg, #0db7ed, #2496ed); color: #fff; }
+    .badge-shell { background: linear-gradient(135deg, #4eaa25, #89d329); color: #fff; }
+    .badge-json { background: linear-gradient(135deg, #555, #292929); color: #fff; }
+    .badge-config { background: linear-gradient(135deg, #ff6b6b, #ff8787); color: #fff; }
+    .badge-image { background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: #fff; }
+    .badge-other { background: linear-gradient(135deg, #95a5a6, #bdc3c7); color: #fff; }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 1rem 1rem 1rem 3rem;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: #a8e6cf;
+      box-shadow: 0 0 0 4px rgba(168,230,207,0.1);
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 1.25rem;
+    }
+
+    .category-filter {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .category-btn {
+      padding: 0.5rem 1rem;
+      border: 2px solid var(--border-color);
+      background: #fff;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .category-btn:hover, .category-btn.active {
+      background: var(--primary-gradient);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    /* Navbar Styles */
+    .navbar {
+      background: #ffffff;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 0;
+      transition: all 0.3s ease;
+    }
+
+    .navbar.sticky-top {
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      transition: transform 0.3s ease;
+    }
+
+    .navbar-brand:hover {
+      transform: scale(1.05);
+    }
+
+    .navbar-brand img {
+      height: 45px;
+      width: auto;
+      transition: transform 0.3s ease;
+    }
+
+    .navbar-toggler {
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      transition: all 0.3s ease;
+    }
+
+    .navbar-toggler:hover {
+      border-color: #a8e6cf;
+      background: rgba(168, 230, 207, 0.1);
+    }
+
+    .navbar-toggler:focus {
+      box-shadow: 0 0 0 0.25rem rgba(168, 230, 207, 0.25);
+    }
+
+    .navbar-toggler-icon {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    .navbar-nav {
+      align-items: center;
+    }
+
+    .nav-item {
+      margin: 0 0.25rem;
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.95rem;
+      padding: 0.75rem 1.25rem !important;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: rgba(168, 230, 207, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .nav-link.active {
+      color: #8b9fff;
+      font-weight: 600;
+      background: linear-gradient(135deg, rgba(168, 230, 207, 0.15), rgba(139, 159, 255, 0.15));
+    }
+
+    .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 3px;
+      background: var(--primary-gradient);
+      border-radius: 2px;
+    }
+
+    .btn-signup {
+      background: var(--primary-gradient);
+      color: white !important;
+      font-weight: 600;
+      padding: 0.8rem 1.5rem !important;
+      border-radius: 10px;
+      border: none;
+      margin-left: 0.75rem;
+      box-shadow: 0 4px 12px rgba(139, 159, 255, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-signup:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(139, 159, 255, 0.4);
+      color: white !important;
+    }
+
+    .btn-login {
+      color: var(--text-secondary);
+      font-weight: 500;
+      padding: 0.75rem 1.25rem !important;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .btn-login:hover {
+      color: #8b9fff;
+      border-color: rgba(139, 159, 255, 0.3);
+      background: rgba(139, 159, 255, 0.05);
+    }
+
+    @media (max-width: 991px) {
+      .navbar-nav {
+        align-items: flex-start;
+        padding: 1rem 0;
+      }
+
+      .nav-item {
+        width: 100%;
+        margin: 0.25rem 0;
+      }
+
+      .nav-link {
+        width: 100%;
+        border-radius: 8px;
+      }
+
+      .btn-signup {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 0.5rem;
+      }
+
+      .btn-login {
+        width: 100%;
+      }
+
+      .navbar-collapse {
+        background: #ffffff;
+        padding: 1rem;
+        border-radius: 12px;
+        margin-top: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .page-header h1 { font-size: 2rem; }
+      .file-table-section { padding: 1.5rem; }
+      .file-table thead th, .file-table tbody td { padding: 0.75rem; font-size: 0.8rem; }
+      .doc-card { padding: 1.5rem; }
+      
+      .navbar-brand img {
+        height: 38px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg sticky-top" style="background:white;box-shadow:0 2px 10px rgba(0,0,0,0.08);padding:1rem 0;border-bottom:1px solid #e5e7eb;"><div class="container"><a class="navbar-brand" href="/" style="display:flex;align-items:center;gap:.75rem;"><img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" alt="JustMailIt" style="height:45px;width:auto;" onerror="this.src='{{ url_for('static', filename='images/logo.svg') }}'"></a><button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"><span class="navbar-toggler-icon"></span></button><div class="collapse navbar-collapse" id="navbarMain"><ul class="navbar-nav mx-auto"><li class="nav-item"><a class="nav-link" href="/" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;">Home</a></li><li class="nav-item"><a class="nav-link" href="/about" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;">About</a></li><li class="nav-item"><a class="nav-link" href="/blog" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;">Blog</a></li><li class="nav-item"><a class="nav-link" href="/documentation" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;">Docs</a></li><li class="nav-item"><a class="nav-link" href="/contact" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;">Contact</a></li></ul><ul class="navbar-nav"><li class="nav-item"><a class="nav-link" href="#" onclick="openLoginModal('signin'); return false;" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;">Login</a></li><li class="nav-item"><a class="nav-link btn" href="#" onclick="openLoginModal('signup'); return false;" style="background:linear-gradient(135deg,#a8e6cf,#8b9fff);color:white;font-weight:600;padding:0.8rem 1.5rem;border-radius:10px;margin-left:0.5rem;">Sign Up</a></li></ul></div></div></nav>
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" alt="JustMailIt" onerror="this.outerHTML='<i class=&quot;bi bi-envelope-heart&quot; style=&quot;font-size:2rem;color:#7c88ff&quot;></i>'">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarMain">
+        <ul class="navbar-nav mx-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/blog">Blog</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/documentation">Docs</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/contact">Contact</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link btn-login" href="#" onclick="openLoginModal('signin'); return false;">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link btn-signup" href="#" onclick="openLoginModal('signup'); return false;">Sign Up</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
   
   <div class="container my-5">
-    <div style="padding:2rem 0 1rem;">
-      <h1 style="color:#2d3748;font-size:2.5rem;font-weight:800;margin-bottom:0.5rem;">Documentation</h1>
-      <p class="lead" style="color:#6b7280;">Everything you need to know about using JustMailIt effectively</p>
+    <div class="page-header text-center">
+      <h1>📚 Documentation</h1>
+      <p class="lead">Everything you need to know about using JustMailIt effectively</p>
     </div>
 
     <div class="row mt-5">
@@ -35,7 +519,7 @@
         <div class="doc-card">
           <i class="bi bi-envelope-fill doc-icon" style="color:#a8e6cf"></i>
           <h4 class="mt-3">Email Sender</h4>
-          <p class="text-muted">Master the art of personalized email campaigns</p>
+          <p class="text-muted">Master the art of personalized email automation</p>
           <ul>
             <li>Compose emails with tokens</li>
             <li>Select recipients</li>
@@ -102,10 +586,186 @@
       </div>
     </div>
 
-    <div class="alert alert-info mt-5">
-      <i class="bi bi-info-circle-fill"></i> <strong>Need help?</strong> Visit our <a href="/help">Help Center</a> or join the <a href="/community">Community</a>
+    <div class="alert alert-info mt-5" style="border-radius:12px;border-left:4px solid #8b9fff;">
+      <i class="bi bi-info-circle-fill"></i> <strong>Need help?</strong> Visit our <a href="/help" style="color:#8b9fff;font-weight:600;">Help Center</a> or join the <a href="/community" style="color:#8b9fff;font-weight:600;">Community</a>
     </div>
   </div>
-  <footer class="site-footer"><div class="container"><div class="row g-5 justify-content-center"><div class="col-lg-3 col-md-6 mb-4 mb-lg-0"><div class="footer-logo"><i class="bi bi-envelope-heart"></i> JustMailIt</div><p class="footer-description">Smart AI-powered email automation for job search. Connect with hiring managers and land your dream job faster.</p><div class="d-flex flex-wrap"><a href="https://facebook.com" class="social-icon" target="_blank"><i class="bi bi-facebook"></i></a><a href="https://twitter.com" class="social-icon" target="_blank"><i class="bi bi-twitter"></i></a><a href="mailto:mail@justmailit.in" class="social-icon"><i class="bi bi-envelope-heart"></i></a><a href="https://github.com/manuchaturvedi/email-sent-site" class="social-icon" target="_blank"><i class="bi bi-github"></i></a></div><div class="footer-badge"><i class="bi bi-shield-check-fill"></i><span>Open Source Project</span></div></div><div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0"><h5 class="footer-heading">Product</h5><a href="/dashboard" class="footer-link">Email Sender</a><a href="/jobs" class="footer-link">Job Posts</a><a href="/sent_emails" class="footer-link">Email History</a><a href="/profile" class="footer-link">Profile Settings</a></div><div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0"><h5 class="footer-heading">Company</h5><a href="/about" class="footer-link">About Us</a><a href="/careers" class="footer-link">Careers</a><a href="/blog" class="footer-link">Blog</a><a href="/contact" class="footer-link">Contact</a></div><div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0"><h5 class="footer-heading">Resources</h5><a href="/documentation" class="footer-link">Documentation</a><a href="/help" class="footer-link">Help Center</a><a href="/api" class="footer-link">API Reference</a><a href="/community" class="footer-link">Community</a></div><div class="col-lg-2 col-md-3 col-6"><h5 class="footer-heading">Legal</h5><a href="/privacy" class="footer-link">Privacy Policy</a><a href="/terms" class="footer-link">Terms of Service</a><a href="/cookies" class="footer-link">Cookie Policy</a><a href="/gdpr" class="footer-link">GDPR Compliance</a></div></div></div><div class="footer-bottom"><div class="container"><div class="row align-items-center"><div class="col-md-6 text-center text-md-start mb-3 mb-md-0"><p class="footer-copyright">© 2001-2025 JustMailIt. All rights reserved.</p></div><div class="col-md-6 text-center text-md-end"><p class="footer-credits">Built with ❤️ by JustMailIt Team • <a href="https://github.com/manuchaturvedi/email-sent-site" target="_blank">GitHub</a></p></div></div></div></div></footer><style>.site-footer{background:linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%);border-top:1px solid #e2e8f0;padding:4rem 0 0;margin-top:6rem}.footer-logo{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#a8e6cf,#8b9fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}.footer-description{color:#64748b;font-size:.95rem;line-height:1.7;margin-bottom:1.5rem;max-width:320px}.footer-link{color:#64748b;text-decoration:none;transition:all .2s ease;display:block;margin-bottom:.65rem;font-size:.925rem;font-weight:500}.footer-link:hover{color:#a8e6cf;transform:translateX(4px)}.footer-heading{color:#1e293b;font-weight:700;font-size:.875rem;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:1px}.social-icon{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;background:#fff;color:#a8e6cf;margin-right:.5rem;transition:all .3s cubic-bezier(.4,0,.2,1);text-decoration:none;font-size:1.1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e2e8f0}.social-icon:hover{background:linear-gradient(135deg,#a8e6cf,#8b9fff);color:#fff;transform:translateY(-4px);box-shadow:0 8px 16px rgba(168,230,207,.2)}.footer-bottom{background:#fff;border-top:1px solid #e2e8f0;padding:2rem 0;margin-top:3.5rem}.footer-copyright{color:#64748b;font-size:.875rem;margin:0}.footer-credits{color:#64748b;font-size:.875rem;margin-top:.5rem}.footer-credits a{color:#a8e6cf;text-decoration:none;font-weight:600}.footer-credits a:hover{text-decoration:underline}.footer-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;background:#fff;border:1px solid #e2e8f0;border-radius:100px;color:#64748b;font-size:.8rem;margin-top:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.05)}.footer-badge i{color:#10b981}</style>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="row g-5 justify-content-center">
+        <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+          <div class="footer-logo"><i class="bi bi-envelope-heart"></i> JustMailIt</div>
+          <p class="footer-description">Smart AI-powered email automation for job search. Connect with hiring managers and land your dream job faster.</p>
+          <div class="d-flex flex-wrap">
+            <a href="https://facebook.com" class="social-icon" target="_blank"><i class="bi bi-facebook"></i></a>
+            <a href="https://twitter.com" class="social-icon" target="_blank"><i class="bi bi-twitter"></i></a>
+            <a href="mailto:mail@justmailit.in" class="social-icon"><i class="bi bi-envelope-heart"></i></a>
+          </div>
+          <div class="footer-badge">
+            <i class="bi bi-shield-check-fill"></i>
+            <span>Open Source Project</span>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
+          <h5 class="footer-heading">Product</h5>
+          <a href="/dashboard" class="footer-link">Email Sender</a>
+          <a href="/jobs" class="footer-link">Job Posts</a>
+          <a href="/sent_emails" class="footer-link">Email History</a>
+          <a href="/profile" class="footer-link">Profile Settings</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
+          <h5 class="footer-heading">Company</h5>
+          <a href="/about" class="footer-link">About Us</a>
+          <a href="/careers" class="footer-link">Careers</a>
+          <a href="/blog" class="footer-link">Blog</a>
+          <a href="/contact" class="footer-link">Contact</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
+          <h5 class="footer-heading">Resources</h5>
+          <a href="/documentation" class="footer-link">Documentation</a>
+          <a href="/help" class="footer-link">Help Center</a>
+          <a href="/api" class="footer-link">API Reference</a>
+          <a href="/community" class="footer-link">Community</a>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h5 class="footer-heading">Legal</h5>
+          <a href="/privacy" class="footer-link">Privacy Policy</a>
+          <a href="/terms" class="footer-link">Terms of Service</a>
+          <a href="/cookies" class="footer-link">Cookie Policy</a>
+          <a href="/gdpr" class="footer-link">GDPR Compliance</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+            <p class="footer-copyright">© 2001-2025 JustMailIt. All rights reserved.</p>
+          </div>
+          <div class="col-md-6 text-center text-md-end">
+            <p class="footer-credits">Built with ❤️ by JustMailIt Team</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <style>
+    .site-footer {
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      border-top: 1px solid #e2e8f0;
+      padding: 4rem 0 0;
+      margin-top: 6rem;
+    }
+    .footer-logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .footer-description {
+      color: #64748b;
+      font-size: .95rem;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+      max-width: 320px;
+    }
+    .footer-link {
+      color: #64748b;
+      text-decoration: none;
+      transition: all .2s ease;
+      display: block;
+      margin-bottom: .65rem;
+      font-size: .925rem;
+      font-weight: 500;
+    }
+    .footer-link:hover {
+      color: #a8e6cf;
+      transform: translateX(4px);
+    }
+    .footer-heading {
+      color: #1e293b;
+      font-weight: 700;
+      font-size: .875rem;
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .social-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: #fff;
+      color: #a8e6cf;
+      margin-right: .5rem;
+      transition: all .3s cubic-bezier(.4,0,.2,1);
+      text-decoration: none;
+      font-size: 1.1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+      border: 1px solid #e2e8f0;
+    }
+    .social-icon:hover {
+      background: linear-gradient(135deg, #a8e6cf, #8b9fff);
+      color: #fff;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(168,230,207,.2);
+    }
+    .footer-bottom {
+      background: #fff;
+      border-top: 1px solid #e2e8f0;
+      padding: 2rem 0;
+      margin-top: 3.5rem;
+    }
+    .footer-copyright {
+      color: #64748b;
+      font-size: .875rem;
+      margin: 0;
+    }
+    .footer-credits {
+      color: #64748b;
+      font-size: .875rem;
+      margin: 0;
+    }
+    .footer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .5rem 1rem;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 100px;
+      color: #64748b;
+      font-size: .8rem;
+      margin-top: .75rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    }
+    .footer-badge i {
+      color: #10b981;
+    }
+    @media (max-width: 768px) {
+      .site-footer {
+        padding: 2rem 0 0;
+        margin-top: 3rem;
+      }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Placeholder for login modal function (should be defined in your main template)
+    function openLoginModal(mode) {
+      console.log('Opening login modal in ' + mode + ' mode');
+      // Implement your login modal logic here
+    }
+  </script>
 </body>
 </html>

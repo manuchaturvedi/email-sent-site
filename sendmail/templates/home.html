@@ -160,6 +160,32 @@
     -webkit-text-fill-color: transparent;
   }
 
+  /* Job Posts Scroll Section */
+  .job-posts-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #a8e6cf #f0f5ff;
+  }
+
+  .job-posts-scroll::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .job-posts-scroll::-webkit-scrollbar-track {
+    background: #f0f5ff;
+    border-radius: 10px;
+  }
+
+  .job-posts-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #a8e6cf, #8b9fff);
+    border-radius: 10px;
+  }
+
+  .job-posts-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #8b9fff, #a8e6cf);
+  }
+
   /* Hero Section */
   .hero-section {
     background: linear-gradient(135deg, rgba(168, 230, 207, 0.9) 0%, rgba(139, 159, 255, 0.9) 100%),
@@ -283,10 +309,95 @@
       font-size: 1rem;
     }
     
+    /* Fix all buttons - ENSURE ROUNDED CORNERS */
+    .btn,
+    button,
+    .btn-primary,
+    .btn-secondary,
+    .btn-success,
+    .btn-danger,
+    .btn-warning,
+    .btn-outline-primary,
+    .btn-outline-secondary,
+    input[type="submit"],
+    input[type="button"] {
+      border-radius: 12px !important;
+      -webkit-border-radius: 12px !important;
+      -moz-border-radius: 12px !important;
+      font-size: 16px !important;
+    }
+    
+    /* Fix checkboxes - SMALLER SIZE */
+    input[type="checkbox"],
+    .form-check-input {
+      width: 20px !important;
+      height: 20px !important;
+      min-width: 20px !important;
+      min-height: 20px !important;
+      border-radius: 6px !important;
+      -webkit-border-radius: 6px !important;
+      margin-right: 0.5rem !important;
+      flex-shrink: 0 !important;
+      cursor: pointer !important;
+    }
+    
+    /* Fix checkbox labels */
+    .form-check-label {
+      font-size: 0.95rem !important;
+      line-height: 1.4 !important;
+      cursor: pointer !important;
+    }
+    
+    .form-check {
+      display: flex !important;
+      align-items: center !important;
+      padding-left: 0 !important;
+      margin-bottom: 0.75rem !important;
+    }
+    
+    /* Fix form controls - ENSURE ROUNDED CORNERS */
+    .form-control,
+    input.form-control,
+    textarea.form-control,
+    select.form-control,
+    select.form-select,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="file"] {
+      border-radius: 12px !important;
+      -webkit-border-radius: 12px !important;
+      -moz-border-radius: 12px !important;
+      font-size: 16px !important;
+    }
+    
     .campaign-button {
       width: 100%;
       padding: 1rem 1.5rem;
       font-size: 1rem;
+      border-radius: 12px !important;
+    }
+    
+    /* Equalize button heights on mobile for job cards */
+    .job-post-card .btn-sm,
+    .job-post-card .view-details-btn,
+    .job-post-card .send-mail-btn,
+    .job-post-card .btn-outline-primary {
+      min-height: 40px !important;
+      line-height: 1.5 !important;
+      padding: 0.55rem 0.75rem !important;
+      border-radius: 10px !important;
+    }
+    
+    /* Equalize button heights on mobile for job cards */
+    .view-details-btn,
+    .send-mail-btn,
+    .btn-outline-primary,
+    .btn-sm {
+      min-height: 38px !important;
+      padding: 0.6rem 0.75rem !important;
+      font-size: 0.85rem !important;
+      border-radius: 10px !important;
     }
     
     .stats-card {
@@ -389,11 +500,11 @@
           <span class="hero-stat-label">Jobs Tracked</span>
         </div>
         <div class="hero-stat-item">
-          <span class="hero-stat-number">{{ stats.sent or 0 }}</span>
+          <span class="hero-stat-number">{% if not subscription or subscription.plan == 'free' %}{{ stats.emails_today or 0 }}{% else %}{{ stats.sent or 0 }}{% endif %}</span>
           <span class="hero-stat-label">Emails Sent {% if not subscription or subscription.plan == 'free' %}Today{% endif %}</span>
         </div>
         <div class="hero-stat-item">
-          <span class="hero-stat-number">{% if not subscription or subscription.plan == 'free' %}{{ 10 - (stats.sent or 0) if (stats.sent or 0) < 10 else 0 }}{% else %}∞{% endif %}</span>
+          <span class="hero-stat-number">{% if not subscription or subscription.plan == 'free' %}{{ 10 - (stats.emails_today or 0) if (stats.emails_today or 0) < 10 else 0 }}{% else %}∞{% endif %}</span>
           <span class="hero-stat-label">{% if not subscription or subscription.plan == 'free' %}Left Today{% else %}Unlimited{% endif %}</span>
         </div>
       </div>
@@ -411,13 +522,163 @@
             </div>
             <h1 class="display-5 fw-bold mb-2">Welcome, {{ user }}! 👋</h1>
             <p class="lead text-muted mb-4">
-              Automate your job search outreach with AI-powered email campaigns
+              Automate your job search outreach with AI-powered email automations
             </p>
+            
+            <!-- AI Email Template Generator Section -->
+            <div class="alert mb-4" style="background: linear-gradient(135deg, rgba(102,126,234,0.15), rgba(118,75,162,0.15)); border: 2px solid #667eea; border-radius: 16px; max-width: 600px; margin: 0 auto 2rem;">
+              <div class="text-center">
+                <h5 class="mb-2">
+                  <i class="bi bi-stars" style="color: #667eea;"></i>
+                  <strong style="color: #667eea;">Not sure what to write?</strong>
+                </h5>
+                <p class="text-muted small mb-3">Upload your resume and let AI generate a professional email template for you!</p>
+                <a href="/send#template-generator" class="btn btn-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 10px; font-weight: 600; text-decoration: none;">
+                  <i class="bi bi-magic me-2"></i>Generate Email Template with AI
+                </a>
+              </div>
+            </div>
+            
             <a href="/send" class="btn btn-primary campaign-button" style="--gradient-start: #a8e6cf; --gradient-end: #8b9fff">
               <i class="bi bi-rocket-takeoff me-2"></i>
-              Start New Campaign
+              Start New Automation
             </a>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Job Posts Section -->
+  <div class="row justify-content-center mb-4">
+    <div class="col-lg-10">
+      <div class="card" style="background: white; border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); overflow: hidden;">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h3 class="fw-bold mb-1" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                <i class="bi bi-briefcase-fill me-2"></i>Recent Job Posts
+              </h3>
+              <p class="text-muted mb-0 small">Explore latest opportunities - Scroll right for more</p>
+            </div>
+            <a href="/jobs" class="btn btn-sm" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; border-radius: 10px; padding: 0.5rem 1rem; font-weight: 600; text-decoration: none;">
+              <i class="bi bi-arrow-right-circle me-1"></i>View All
+            </a>
+          </div>
+          
+          <!-- Horizontal Scrollable Job Posts -->
+          <div class="job-posts-scroll" style="overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: #a8e6cf #f0f5ff;">
+            <div class="d-flex gap-3 pb-3" style="min-width: max-content;" id="jobPostsContainer">
+              {% if job_posts %}
+                {% for post in job_posts[:12] %}
+                <div class="job-post-card" style="min-width: 320px; max-width: 320px; background: linear-gradient(135deg, rgba(168,230,207,0.03), rgba(139,159,255,0.03)); border: 1px solid rgba(168,230,207,0.2); border-radius: 16px; padding: 1.5rem; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 24px rgba(168,230,207,0.2)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                  <div class="d-flex align-items-start justify-content-between mb-2">
+                    <div style="flex: 1; min-width: 0;">
+                      <h5 class="fw-bold mb-1" style="font-size: 0.95rem; color: #2d3748; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ post.title[:40] if post.title else 'No Title' }}{% if post.title and post.title|length > 40 %}...{% endif %}</h5>
+                      <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; font-size: 0.75rem; padding: 0.25rem 0.6rem;">
+                          <i class="bi bi-building"></i> {{ post.company if post.company else 'Company' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {% if post.location %}
+                  <div class="mb-2 small text-muted">
+                    <i class="bi bi-geo-alt-fill"></i> {{ post.location[:30] }}{% if post.location|length > 30 %}...{% endif %}
+                  </div>
+                  {% endif %}
+                  
+                  {% if post.recruiter_email or post.email %}
+                  <div class="mb-2 small text-muted" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <i class="bi bi-envelope-fill"></i> {{ post.recruiter_email if post.recruiter_email else post.email }}
+                  </div>
+                  {% endif %}
+                  
+                  {% if post.skills %}
+                  <div class="d-flex flex-wrap gap-1 mb-3">
+                    {% if post.skills is mapping %}
+                      {% for category, skills in post.skills.items() %}
+                        {% for skill in skills[:3] %}
+                          <span class="badge bg-light text-dark" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">{{ skill }}</span>
+                        {% endfor %}
+                      {% endfor %}
+                    {% else %}
+                      {% for skill in post.skills[:3] %}
+                        <span class="badge bg-light text-dark" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">{{ skill }}</span>
+                      {% endfor %}
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                  
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary view-details-btn" style="flex: 1; border-radius: 8px; font-size: 0.85rem; padding: 0.5rem 0.75rem; border-color: #a8e6cf; color: #8b9fff; height: 38px; line-height: 1.5;"
+                            data-title="{{ post.title if post.title else 'No Title' }}"
+                            data-fulltext="{{ post.full_text if post.full_text else post.title }}"
+                            data-company="{{ post.company if post.company else 'Company Not Found' }}"
+                            data-email="{{ post.email if post.email else post.recruiter_email if post.recruiter_email else 'N/A' }}"
+                            data-location="{{ post.location if post.location else 'N/A' }}"
+                            data-date="{{ post.created_at[:10] if post.created_at else 'N/A' }}"
+                            data-url="{{ post.job_url if post.job_url else '' }}"
+                            data-skills='{{ post.skills|tojson if post.skills else "[]" }}'>
+                      <i class="bi bi-info-circle"></i> Details
+                    </button>
+                    {% if post.job_url and not post.already_sent %}
+                    <button class="btn btn-sm send-mail-btn" style="flex: 1; background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; border-radius: 8px; font-size: 0.85rem; padding: 0.5rem 0.75rem; border: none; height: 38px; line-height: 1.5;"
+                            data-email="{{ post.email if post.email else post.recruiter_email if post.recruiter_email else '' }}"
+                            data-description="{{ post.full_text if post.full_text else post.title if post.title else '' }}"
+                            data-title="{{ post.title if post.title else '' }}"
+                            data-company="{{ post.company if post.company else '' }}"
+                            data-url="{{ post.job_url if post.job_url else '' }}">
+                      <i class="bi bi-send"></i> Apply
+                    </button>
+                    {% elif post.already_sent %}
+                    <button class="btn btn-sm btn-success" style="flex: 1; border-radius: 8px; font-size: 0.85rem; padding: 0.5rem 0.75rem; height: 38px; line-height: 1.5;" disabled>
+                      <i class="bi bi-check-circle"></i> Sent
+                    </button>
+                    {% endif %}
+                  </div>
+                  
+                  <div class="small text-muted mt-2" style="font-size: 0.75rem;">
+                    <i class="bi bi-clock"></i> {{ post.created_at[:10] if post.created_at else 'N/A' }}
+                  </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Show More Card -->
+                <div class="job-post-card" style="min-width: 320px; max-width: 320px; background: linear-gradient(135deg, rgba(168,230,207,0.1), rgba(139,159,255,0.1)); border: 2px dashed #a8e6cf; border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer;" onclick="window.location.href='/jobs'">
+                  <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #a8e6cf, #8b9fff); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 8px 20px rgba(168,230,207,0.3);">
+                    <i class="bi bi-plus-lg" style="font-size: 2.5rem; color: white;"></i>
+                  </div>
+                  <h5 class="fw-bold mb-2" style="color: #2d3748;">Show More</h5>
+                  <p class="text-muted mb-3 small">View all {{ job_posts|length }} job posts</p>
+                  <span class="badge" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                    <i class="bi bi-arrow-right"></i> Go to Job Posts
+                  </span>
+                </div>
+              {% else %}
+                <div class="text-center py-5" style="width: 100%;">
+                  <div style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;">
+                    <i class="bi bi-inbox"></i>
+                  </div>
+                  <h5 class="text-muted mb-3">No Job Posts Yet</h5>
+                  <p class="text-muted mb-4">Run your first automation to discover job opportunities</p>
+                  <a href="/send" class="btn" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; border-radius: 12px; padding: 0.75rem 1.5rem; font-weight: 600; text-decoration: none;">
+                    <i class="bi bi-play-circle me-2"></i>Start Automation
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          
+          <!-- Scroll Hint -->
+          {% if job_posts and job_posts|length > 3 %}
+          <div class="text-center mt-3">
+            <small class="text-muted">
+              <i class="bi bi-arrow-left-right"></i> Scroll horizontally to see more
+            </small>
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -494,8 +755,8 @@
                     <div class="icon-circle mx-auto mb-3" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.2)); width: 64px; height: 64px;">
                       <i class="bi bi-rocket-takeoff text-success" style="font-size: 2rem;"></i>
                     </div>
-                    <h5 class="fw-bold mb-2">Run Campaign</h5>
-                    <p class="text-muted small mb-0">Launch automated Job Scraping and AI-powered email campaigns</p>
+                    <h5 class="fw-bold mb-2">Run Automation</h5>
+                    <p class="text-muted small mb-0">Launch automated Job Scraping and AI-powered email automations</p>
                     <div class="mt-3">
                       <span class="badge" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.5rem 1rem;">Launch →</span>
                     </div>
@@ -541,7 +802,7 @@
                       <i class="bi bi-clock-history text-danger" style="font-size: 2rem;"></i>
                     </div>
                     <h5 class="fw-bold mb-2">View History</h5>
-                    <p class="text-muted small mb-0">Track all sent emails, monitor success rates, and download campaign data</p>
+                    <p class="text-muted small mb-0">Track all sent emails, monitor success rates, and download automation data</p>
                     <div class="mt-3">
                       <span class="badge" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 0.5rem 1rem;">Review →</span>
                     </div>
@@ -564,7 +825,7 @@
                   </div>
                   <div>
                     <strong class="d-block mb-1">Complete Your Profile First</strong>
-                    <small class="text-muted">Set up email credentials and templates before running campaigns</small>
+                    <small class="text-muted">Set up email credentials and templates before running automations</small>
                   </div>
                 </div>
               </div>
@@ -605,7 +866,7 @@
           <div class="card stats-card h-100">
             <div class="card-body p-4 text-center">
               <div class="icon-circle mb-3" style="background: rgba(168,230,207,0.1);">
-                <i class="bi bi-send-check-fill text-primary"></i>
+                <i class="bi bi-send-check-fill text-success"></i>
               </div>
               <h3 class="display-6 fw-bold mb-1" id="stat-sent">{{ stats.sent }}</h3>
               <p class="text-muted mb-0">Emails Sent</p>
@@ -615,19 +876,19 @@
         <div class="col-md-4">
           <div class="card stats-card h-100">
             <div class="card-body p-4 text-center">
-              <div class="icon-circle mb-3" style="background: rgba(168,230,207,0.1);">
-                <i class="bi bi-skip-forward-fill text-primary"></i>
+              <div class="icon-circle mb-3" style="background: rgba(245,158,11,0.1);">
+                <i class="bi bi-briefcase-fill text-warning"></i>
               </div>
               <h3 class="display-6 fw-bold mb-1" id="stat-skipped">{{ stats.skipped }}</h3>
-              <p class="text-muted mb-0">Duplicates Skipped</p>
+              <p class="text-muted mb-0">Missed Job Posts</p>
             </div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="card stats-card h-100">
             <div class="card-body p-4 text-center">
-              <div class="icon-circle mb-3" style="background: rgba(168,230,207,0.1);">
-                <i class="bi bi-exclamation-circle-fill text-primary"></i>
+              <div class="icon-circle mb-3" style="background: rgba(239,68,68,0.1);">
+                <i class="bi bi-exclamation-circle-fill text-danger"></i>
               </div>
               <h3 class="display-6 fw-bold mb-1" id="stat-failed">{{ stats.failed }}</h3>
               <p class="text-muted mb-0">Failed Sends</p>
@@ -637,9 +898,52 @@
       </div>
     </div>
   </div>
+
+  <!-- Missed Opportunities Upgrade Prompt (Only show for Free users with missed jobs) -->
+  {% if (not subscription or subscription.plan == 'free') and stats.skipped > 0 %}
+  <div class="row justify-content-center mb-4">
+    <div class="col-lg-10">
+      <div class="alert mb-0" style="background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(239,68,68,0.1)); border: 2px solid #f59e0b; border-radius: 20px; padding: 2rem;">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h4 class="fw-bold mb-2" style="color: #f59e0b;">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              You've Missed {{ stats.skipped }} Job Opportunities!
+            </h4>
+            <p class="mb-3" style="color: #6b7280; font-size: 1.05rem;">
+              Due to your Free plan limit (10 emails/day), you couldn't reach all recruiters. 
+              <strong>Upgrade to Pro and never miss another opportunity!</strong>
+            </p>
+            <div class="d-flex align-items-center gap-3 mb-0">
+              <div class="text-center">
+                <div style="font-size: 1.5rem; font-weight: 800; color: #10b981;">Unlimited</div>
+                <div style="color: #6b7280; font-size: 0.85rem;">Emails/Day</div>
+              </div>
+              <div class="text-center">
+                <div style="font-size: 1.5rem; font-weight: 800; color: #667eea;">₹19</div>
+                <div style="color: #6b7280; font-size: 0.85rem;">Per Month</div>
+              </div>
+              <div style="flex: 1; text-align: center;">
+                <p style="color: #f59e0b; font-weight: 600; margin: 0; font-size: 0.95rem;">
+                  Less than a cup of coffee! ☕
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 text-center">
+            <a href="/pricing" class="btn btn-lg w-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-weight: 700; padding: 1rem 1.5rem; box-shadow: 0 8px 20px rgba(102,126,234,0.4);">
+              <i class="bi bi-rocket-takeoff-fill me-2"></i>Upgrade to Pro Now
+            </a>
+            <p class="text-muted small mt-2 mb-0">Start sending unlimited emails today!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
               
   <!-- Action Section -->
-  <div class="row justify-content-center">
+  <div class="row justify-content-center mb-4">
     <div class="col-lg-10">
       <div class="card action-card">
         <div class="card-body p-4">
@@ -670,12 +974,77 @@
                     </div>
                     <div>
                       <h5 class="mb-1">Email History</h5>
-                      <p class="text-muted small mb-0">Track sent emails and campaign results</p>
+                      <p class="text-muted small mb-0">Track sent emails and automation results</p>
                     </div>
                     <i class="bi bi-chevron-right ms-auto text-muted"></i>
                   </div>
                 </div>
               </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Why Direct Email Benefits Section -->
+  <div class="row justify-content-center mb-4">
+    <div class="col-lg-10">
+      <div class="card" style="background: linear-gradient(135deg, rgba(168,230,207,0.05), rgba(139,159,255,0.05)); border: 2px solid rgba(168,230,207,0.3); border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); overflow: hidden;">
+        <div class="card-body p-5">
+          <div class="text-center mb-4">
+            <h3 class="fw-bold mb-2" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+              <i class="bi bi-lightning-charge-fill"></i> Stop Wasting Time - Automate Your Job Search!
+            </h3>
+            <p class="lead text-muted mb-0">Why spend hours manually searching and emailing when you can automate it?</p>
+          </div>
+
+          <div class="row g-4 mb-4">
+            <div class="col-md-6">
+              <div class="h-100 p-4" style="background: rgba(239,68,68,0.05); border-left: 4px solid #ef4444; border-radius: 12px;">
+                <h5 class="fw-bold mb-3 text-danger">
+                  <i class="bi bi-x-circle-fill me-2"></i>Traditional Way (Manual)
+                </h5>
+                <ul class="text-muted mb-0" style="line-height: 1.8;">
+                  <li>Waste hours searching job portals like Naukri</li>
+                  <li>Apply through portals with limited visibility</li>
+                  <li>Your resume gets lost in thousands of applications</li>
+                  <li>Low response rate from recruiters</li>
+                  <li>Send only 2-3 applications per day manually</li>
+                  <li>No direct contact with hiring managers</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="h-100 p-4" style="background: rgba(16,185,129,0.05); border-left: 4px solid #10b981; border-radius: 12px;">
+                <h5 class="fw-bold mb-3 text-success">
+                  <i class="bi bi-check-circle-fill me-2"></i>JustMailIt Way (Automated)
+                </h5>
+                <ul class="text-muted mb-0" style="line-height: 1.8;">
+                  <li>One-click automation - Save hours daily</li>
+                  <li><strong>Send unlimited emails directly to recruiters</strong></li>
+                  <li>Your email lands in their inbox, not a portal</li>
+                  <li>Personal email = Higher response rate</li>
+                  <li>Update profile once: email body, subject, resume</li>
+                  <li>Direct contact = Better chances than Naukri</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="alert mb-0" style="background: linear-gradient(135deg, rgba(168,230,207,0.15), rgba(139,159,255,0.15)); border: 2px solid rgba(139,159,255,0.3); border-radius: 16px;">
+            <div class="d-flex align-items-start">
+              <div class="me-3" style="font-size: 2rem;">💡</div>
+              <div>
+                <h6 class="fw-bold mb-2">Why Personal Email Beats Job Portals?</h6>
+                <p class="mb-2 small text-muted">
+                  <strong>Job portals like Naukri have limitations:</strong> Your application competes with thousands of others, recruiters get overwhelmed, and your profile might never be seen.
+                </p>
+                <p class="mb-0 small text-muted">
+                  <strong>Direct email to recruiters is more effective:</strong> Your email lands directly in their inbox, shows initiative and professionalism, creates personal connection, and stands out from portal applications. Use this site to automate the process and send unlimited personalized emails!
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -725,7 +1094,7 @@
                     <i class="bi bi-graph-up text-primary"></i>
                   </div>
                   <h4 class="mb-3">Track & Optimize</h4>
-                  <p class="text-muted mb-0">Monitor campaign performance with real-time analytics. Prevent duplicates and optimize your outreach strategy with actionable insights.</p>
+                  <p class="text-muted mb-0">Monitor automation performance with real-time analytics. Prevent duplicates and optimize your outreach strategy with actionable insights.</p>
                 </div>
               </div>
             </div>
@@ -769,10 +1138,213 @@
     </div>
   </div>
 </div>
+
+<!-- Job Details Modal -->
+<div class="modal fade" id="jobDetailsModal" tabindex="-1" aria-labelledby="jobDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="jobDetailsModalLabel">
+                    <i class="bi bi-file-text-fill me-2"></i>Full Job Post
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6 class="text-primary"><i class="bi bi-building me-2"></i>Company</h6>
+                    <p id="modalCompany" class="mb-3"></p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-primary"><i class="bi bi-envelope-at me-2"></i>Email</h6>
+                    <p id="modalEmail" class="mb-3"></p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-primary"><i class="bi bi-calendar-event me-2"></i>Posted Date</h6>
+                    <p id="modalDate" class="mb-3"></p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-primary"><i class="bi bi-file-earmark-text me-2"></i>Complete Job Post</h6>
+                    <div id="modalDescription" class="mb-3 p-3 bg-light rounded" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;"></div>
+                </div>
+                <div class="mb-3" id="skillsContainer">
+                    <h6 class="text-primary"><i class="bi bi-star-fill me-2"></i>Skills</h6>
+                    <div id="modalSkills"></div>
+                </div>
+                <div class="mb-3" id="linkContainer">
+                    <h6 class="text-primary"><i class="bi bi-link-45deg me-2"></i>LinkedIn Post</h6>
+                    <a id="modalLink" href="#" target="_blank" class="btn btn-sm btn-primary">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Open LinkedIn Post
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container for Notifications -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11055;">
+    <div id="notificationToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="toastMessage">
+                <!-- Message will be inserted here -->
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
+  // Toast Notification Helper Function
+  function showToast(message, type = 'success') {
+      const toast = document.getElementById('notificationToast');
+      const toastBody = document.getElementById('toastMessage');
+      
+      // Set message
+      toastBody.innerHTML = message;
+      
+      // Set color based on type
+      if (type === 'success') {
+          toast.classList.remove('text-bg-danger', 'text-bg-warning');
+          toast.classList.add('text-bg-success');
+      } else if (type === 'error') {
+          toast.classList.remove('text-bg-success', 'text-bg-warning');
+          toast.classList.add('text-bg-danger');
+      } else if (type === 'warning') {
+          toast.classList.remove('text-bg-success', 'text-bg-danger');
+          toast.classList.add('text-bg-warning');
+      }
+      
+      // Show toast
+      const bsToast = new bootstrap.Toast(toast, {
+          autohide: true,
+          delay: 4000
+      });
+      bsToast.show();
+  }
+
+  // Job Details Modal Handler
+  document.addEventListener('DOMContentLoaded', function() {
+      const detailsModal = new bootstrap.Modal(document.getElementById('jobDetailsModal'));
+      
+      document.querySelectorAll('.view-details-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+              const title = this.dataset.title;
+              const fulltext = this.dataset.fulltext;
+              const company = this.dataset.company;
+              const email = this.dataset.email;
+              const location = this.dataset.location;
+              const date = this.dataset.date;
+              const url = this.dataset.url;
+              const skills = JSON.parse(this.dataset.skills || '[]');
+              
+              // Set modal content
+              document.getElementById('modalCompany').textContent = company;
+              document.getElementById('modalEmail').textContent = email;
+              document.getElementById('modalDate').textContent = date;
+              document.getElementById('modalDescription').textContent = fulltext || title;
+              
+              // Handle skills
+              const modalSkills = document.getElementById('modalSkills');
+              if (skills && skills.length > 0) {
+                  let skillsHtml = '<div class="d-flex flex-wrap gap-2">';
+                  skills.forEach(skill => {
+                      skillsHtml += `<span class="badge bg-info">${skill}</span>`;
+                  });
+                  skillsHtml += '</div>';
+                  modalSkills.innerHTML = skillsHtml;
+                  document.getElementById('skillsContainer').style.display = 'block';
+              } else {
+                  document.getElementById('skillsContainer').style.display = 'none';
+              }
+              
+              // Handle link
+              if (url) {
+                  document.getElementById('modalLink').href = url;
+                  document.getElementById('linkContainer').style.display = 'block';
+              } else {
+                  document.getElementById('linkContainer').style.display = 'none';
+              }
+              
+              detailsModal.show();
+          });
+      });
+  });
+
+  // Send Mail Button Handler
+  document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.send-mail-btn').forEach(btn => {
+          btn.addEventListener('click', async function() {
+              const email = this.dataset.email;
+              const description = this.dataset.description;
+              const company = this.dataset.company;
+              const url = this.dataset.url;
+              
+              if (!email) {
+                  showToast('<i class="bi bi-exclamation-circle me-2"></i>No email address found for this job post', 'error');
+                  return;
+              }
+              
+              // Disable button and show loading
+              const originalText = this.innerHTML;
+              this.disabled = true;
+              this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Sending...';
+              
+              try {
+                  const response = await fetch('/send_job_email', {
+                      method: 'POST',
+                      headers: {
+                          'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                          email: email,
+                          description: description,
+                          company: company,
+                          url: url
+                      })
+                  });
+                  
+                  const data = await response.json();
+                  
+                  if (data.success) {
+                      // Success - change button permanently to "Sent"
+                      this.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Sent';
+                      this.classList.remove('btn-warning');
+                      this.classList.add('btn-success');
+                      
+                      // Show success message with toast
+                      showToast('<i class="bi bi-check-circle-fill me-2"></i>' + data.message, 'success');
+                      
+                      // Button stays disabled with "Sent" status
+                  } else {
+                      // Error - restore button
+                      this.innerHTML = originalText;
+                      this.disabled = false;
+                      
+                      // Check if it's a limit error
+                      if (data.limit_reached) {
+                          showToast('<i class="bi bi-exclamation-triangle me-2"></i>' + data.message + ' Upgrade to Premium for unlimited emails!', 'warning');
+                          setTimeout(() => {
+                              if (confirm('Go to pricing page?')) {
+                                  window.location.href = '/pricing';
+                              }
+                          }, 500);
+                      } else {
+                          showToast('<i class="bi bi-x-circle me-2"></i>' + data.message, 'error');
+                      }
+                  }
+              } catch (error) {
+                  console.error('Error:', error);
+                  this.innerHTML = originalText;
+                  this.disabled = false;
+                  showToast('<i class="bi bi-x-circle me-2"></i>Failed to send email. Please try again.', 'error');
+              }
+          });
+      });
+  });
+
   // Listen for server-sent events and refresh the home stats when new emails arrive
   (function(){
     try{

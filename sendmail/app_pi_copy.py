@@ -1,0 +1,3664 @@
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, Response
+from functools import wraps
+import firebase_admin
+from firebase_admin import credentials, auth
+from job_analyzer import JobAnalyzer
+from database import Database  # Import SQLite database
+import uuid
+import hashlib
+import base64
+import threading
+from queue import Queue, Empty
+import os
+import smtplib
+import time
+import tempfile
+import shutil
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from datetime import datetime
+import json
+import platform
+
+
+app = Flask(__name__)
+
+# Initialize SQLite database
+db = Database()
+
+# Server-Sent Events clients (each client gets a Queue)
+clients = []
+clients_lock = threading.Lock()
+
+def extract_company_from_email(email):
+    """Extract and format company name from email address"""
+    try:
+        # Get domain part
+        domain = email.split('@')[1]
+        
+        # Remove common TLDs
+        domain = domain.replace('.com', '').replace('.co.uk', '').replace('.org', '')
+        domain = domain.replace('.net', '').replace('.io', '').replace('.ai', '')
+        domain = domain.replace('.edu', '').replace('.gov', '').replace('.in', '')
+        
+        # Handle subdomains (e.g., hr.company.com -> company)
+        parts = domain.split('.')
+        if len(parts) > 1:
+            # Take the last part before TLD (usually company name)
+            domain = parts[-1]
+        
+        # Clean and format
+        domain = domain.strip().replace('-', ' ').replace('_', ' ')
+        
+        # Capitalize each word
+        company_name = ' '.join(word.capitalize() for word in domain.split())
+        
+        return company_name if company_name else "Unknown Company"
+    except:
+        return "Unknown Company"
+
+def cleanup_chrome_processes():
+    """Cross-platform Chrome process cleanup - kills all Chrome/Chromium processes"""
+    try:
+        system = platform.system().lower()
+        if system == "windows":
+            os.system('taskkill /f /im chrome.exe 2>nul')
+            os.system('taskkill /f /im chromedriver.exe 2>nul')
+        else:
+            # Linux/Unix systems - kill Chrome, Chromium, and ChromeDriver
+            os.system('pkill -9 -f "chrome|chromium" 2>/dev/null || true')
+            os.system('pkill -9 chromedriver 2>/dev/null || true')
+            # Extra cleanup for zombie processes
+            os.system('pkill -9 -f "defunct.*chrome" 2>/dev/null || true')
+        print("🧹 Chrome processes cleaned up")
+    except Exception as e:
+        print(f"⚠️ Chrome cleanup failed: {e}")
+
+def extract_resume_info(resume_path):
+    """Extract key information from resume file"""
+    try:
+        import PyPDF2
+        
+        with open(resume_path, 'rb') as file:
+            pdf_reader = PyPDF2.PdfReader(file)
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+        
+        print(f"📄 Extracted text length: {len(text)} characters")
+        
+        # Extract name (usually first few lines, look for capitalized words)
+        lines = [line.strip() for line in text.split('\n') if line.strip()]
+        name = "Candidate"
+        
+        # Try to find name in first 5 lines - look for pattern of capitalized words
+        for line in lines[:5]:
+            words = line.split()
+            if len(words) >= 2 and len(words) <= 4:
+                # Check if all words start with capital letter
+                if all(w[0].isupper() for w in words if w.isalpha()):
+                    name = line
+                    break
+        
+        # Extract email and phone
+        import re
+        email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', text)
+        phone_match = re.search(r'[\+\(]?[0-9][0-9 \-\(\)]{8,}[0-9]', text)
+        
+        email = email_match.group(0) if email_match else ""
+        phone = phone_match.group(0) if phone_match else ""
+        
+        # Extract skills (look for common skill keywords)
+        skills = []
+        skill_keywords = ['python', 'java', 'javascript', 'react', 'node', 'aws', 'docker', 
+                         'kubernetes', 'sql', 'mongodb', 'machine learning', 'ai', 'devops',
+                         'angular', 'vue', 'django', 'flask', 'spring', 'microservices',
+                         'typescript', 'golang', 'rust', 'c++', 'ruby', 'php', 'swift',
+                         'kotlin', 'terraform', 'jenkins', 'git', 'linux', 'azure', 'gcp']
+        
+        text_lower = text.lower()
+        for keyword in skill_keywords:
+            if keyword in text_lower:
+                skills.append(keyword.title())
+        
+        # Remove duplicates and limit to top 8 skills
+        skills = list(dict.fromkeys(skills))[:8]
+        
+        # Extract experience (look for years of experience)
+        experience = "experienced professional"
+        exp_match = re.search(r'(\d+)\s*(?:\+)?\s*(?:year|yr)s?\s+(?:of\s+)?experience', text_lower)
+        if exp_match:
+            years = exp_match.group(1)
+            experience = f"{years}+ years experienced"
+        
+        print(f"✅ Extracted - Name: {name}, Skills: {len(skills)}, Email: {email}, Phone: {phone}")
+        
+        return {
+            'name': name,
+            'skills': skills,
+            'experience': experience,
+            'email': email,
+            'phone': phone
+        }
+    except Exception as e:
+        print(f"❌ Resume parsing error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {
+            'name': 'Candidate',
+            'skills': [],
+            'experience': 'experienced professional',
+            'email': '',
+            'phone': ''
+        }
+
+def generate_email_templates(role, resume_info):
+    """Generate professional email subject and body based on role and resume"""
+    
+    name = resume_info.get('name', 'Candidate')
+    skills = resume_info.get('skills', [])
+    experience = resume_info.get('experience', 'experienced professional')
+    email = resume_info.get('email', '')
+    phone = resume_info.get('phone', '')
+    
+    # Generate subject lines with contact info
+    subjects = [
+        f"Application for {role} Position - {name}",
+        f"{experience.title()} {role} Seeking Opportunities - {name}",
+        f"{role} Application | {name} | {experience.title()}",
+    ]
+    
+    # Generate email body
+    skills_text = ", ".join(skills[:6]) if skills else "relevant technologies"
+    
+    # Add contact info section
+    contact_info = []
+    if email:
+        contact_info.append(f"Email: {email}")
+    else:
+        contact_info.append("Email: [Add your email here]")
+    
+    if phone:
+        contact_info.append(f"Phone: {phone}")
+    else:
+        contact_info.append("Phone: [Add your phone number here]")
+    
+    contact_section = "\n".join(contact_info)
+    
+    body = f"""Dear Hiring Manager,
+
+I am writing to express my interest in the {role} position at your esteemed organization. As an {experience} with expertise in {skills_text}, I am confident that I can contribute effectively to your team.
+
+Key Highlights:
+• {experience.title()} in the field
+• Strong proficiency in {skills_text}
+• Proven track record of delivering quality results
+• Excellent problem-solving and communication skills
+
+I have attached my resume for your review. I would welcome the opportunity to discuss how my background aligns with your needs.
+
+Thank you for considering my application. I look forward to hearing from you.
+
+Best regards,
+{name}
+{contact_section}"""
+
+    return {
+        'subjects': subjects,
+        'body': body,
+        'name': name,
+        'has_contact': bool(email and phone)
+    }
+
+def send_event(message: str):
+    """Push a message to all connected SSE clients."""
+    with clients_lock:
+        for q in list(clients):
+            try:
+                q.put(message)
+            except Exception:
+                # If a client queue is broken, ignore and continue
+                continue
+
+def log(message: str):
+    """Unified logger that writes to console and sends SSE events."""
+    try:
+        print(message)
+    except Exception:
+        pass
+    try:
+        send_event(message)
+    except Exception:
+        pass
+
+# Initialize job posts storage
+JOB_POSTS_FILE = 'job_posts.json'
+SENT_EMAILS_FILE = 'sent_emails.json'
+
+# Razorpay Payment Gateway Configuration
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_live_RgNB6M60lUvK2l")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "i4GM8FcOw34g438OMecg2z78")
+
+# Initialize Razorpay Client
+try:
+    import razorpay
+    razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+    print(f"✅ Razorpay Payment Gateway initialized")
+except ImportError:
+    print("⚠️ Razorpay SDK not installed. Payment features will be limited.")
+    razorpay_client = None
+
+# Optional persistent Chrome profile directory helps preserve LinkedIn login state.
+_env_profile = os.getenv("CHROME_PROFILE_DIR")
+_default_profile = r"D:\Profile"
+if _env_profile:
+    CHROME_PROFILE_DIR = _env_profile
+elif os.path.exists(_default_profile):
+    CHROME_PROFILE_DIR = _default_profile
+else:
+    CHROME_PROFILE_DIR = None
+
+# LinkedIn credentials for programmatic login (fallback)
+LINKEDIN_EMAIL = "manudrive04@gmail.com"
+LINKEDIN_PASSWORD = "Jpking@232"
+
+# Global variables for 2FA handling
+automation_driver = None
+verification_code_submitted = None
+verification_code_value = None
+
+def is_duplicate_job_post(post, existing_posts=None, user_email=None):
+    """Check if a job post is a duplicate based on email, title, and company."""
+    try:
+        # Check SQLite database for duplicates
+        if user_email:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT COUNT(*) as count FROM job_posts
+                WHERE user_email = ? AND company = ? AND LOWER(TRIM(title)) = LOWER(TRIM(?))
+            ''', (user_email, post.get('company', ''), post.get('title', '')))
+            
+            result = cursor.fetchone()
+            conn.close()
+            
+            if result and result['count'] > 0:
+                return True
+        
+        # Fallback to local storage check
+        if existing_posts is None:
+            existing_posts = load_job_posts()
+        
+        for existing in existing_posts:
+            if (existing.get('email') == post.get('email') and
+                existing.get('company') == post.get('company') and
+                existing.get('title', '').lower().strip() == post.get('title', '').lower().strip()):
+                return True
+        return False
+        
+    except Exception as e:
+        print(f"❌ Error checking for duplicate job post: {str(e)}")
+        # If we can't check duplicates, assume it's not a duplicate
+        return False
+
+def load_job_posts():
+    """Load job posts from SQLite or fall back to local JSON storage."""
+    # Initialize job analyzer
+    analyzer = JobAnalyzer()
+
+    try:
+        # Load from SQLite database
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT * FROM job_posts
+            ORDER BY created_at DESC
+        ''')
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        posts = []
+        for row in rows:
+            post_data = dict(row)
+            post_data['skills'] = json.loads(post_data['skills']) if post_data.get('skills') else []
+            # Map recruiter_email to email for template compatibility
+            if 'recruiter_email' in post_data and post_data['recruiter_email']:
+                post_data['email'] = post_data['recruiter_email']
+            posts.append(analyzer.analyze_post(post_data))
+        
+        print(f"✅ Loaded {len(posts)} job posts from SQLite database")
+        return posts
+
+    except Exception as e:
+        print(f"❌ Error loading from SQLite: {str(e)}")
+        # Continue to try local storage
+
+    try:
+        with open(JOB_POSTS_FILE, 'r') as f:
+            posts = json.load(f)
+            # Analyze each post from local storage
+            posts = [analyzer.analyze_post(post) for post in posts]
+            print(f"✅ Loaded {len(posts)} job posts from local storage")
+            return posts
+    except FileNotFoundError:
+        return []
+
+def save_job_post(post, user_email=None):
+    """Save a job post to SQLite and local storage, avoiding duplicates."""
+    try:
+        # First check if this is a duplicate
+        if is_duplicate_job_post(post, user_email=user_email):
+            print(f"⚠️ Duplicate job post found for {post.get('company')} - {post.get('title')}")
+            return False
+            
+        # Save to SQLite first
+        if user_email:
+            try:
+                # Add timestamp and clean up post data
+                post_to_save = post.copy()
+                post_to_save.update({
+                    'posted_date': post.get('posted_date') or datetime.now().strftime("%Y-%m-%d"),
+                    'user_email': user_email
+                })
+                
+                # Save to SQLite using Database class
+                db.save_job_posts(user_email, [post_to_save])
+                print(f"✅ Job post saved to SQLite database")
+                
+                # Notify connected clients
+                try:
+                    send_event(f"NEW_JOB: {post.get('title')} | {post.get('company')} | {post.get('email')}")
+                except Exception:
+                    pass
+                
+                return True
+                    
+            except Exception as e:
+                print(f"❌ Error saving to SQLite: {str(e)}")
+                # Continue to local storage as fallback
+        
+        # Fallback to local storage
+        try:
+            posts = load_job_posts()
+            posts.append(post)
+            with open(JOB_POSTS_FILE, 'w') as f:
+                json.dump(posts, f, indent=2)
+                
+            # Notify connected clients
+            try:
+                send_event(f"NEW_JOB: {post.get('title')} | {post.get('company')} | {post.get('email')}")
+            except Exception:
+                pass
+                
+            print(f"✅ Job post saved to local storage")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error saving to local storage: {str(e)}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Error in save_job_post: {str(e)}")
+        return False
+
+
+def load_sent_emails(user_email=None):
+    """Load sent emails for a specific user or all emails if no user specified.
+    
+    Args:
+        user_email: Optional email to filter by user
+    
+    Returns:
+        List of email records sorted by sent time
+    """
+    emails = []
+    
+    try:
+        # Load from SQLite database
+        if user_email:
+            emails = db.get_sent_emails(user_email)
+            print(f"✅ Loaded {len(emails)} emails from SQLite database")
+            return emails
+        else:
+            # Get all emails (no user filter)
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT * FROM sent_emails
+                ORDER BY sent_at DESC
+            ''')
+            
+            rows = cursor.fetchall()
+            conn.close()
+            
+            emails = [dict(row) for row in rows]
+            print(f"✅ Loaded {len(emails)} emails from SQLite database")
+            return emails
+            
+    except Exception as e:
+        print(f"❌ Error loading from SQLite: {str(e)}")
+        # Continue to try local storage
+        
+        # Fallback to local file
+        try:
+            with open(SENT_EMAILS_FILE, 'r') as f:
+                all_emails = json.load(f)
+                if user_email:
+                    emails = [email for email in all_emails if email.get('user_email') == user_email]
+                else:
+                    emails = all_emails
+                
+                # Sort by sent time descending
+                emails.sort(key=lambda x: x.get('sent_at', ''), reverse=True)
+                print(f"✅ Loaded {len(emails)} emails from local storage")
+                return emails
+                
+        except FileNotFoundError:
+            print("ℹ️ No local email records found")
+            return []
+            
+    except Exception as e:
+        print(f"❌ Error in load_sent_emails: {str(e)}")
+        return []
+
+
+def get_user_email_stats(user_email):
+    """Get user email statistics from SQLite."""
+    try:
+        # Get email stats from SQLite
+        stats_data = db.get_email_stats(user_email)
+        emails = db.get_sent_emails(user_email)
+        
+        # Build detailed stats
+        stats = {
+            "sent": sum(1 for e in emails if e.get('status') == 'sent'),
+            "skipped": sum(1 for e in emails if e.get('status') == 'skipped'),
+            "failed": sum(1 for e in emails if e.get('status') == 'failed'),
+            "duplicates": 0,
+            "total": stats_data.get('total_emails', 0),
+            "unique_recipients": len(set(e.get('recipient_email') for e in emails if e.get('recipient_email'))),
+            "runs": len(set(e.get('run_id') for e in emails if e.get('run_id'))),
+            "last_run": max((e.get('sent_at', '') for e in emails), default='')
+        }
+        
+        # Add timestamp field and email field mapping for template compatibility
+        for email in emails:
+            email['timestamp'] = email.get('sent_at', '')
+            # Map recipient_email to email for template
+            if 'recipient_email' in email and 'email' not in email:
+                email['email'] = email['recipient_email']
+            # Add cc field (use user_email as cc since emails are sent with user in cc)
+            if 'cc' not in email:
+                email['cc'] = user_email
+        
+        print(f"✅ Processed {len(emails)} email records for user {user_email}")
+        return emails, stats
+    except Exception as e:
+        print(f"❌ Error querying SQLite: {str(e)}")
+        return None, {}
+
+def prepare_email_record(record, run_id=None, user_email=None):
+    """Prepare an email record for storage by adding necessary fields."""
+    record_to_save = record.copy()
+    record_to_save.update({
+        'created_at': datetime.now().isoformat(),
+        'user_id': user_email,
+        'user_email': user_email,  # For backwards compatibility
+        'run_id': run_id,
+        'status': record.get('status', 'unknown'),
+        'timestamp': datetime.now().isoformat(),
+        'run_time': datetime.now().isoformat(),  # Add run_time for consistency
+        'subject': record.get('subject', 'No Subject'),
+        'email': record.get('email', ''),
+        'recipient_email': record.get('email', ''),  # For SQLite compatibility
+        'action_type': record.get('status', 'unknown'),
+        'error': record.get('error', None),  # Store any error messages
+    })
+    return record_to_save
+
+
+def count_emails_sent_today(user_email):
+    """Count how many emails a user has sent today. Returns tuple (count, error_message)."""
+    try:
+        print(f"📧 Counting emails for user: {user_email}")
+        
+        from datetime import date
+        today = date.today()
+        print(f"📅 Today's date: {today}")
+        
+        # Query SQLite for emails sent today
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT COUNT(*) as count
+            FROM sent_emails
+            WHERE user_email = ? 
+            AND status = 'sent'
+            AND DATE(sent_at) = DATE('now')
+        ''', (user_email,))
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        emails_today = result['count'] if result else 0
+        print(f"✅ Total emails sent today: {emails_today}")
+        return emails_today, None
+        
+    except Exception as e:
+        error_msg = f"Error counting emails: {str(e)}"
+        print(f"❌ {error_msg}")
+        return 0, error_msg
+
+
+def check_email_limit(user_email):
+    """Check if user has reached their daily email limit. Returns (can_send, emails_sent, message)."""
+    try:
+        print(f"🔍 Checking email limit for user: {user_email}")
+        
+        # Get user subscription from SQLite
+        subscription = db.get_subscription(user_email)
+        user_plan = subscription.get('plan', 'free')
+        
+        print(f"💳 User plan: {user_plan}")
+        
+        # Pro users have no limit
+        if user_plan != 'free':
+            print(f"✅ Pro user - no limits")
+            return True, 0, None
+        
+        # Count today's emails for free users
+        emails_today, error = count_emails_sent_today(user_email)
+        
+        print(f"📊 Emails sent today: {emails_today}/10")
+        
+        if error:
+            # If we can't check reliably, allow (fail open)
+            print(f"⚠️ Error counting emails: {error}, allowing send")
+            return True, 0, None
+        
+        if emails_today >= 10:
+            print(f"🔒 LIMIT REACHED! User has sent {emails_today} emails today")
+            return False, emails_today, f"Daily limit reached! You've sent {emails_today}/10 emails today. Upgrade to Pro for unlimited emails."
+        
+        print(f"✅ Limit check passed - can send")
+        return True, emails_today, None
+        
+    except Exception as e:
+        print(f"❌ Error checking email limit: {str(e)}")
+        # Fail open - allow if we can't check
+        return True, 0, None
+
+
+def save_sent_email(record, run_id=None, user_email=None):
+    """Save a single sent-email record to SQLite."""
+    try:
+        # Add user information
+        if user_email:
+            record['user_email'] = user_email
+        
+        # Add run information
+        if run_id:
+            record['run_id'] = run_id
+            record['run_time'] = datetime.now().isoformat()
+        
+        # Prepare the record
+        record_to_save = prepare_email_record(record, run_id, user_email)
+        
+        # Save to SQLite
+        db.save_sent_email(user_email, record_to_save)
+        
+        # Notify connected clients
+        try:
+            send_event(f"NEW_EMAIL: {record_to_save.get('email')} | {record_to_save.get('status')} | {record_to_save.get('run_id')}")
+        except Exception:
+            pass
+        
+        print(f"✅ Saved email record to SQLite: {record.get('email')}")
+        return True
+            
+    except Exception as e:
+        print(f"❌ Error in save_sent_email: {str(e)}")
+        
+        # Fallback to local storage
+        try:
+            existing = load_sent_emails()
+            
+            # Check for duplicates in local storage
+            for r in existing:
+                if (r.get('email') == record.get('email') and 
+                    r.get('subject') == record.get('subject') and
+                    r.get('run_id') == record.get('run_id') and
+                    r.get('user_email') == record.get('user_email')):
+                    print(f"⚠️ Duplicate email record found in local storage: {record.get('email')}")
+                    return False
+            
+            # No duplicate found, append and save
+            existing.append(record)
+            with open(SENT_EMAILS_FILE, 'w') as f:
+                json.dump(existing, f, default=str, indent=2)
+                
+            # Try to notify connected clients
+            try:
+                send_event(f"NEW_EMAIL: {record.get('email')} | {record.get('status')}")
+            except Exception:
+                pass
+                
+            print(f"✅ Saved email record to local storage: {record.get('email')}")
+            return True
+            
+        except Exception as local_error:
+            print(f"❌ Error saving to local storage: {str(local_error)}")
+            return False
+app.secret_key = "super-secret-key-change-this"
+
+# Initialize Firebase Admin SDK
+# Initialize Firebase with credentials (cloud-compatible)
+import base64
+import json
+
+def initialize_firebase():
+    """Initialize Firebase with environment variable or local file"""
+    try:
+        # Try environment variable first (for cloud deployment)
+        firebase_json_b64 = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_JSON')
+        
+        if firebase_json_b64:
+            print("🔑 Loading Firebase credentials from environment variable")
+            # Decode base64 and parse JSON
+            firebase_json_str = base64.b64decode(firebase_json_b64).decode('utf-8')
+            firebase_config = json.loads(firebase_json_str)
+            cred = credentials.Certificate(firebase_config)
+            firebase_admin.initialize_app(cred)
+            print("✅ Firebase initialized from environment variable")
+            return True
+            
+        else:
+            # Fallback to local file (for development)
+            cred_path = os.path.join(os.path.dirname(__file__), "justmailit-d6f2d-firebase-adminsdk-fbsvc-552f0c36ab.json")
+            if os.path.exists(cred_path):
+                print(f"🔑 Loading Firebase credentials from local file: {cred_path}")
+                cred = credentials.Certificate(cred_path)
+                firebase_admin.initialize_app(cred)
+                print("✅ Firebase initialized from local file")
+                return True
+            else:
+                print("⚠️ No Firebase credentials found - running without Firebase")
+                return False
+                
+    except Exception as e:
+        print(f"❌ Firebase initialization failed: {e}")
+        return False
+
+# Initialize Firebase
+firebase_initialized = initialize_firebase()
+
+print("✅ Using SQLite database for data storage")
+print("✅ Firebase is used for authentication only")
+
+
+# --- LOGIN CONTROL ---
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user" not in session:
+            flash("Please log in first!", "warning")
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    # Handle GET request - show landing page with login modal
+    if request.method == "GET":
+        return redirect(url_for("landing"))
+    
+    # Handle Firebase authentication from modal (POST)
+    data = request.get_json()
+    id_token = data.get("idToken")
+    display_name = data.get("displayName", "")
+    
+    try:
+        decoded_token = auth.verify_id_token(id_token)
+        user_email = decoded_token["email"]
+        session["user"] = user_email
+        
+        # Log user in immediately
+        print(f"✅ {user_email} logged in successfully!")
+        
+        # Create or update user profile in SQLite
+        try:
+            db.create_or_update_profile(
+                email=user_email,
+                display_name=display_name or decoded_token.get('name', ''),
+                photo_url=decoded_token.get('picture')
+            )
+            print(f"✅ User profile updated in database: {user_email}")
+        except Exception as profile_error:
+            print(f"⚠️ Profile creation/check error: {profile_error}")
+            # Continue login even if profile update fails
+            if "429" in str(profile_error) or "Quota exceeded" in str(profile_error):
+                print(f"⚠️ Firestore quota exceeded - login successful but profile not synced")
+            else:
+                print(f"⚠️ Profile sync error (non-critical): {profile_error}")
+        
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        print(f"❌ Login failed: {e}")
+        return jsonify({"error": str(e)}), 401
+
+
+@app.route("/sessionLogin", methods=["POST"])
+def session_login():
+    data = request.get_json()
+    id_token = data.get("idToken")
+    try:
+        decoded_token = auth.verify_id_token(id_token)
+        user_email = decoded_token["email"]
+        session["user"] = user_email
+        print(f"✅ {user_email} logged in successfully!")
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        print(f"❌ Login failed: {e}")
+        return jsonify({"error": str(e)}), 401
+
+
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    flash("Logged out successfully.", "info")
+    return redirect(url_for("landing"))
+
+
+# --- MAIN PAGE ---
+@app.route("/profile")
+@login_required
+def profile():
+    """User profile page for managing default templates and resume."""
+    return render_template("profile.html")
+
+@app.route("/get_profile")
+@login_required
+def get_profile():
+    """Get user profile data from SQLite."""
+    user_email = session.get("user")
+    try:
+        profile = db.get_profile(user_email)
+        if profile:
+            # Convert to dict and remove BLOB data (can't be JSON serialized)
+            profile_dict = dict(profile)
+            
+            # Handle resume BLOB
+            if 'resume_data' in profile_dict:
+                resume_blob = profile_dict['resume_data']
+                if resume_blob:
+                    profile_dict['resume_size'] = len(resume_blob)
+                    profile_dict['has_resume'] = True
+                else:
+                    profile_dict['resume_size'] = 0
+                    profile_dict['has_resume'] = False
+                del profile_dict['resume_data']  # Remove BLOB
+            
+            # Convert snake_case to camelCase for frontend
+            formatted_profile = {
+                'email': profile_dict.get('email'),
+                'displayName': profile_dict.get('display_name'),
+                'photoUrl': profile_dict.get('photo_url'),
+                'emailSubject': profile_dict.get('email_subject') or '',
+                'emailContent': profile_dict.get('email_content') or '',
+                'searchRole': profile_dict.get('search_role') or '',
+                'searchTimePeriod': profile_dict.get('search_time_period') or 'past-week',
+                'resumeFilename': profile_dict.get('resume_filename') or '',
+                'resumeSize': profile_dict.get('resume_size', 0),
+                'hasResume': profile_dict.get('has_resume', False),
+                'createdAt': profile_dict.get('created_at'),
+                'updatedAt': profile_dict.get('updated_at')
+            }
+            
+            print(f"📤 Sending profile data: subject={formatted_profile['emailSubject'][:30] if formatted_profile['emailSubject'] else 'None'}..., role={formatted_profile['searchRole']}, resume={formatted_profile['resumeFilename']}")
+            
+            return jsonify(formatted_profile)
+        return jsonify({})
+    except Exception as e:
+        print(f"Error getting profile: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+# Database collection names (for reference only)
+# All data is now stored in SQLite tables:
+# - user_profiles: User profile data
+# - job_posts: Unique job posts
+# - sent_emails: Email history  
+# - automation_runs: Automation run data
+# - subscriptions: User subscriptions
+
+def get_user_preferences(user_email):
+    """Get user preferences from SQLite.
+    
+    Returns user profile data which includes preferences.
+    """
+    try:
+        profile = db.get_profile(user_email)
+        if profile:
+            # Return profile data as preferences
+            return {
+                'defaultSubject': profile.get('email_subject') or '',
+                'defaultTemplate': profile.get('email_content') or '',
+                'searchRole': profile.get('search_role') or '',
+                'searchTimePeriod': profile.get('search_time_period') or 'past-week',
+                'resumeFilename': profile.get('resume_filename') or '',
+                'lastUpdated': profile.get('updated_at') or ''
+            }
+        return {}
+    except Exception as e:
+        print(f"Error getting user preferences: {str(e)}")
+    return {}
+
+def save_user_preferences(user_email, preferences):
+    """Save user preferences to SQLite."""
+    try:
+        # Update user profile with preferences
+        db.create_or_update_profile(
+            email=user_email,
+            display_name=preferences.get('displayName'),
+            photo_url=preferences.get('photoUrl')
+        )
+        return True
+    except Exception as e:
+        print(f"Error saving user preferences: {str(e)}")
+    return False
+
+def save_automation_run(run_id, user_email, settings=None):
+    """Save automation run data to SQLite.
+    
+    Args:
+        run_id: Unique identifier for the automation run
+        user_email: Email of the user who initiated the run
+        settings: Dictionary of settings used for this run
+    """
+    try:
+        run_data = {
+            'job_title': settings.get('searchRole', '') if settings else '',
+            'location': '',
+            'keywords': settings.get('searchRole', '') if settings else '',
+            'status': 'running',
+            'total_jobs_found': 0,
+            'emails_sent': 0
+        }
+        db.save_automation_run(user_email, run_data)
+        return True
+    except Exception as e:
+        print(f"Error saving automation run: {str(e)}")
+    return False
+
+def update_automation_run(run_id, stats):
+    """Update automation run statistics in SQLite."""
+    try:
+        # Note: SQLite automation runs are tracked per-email save
+        # This function is kept for compatibility but doesn't need to do much
+        return True
+    except Exception as e:
+        print(f"Error updating automation run: {str(e)}")
+    return False
+
+@app.route("/save_profile", methods=["POST"])
+@login_required
+def save_profile():
+    """Save user profile data to SQLite."""
+    user_email = session.get("user")
+    
+    # Get form data
+    email_subject = request.form.get("emailSubject")
+    email_content = request.form.get("emailContent")
+    search_role = request.form.get("searchRole", "")
+    search_time_period = request.form.get("searchTimePeriod", "past-week")
+    
+    # Handle resume file - store as BLOB in database
+    resume_data = None
+    resume_filename = None
+    if "resumeFile" in request.files:
+        resume = request.files["resumeFile"]
+        if resume.filename:
+            # Read file as binary data
+            resume_data = resume.read()
+            resume_filename = resume.filename
+            
+            print(f"📄 Resume uploaded: {resume_filename}")
+            print(f"   Size: {len(resume_data)} bytes")
+            print(f"   Type: {resume.content_type}")
+    
+    try:
+        # Update user profile in SQLite with all form data
+        db.create_or_update_profile(
+            email=user_email,
+            display_name=None,  # Keep existing
+            photo_url=None,  # Keep existing
+            email_subject=email_subject,
+            email_content=email_content,
+            search_role=search_role,
+            search_time_period=search_time_period,
+            resume_data=resume_data,  # Store binary BLOB
+            resume_filename=resume_filename
+        )
+        
+        print(f"✅ Profile updated for {user_email}")
+        print(f"   - Email Subject: {email_subject[:50] if email_subject else 'None'}...")
+        print(f"   - Search Role: {search_role}")
+        print(f"   - Resume: {resume_filename if resume_filename else 'None'}")
+        
+        return jsonify({"status": "success"})
+    except Exception as e:
+        print(f"❌ Error saving profile: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/")
+def landing():
+    """Public landing page showcasing the platform."""
+    # If user is already logged in, redirect to dashboard
+    if "user" in session:
+        return redirect(url_for("home"))
+    return render_template("landing.html")
+
+# --- STATIC PAGES ---
+@app.route("/about")
+def about():
+    """About Us page"""
+    return render_template("about.html")
+
+@app.route("/careers")
+def careers():
+    """Careers page"""
+    return render_template("careers.html")
+
+@app.route("/blog")
+def blog():
+    """Blog page"""
+    return render_template("blog.html")
+
+@app.route("/contact")
+def contact():
+    """Contact page"""
+    return render_template("contact.html")
+
+@app.route("/documentation")
+def documentation():
+    """Documentation page"""
+    return render_template("documentation.html")
+
+@app.route("/help")
+def help_center():
+    """Help Center page"""
+    return render_template("help.html")
+
+@app.route("/api")
+def api_reference():
+    """API Reference page"""
+    return render_template("api.html")
+
+@app.route("/community")
+def community():
+    """Community page"""
+    return render_template("community.html")
+
+@app.route("/privacy")
+def privacy():
+    """Privacy Policy page"""
+    return render_template("privacy.html")
+
+@app.route("/terms")
+def terms():
+    """Terms of Service page"""
+    return render_template("terms.html")
+
+@app.route("/cookies")
+def cookies():
+    """Cookie Policy page"""
+    return render_template("cookies.html")
+
+@app.route("/gdpr")
+def gdpr():
+    """GDPR Compliance page"""
+    return render_template("gdpr.html")
+
+@app.route("/dashboard")
+@login_required
+def home():
+    """Home dashboard after login with links to the main features."""
+    user_email = session["user"]
+    
+    # Get user's email stats from SQLite
+    sent_emails, stats = get_user_email_stats(user_email)
+    
+    if sent_emails is None:
+        # Fallback to local storage if SQLite query failed
+        print("⚠️ Falling back to local storage")
+        sent_emails = load_sent_emails(user_email)
+        stats = {
+            "sent": sum(1 for r in sent_emails if r.get("status") == "sent"),
+            "skipped": sum(1 for r in sent_emails if r.get("status") == "skipped"),
+            "failed": sum(1 for r in sent_emails if r.get("status") == "failed"),
+            "duplicates": 0,
+            "total": len(sent_emails),
+            "last_run": max((r.get('timestamp', '') for r in sent_emails), default=''),
+            "unique_recipients": len(set(r.get('email') for r in sent_emails if r.get('email'))),
+            "runs": len(set(r.get('run_id') for r in sent_emails if r.get('run_id')))
+        }
+    
+    # Get user profile data from SQLite
+    try:
+        profile_data = db.get_profile(user_email) or {}
+    except Exception:
+        profile_data = {}
+    
+    # Get recent activity
+    recent_runs = []
+    if sent_emails:
+        # Group by run_id and get the most recent 5 runs
+        runs = {}
+        for email in sorted(sent_emails, key=lambda x: x.get('run_time') or '', reverse=True):
+            run_id = email.get('run_id', 'unknown')
+            if run_id not in runs:
+                runs[run_id] = {
+                    'run_id': run_id,
+                    'run_time': email.get('run_time') or '',
+                    'emails_sent': sum(1 for e in sent_emails if e.get('run_id') == run_id and e.get('status') == 'sent'),
+                    'total_emails': sum(1 for e in sent_emails if e.get('run_id') == run_id)
+                }
+            if len(runs) >= 5:
+                break
+        recent_runs = list(runs.values())
+    
+    # Get job posts stats from SQLite
+    total_jobs = 0
+    try:
+        job_stats = db.get_job_stats(user_email)
+        total_jobs = job_stats.get('total_jobs', 0)
+    except Exception as e:
+        print(f"Error loading job stats: {e}")
+    
+    # Calculate remaining jobs (jobs not yet emailed)
+    sent_count = stats.get('sent', 0)
+    remaining = max(0, total_jobs - sent_count)
+    
+    # Add job stats to stats dict
+    stats['total_jobs'] = total_jobs
+    stats['remaining'] = remaining
+    
+    # Get today's email count for free users
+    emails_today, _ = count_emails_sent_today(user_email)
+    stats['emails_today'] = emails_today
+    
+    # Get subscription data from SQLite
+    subscription = db.get_subscription(user_email)
+    
+    # Get recent job posts for carousel (limit to 12 + 1 for show more)
+    job_posts = []
+    try:
+        job_posts = db.get_job_posts(user_email, limit=12)
+        print(f"✅ Loaded {len(job_posts)} job posts for user {user_email}")
+        if job_posts:
+            print(f"📋 First job post: {job_posts[0].get('title', 'No title')}")
+    except Exception as e:
+        print(f"❌ Error loading job posts: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    # Get list of emails already sent by this user from SQLite
+    sent_emails = set()
+    try:
+        emails = db.get_sent_emails(user_email)
+        for email_record in emails:
+            if email_record.get('status') == 'sent' and email_record.get('recipient_email'):
+                sent_emails.add(email_record['recipient_email'])
+        print(f"📧 User {user_email} has sent to {len(sent_emails)} unique emails")
+    except Exception as e:
+        print(f"⚠️ Error loading sent emails: {str(e)}")
+    
+    # Mark posts that were already sent and extract company from email
+    for post in job_posts:
+        # Map recruiter_email to email for template compatibility
+        if 'recruiter_email' in post and not post.get('email'):
+            post['email'] = post['recruiter_email']
+        
+        # Check if already sent
+        email = post.get('email') or post.get('recruiter_email', '')
+        if email in sent_emails:
+            post['already_sent'] = True
+        else:
+            post['already_sent'] = False
+        
+        # Extract company name from email if not present
+        if not post.get('company') or post.get('company') in ['Company Not Found', 'Company Not Specified', '']:
+            if email and '@' in email:
+                post['company'] = extract_company_from_email(email)
+    
+    print(f"📊 Dashboard stats for {user_email}:")
+    print(f"   Total Jobs: {stats.get('total_jobs', 0)}")
+    print(f"   Job Posts Array Length: {len(job_posts)}")
+    print(f"   Already Sent Count: {sum(1 for p in job_posts if p.get('already_sent'))}")
+    
+    return render_template(
+        "home.html",
+        user=user_email,
+        stats=stats,
+        profile=profile_data,
+        subscription=subscription,
+        recent_runs=recent_runs,
+        job_posts=job_posts
+    )
+
+
+@app.route("/send")
+@login_required
+def send_page():
+    """Email sending UI (previously the root index)."""
+    return render_template("index_live.html", user=session["user"])
+
+@app.route("/email_templates")
+@login_required
+def email_templates_page():
+    """Email templates education page"""
+    return render_template("email_templates.html", user=session["user"])
+
+# --- JOB POSTS PAGE ---
+@app.route("/jobs")
+@login_required
+def job_posts():
+    user_email = session.get("user")
+    posts = load_job_posts()
+    
+    # Get list of emails already sent by this user from SQLite
+    sent_emails = set()
+    try:
+        emails = db.get_sent_emails(user_email)
+        for email_record in emails:
+            if email_record.get('status') == 'sent' and email_record.get('recipient_email'):
+                sent_emails.add(email_record['recipient_email'])
+        
+        print(f"📧 User {user_email} has sent to {len(sent_emails)} unique emails")
+    except Exception as e:
+        print(f"⚠️ Error loading sent emails: {str(e)}")
+    
+    # Mark posts that were already sent and extract company from email
+    for post in posts:
+        # Map recruiter_email to email for template compatibility
+        if 'recruiter_email' in post and not post.get('email'):
+            post['email'] = post['recruiter_email']
+        
+        # Check if already sent
+        email = post.get('email') or post.get('recruiter_email', '')
+        if email in sent_emails:
+            post['already_sent'] = True
+        else:
+            post['already_sent'] = False
+        
+        # Extract company name from email if not present - use helper function
+        if not post.get('company') or post.get('company') in ['Company Not Found', 'Company Not Specified', '']:
+            if email and '@' in email:
+                # Use our helper function for extraction
+                post['company'] = extract_company_from_email(email)
+    
+    # Sort posts by date, newest first - handle multiple date field names safely
+    posts.sort(key=lambda x: x.get('created_at') or x.get('posted_date') or x.get('posted') or '', reverse=True)
+    return render_template("job_posts.html", job_posts=posts)
+
+
+@app.route("/send_job_email", methods=["POST"])
+@login_required
+def send_job_email():
+    """Send email to a specific job post email."""
+    try:
+        user_email = session.get("user")
+        job_email = request.json.get("email")
+        job_description = request.json.get("description", "")
+        job_company = request.json.get("company", "")
+        job_url = request.json.get("url", "")
+        
+        print(f"🔔 /send_job_email called by user: {user_email}")
+        print(f"   Target email: {job_email}")
+        
+        if not job_email:
+            return jsonify({"success": False, "message": "No email address provided"}), 400
+        
+        # CHECK DAILY EMAIL LIMIT
+        can_send, emails_sent, limit_message = check_email_limit(user_email)
+        if not can_send:
+            print(f"🚫 Blocking send - limit reached!")
+            return jsonify({
+                "success": False, 
+                "message": limit_message,
+                "limit_reached": True,
+                "upgrade_url": "/pricing"
+            }), 403
+        
+        print(f"✅ Email limit check passed. Sent today: {emails_sent}/10")
+        
+        # Get user's saved profile data from SQLite
+        try:
+            profile_data = db.get_profile(user_email)
+            if not profile_data:
+                return jsonify({"success": False, "message": "Please set up your profile first"}), 400
+            
+            # Get email content and subject from profile
+            email_content = profile_data.get('email_content', '')
+            subject = profile_data.get('email_subject', 'Job Application')
+            
+            # Check if resume exists - use correct field names with underscores
+            resume_data_b64 = profile_data.get('resume_data')
+            resume_filename = profile_data.get('resume_filename')
+            
+            if not resume_data_b64 or not resume_filename:
+                return jsonify({"success": False, "message": "Please upload a resume first"}), 400
+            
+            # Decode resume from base64 and create temp file
+            resume_bytes = base64.b64decode(resume_data_b64)
+            
+            temp_dir = tempfile.gettempdir()
+            resume_path = os.path.join(temp_dir, f"{user_email}_{resume_filename}")
+            
+            with open(resume_path, 'wb') as f:
+                f.write(resume_bytes)
+            
+            print(f"📧 Sending email to {job_email} for {job_company}")
+            
+        except Exception as e:
+            print(f"❌ Error getting profile data: {str(e)}")
+            return jsonify({"success": False, "message": "Error loading profile data"}), 500
+        
+        # Check for duplicate using SQLite
+        try:
+            emails = db.get_sent_emails(user_email)
+            for email_record in emails:
+                if (email_record.get('recipient_email') == job_email and
+                    email_record.get('subject') == subject):
+                    last_sent = email_record.get('sent_at', 'unknown time')
+                    return jsonify({
+                        "success": False, 
+                        "message": f"Already sent to this email on {last_sent}"
+                    }), 400
+        except Exception as e:
+            print(f"⚠️ Error checking duplicates: {str(e)}")
+        
+        # Send the email - using mail@justmailit.in via Gmail SMTP
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = "mail@justmailit.in"  # Custom domain email
+        smtp_user = "manudrive06@gmail.com"  # Gmail account for authentication
+        sender_password = "ozds nrqo gduy mnwd"  # Gmail App Password
+        
+        try:
+            msg = MIMEMultipart()
+            msg["From"] = sender_email  # mail@justmailit.in
+            msg["To"] = job_email
+            msg["Bcc"] = user_email  # Send copy to user (hidden from recruiter)
+            msg["Reply-To"] = user_email  # Replies go to user
+            msg["Subject"] = subject
+            
+            # Attach email content
+            msg.attach(MIMEText(email_content, "plain", "utf-8"))
+            
+            # Attach resume
+            if resume_path and os.path.exists(resume_path):
+                with open(resume_path, "rb") as attachment:
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(attachment.read())
+                    encoders.encode_base64(part)
+                    part.add_header(
+                        "Content-Disposition",
+                        f"attachment; filename={os.path.basename(resume_path)}"
+                    )
+                    msg.attach(part)
+            
+            # Send email - authenticate with Gmail, send as mail@justmailit.in
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+            server.login(smtp_user, sender_password)  # Authenticate with Gmail
+            # Send to recruiter AND user (BCC - user gets copy for tracking)
+            recipients = [job_email, user_email]  # Both receive the email
+            server.sendmail(sender_email, recipients, msg.as_string())
+            server.quit()
+            
+            print(f"✅ Email sent successfully to {job_email} from {sender_email} (copy sent to user: {user_email})")
+            
+            # Save to sent emails with proper record format
+            run_id = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            save_sent_email({
+                "email": job_email,
+                "recipient_email": job_email,
+                "subject": subject,
+                "reply_to": user_email,  # User gets replies
+                "sent_at": datetime.now().isoformat(),
+                "status": "sent",
+                "source_url": job_url,
+                "company": job_company,
+                "job_title": job_description[:50] + "..." if len(job_description) > 50 else job_description,
+                "description": job_description[:100] + "..." if len(job_description) > 100 else job_description
+            }, run_id, user_email)
+            
+            # Clean up temp file
+            try:
+                if resume_path and os.path.exists(resume_path):
+                    os.remove(resume_path)
+            except:
+                pass
+            
+            return jsonify({
+                "success": True, 
+                "message": f"Email sent successfully to {job_email}"
+            })
+            
+        except Exception as e:
+            print(f"❌ Error sending email: {str(e)}")
+            
+            # Save failure with proper record format
+            run_id = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            save_sent_email({
+                "email": job_email,
+                "recipient_email": job_email,
+                "subject": subject,
+                "reply_to": user_email,
+                "sent_at": datetime.now().isoformat(),
+                "status": "failed",
+                "error": str(e),
+                "source_url": job_url,
+                "company": job_company
+            }, run_id, user_email)
+            
+            return jsonify({
+                "success": False, 
+                "message": f"Failed to send email: {str(e)}"
+            }), 500
+            
+    except Exception as e:
+        print(f"❌ Error in send_job_email: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route("/sent_emails")
+@login_required
+def sent_emails_page():
+    """Render a page listing all sent emails grouped by automation runs for the current user."""
+    user_email = session["user"]
+    
+    # Get records using the efficient query helper
+    records, stats = get_user_email_stats(user_email)
+    
+    if records is None:
+        records = load_sent_emails(user_email)
+        print(f"📁 Loaded {len(records)} emails from local storage")
+    
+    # Group emails by run_id with enhanced stats
+    runs = {}
+    for record in records:
+        run_id = record.get('run_id', 'unknown')
+        run_time = record.get('run_time') or record.get('sent_at') or ''
+        if run_id not in runs:
+            runs[run_id] = {
+                'run_id': run_id,
+                'run_time': run_time,
+                'emails': [],
+                'stats': {'sent': 0, 'failed': 0, 'skipped': 0},
+                'subject': record.get('subject', 'No Subject'),  # Add subject for better context
+                'user_email': user_email
+            }
+        runs[run_id]['emails'].append(record)
+        # Update stats
+        status = record.get('status', 'unknown')
+        if status in runs[run_id]['stats']:
+            runs[run_id]['stats'][status] += 1
+    
+    # Convert to list and sort by run_time (handle None values)
+    runs_list = list(runs.values())
+    runs_list.sort(key=lambda x: x.get('run_time') or '', reverse=True)
+    
+    # Add total stats
+    total_stats = {
+        'total_runs': len(runs_list),
+        'total_emails': len(records),
+        'total_sent': sum(run['stats']['sent'] for run in runs_list),
+        'total_failed': sum(run['stats']['failed'] for run in runs_list),
+        'total_skipped': sum(run['stats']['skipped'] for run in runs_list)
+    }
+    
+    return render_template('sent_emails.html', runs=runs_list, total_stats=total_stats)
+
+
+@app.route('/api/sent_emails')
+@login_required
+def sent_emails_api():
+    """Return JSON array of sent email records for the current user."""
+    user_email = session["user"]
+    return jsonify(load_sent_emails(user_email))
+
+
+@app.route('/api/sent_email_stats')
+@login_required
+def sent_email_stats_api():
+    """Return lightweight stats (sent/skipped/failed/total) for the current user.
+
+    This endpoint avoids returning the full history and is intended for
+    quick dashboard updates (Home page) — it uses the same Firestore-safe
+    query helper that sorts in-memory to avoid requiring composite indexes.
+    """
+    user_email = session.get('user')
+    try:
+        records, stats = get_user_email_stats(user_email)
+        if records is None:
+            # Fallback: compute stats from local storage
+            emails = load_sent_emails(user_email)
+            stats = {
+                'sent': sum(1 for r in emails if r.get('status') == 'sent'),
+                'skipped': sum(1 for r in emails if r.get('status') == 'skipped'),
+                'failed': sum(1 for r in emails if r.get('status') == 'failed'),
+                'total': len(emails)
+            }
+        else:
+            # Ensure minimal shape in response
+            stats = {k: stats.get(k, 0) for k in ('sent', 'skipped', 'failed', 'total')}
+        return jsonify(stats)
+    except Exception as e:
+        print(f"❌ Error in /api/sent_email_stats: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/preferences', methods=['GET', 'POST'])
+@login_required
+def user_preferences():
+    """Handle user preferences."""
+    user_email = session.get("user")
+    
+    if request.method == 'POST':
+        preferences = request.get_json()
+        if save_user_preferences(user_email, preferences):
+            return jsonify({"status": "success"})
+        return jsonify({"error": "Failed to save preferences"}), 500
+    
+    # GET request
+    preferences = get_user_preferences(user_email)
+    return jsonify(preferences)
+
+@app.route('/submit_2fa_code', methods=['POST'])
+@login_required
+def submit_2fa_code():
+    """Endpoint to submit 2FA verification code."""
+    global verification_code_submitted, verification_code_value, automation_driver
+    
+    code = request.json.get('code', '').strip()
+    
+    if not code:
+        return jsonify({"status": "error", "message": "Code is required"}), 400
+    
+    if automation_driver is None:
+        return jsonify({"status": "error", "message": "No active automation session"}), 400
+    
+    try:
+        log(f"📱 Received 2FA code from user: {code}")
+        verification_code_value = code
+        verification_code_submitted = True
+        
+        return jsonify({
+            "status": "success", 
+            "message": "Code submitted successfully. Automation will continue..."
+        })
+    except Exception as e:
+        log(f"❌ Error submitting 2FA code: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/generate_email_template', methods=['POST'])
+@login_required
+def generate_email_template():
+    """Generate email subject and body based on uploaded resume and role"""
+    try:
+        role = request.form.get('role', 'Software Developer')
+        user_email = session.get('user')
+        
+        # Check if resume file is uploaded or use saved resume
+        resume_info = None
+        resume_path = None
+        
+        # First check for new upload
+        if 'resume' in request.files and request.files['resume'].filename:
+            # New resume uploaded - save it
+            resume_file = request.files['resume']
+            user_folder = os.path.join('uploads', user_email.replace('@', '_at_').replace('.', '_'))
+            os.makedirs(user_folder, exist_ok=True)
+            
+            # Save the resume
+            resume_filename = f"resume_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            resume_path = os.path.join(user_folder, resume_filename)
+            resume_file.save(resume_path)
+            
+            # Also save to profile
+            db.create_or_update_profile(user_email, resume_filename=resume_filename)
+            
+            print(f"✅ Resume saved: {resume_path}")
+        else:
+            # Try to use saved resume
+            user_folder = os.path.join('uploads', user_email.replace('@', '_at_').replace('.', '_'))
+            if os.path.exists(user_folder):
+                resume_files = [f for f in os.listdir(user_folder) if f.endswith('.pdf')]
+                if resume_files:
+                    # Use most recent resume
+                    resume_files.sort(reverse=True)
+                    resume_path = os.path.join(user_folder, resume_files[0])
+                    print(f"📄 Using saved resume: {resume_path}")
+        
+        # If no resume found, return error
+        if not resume_path or not os.path.exists(resume_path):
+            return jsonify({
+                'status': 'error',
+                'error_type': 'no_resume',
+                'message': 'Please upload your resume to generate a personalized email template.'
+            }), 400
+        
+        # Extract resume info
+        resume_info = extract_resume_info(resume_path)
+        print(f"📋 Resume Info Extracted: {resume_info}")
+        
+        # Generate templates
+        templates = generate_email_templates(role, resume_info)
+        print(f"📧 Templates Generated: Subjects={templates['subjects']}, Has Contact={templates['has_contact']}")
+        
+        return jsonify({
+            'status': 'success',
+            'subjects': templates['subjects'],
+            'body': templates['body'],
+            'name': templates['name'],
+            'has_contact': templates['has_contact']
+        })
+    
+    except Exception as e:
+        print(f"❌ Error generating template: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/progress')
+@login_required
+def progress_stream():
+    """Server-Sent Events endpoint that streams log messages to the client."""
+    print("🔌 Progress stream connection established")
+    
+    def event_stream():
+        q = Queue()
+        with clients_lock:
+            clients.append(q)
+            print(f"👥 Active clients: {len(clients)}")
+
+        try:
+            while True:
+                try:
+                    # Wait up to 15s for a message then send heartbeat
+                    msg = q.get(timeout=15)
+                    # Don't print here to avoid duplication - message already logged via log()
+                    yield f"data: {msg}\n\n"
+                except Empty:
+                    # heartbeat to keep connection alive
+                    print("💓 Sending heartbeat")
+                    yield "data: \n\n"
+        except GeneratorExit:
+            # Client disconnected
+            print("🔌 Client disconnected")
+            with clients_lock:
+                try:
+                    clients.remove(q)
+                    print(f"👥 Remaining clients: {len(clients)}")
+                except ValueError:
+                    print("❌ Client queue not found")
+
+    return Response(event_stream(), mimetype='text/event-stream')
+
+
+def linkedin_login(driver, email, password):
+    """Log into LinkedIn using email and password."""
+    try:
+        log("🔐 Attempting LinkedIn login...")
+        
+        # Navigate to LinkedIn login page
+        driver.get("https://www.linkedin.com/login")
+        time.sleep(3)
+        
+        # Wait for login form to load
+        wait = WebDriverWait(driver, 10)
+        
+        # Find email field
+        email_field = wait.until(EC.presence_of_element_located((By.ID, "username")))
+        email_field.clear()
+        email_field.send_keys(email)
+        log("📧 Email entered")
+        
+        # Find password field
+        password_field = driver.find_element(By.ID, "password")
+        password_field.clear()
+        password_field.send_keys(password)
+        log("🔑 Password entered")
+        
+        # Click sign in button
+        sign_in_button = driver.find_element(By.XPATH, "//button[@type='submit']")
+        sign_in_button.click()
+        log("🚀 Sign in button clicked")
+        
+        # Wait for login to complete - check for feed or home page
+        time.sleep(5)
+        
+        # Check if login was successful
+        current_url = driver.current_url
+        if "feed" in current_url or "home" in current_url or "mynetwork" in current_url:
+            log("✅ LinkedIn login successful!")
+            return True
+        elif "checkpoint" in current_url or "challenge" in current_url:
+            log("=" * 70)
+            log("⚠️ LinkedIn requires additional verification (2FA/challenge)")
+            log(f"� Current URL: {current_url}")
+            log("=" * 70)
+            
+            # Save screenshot for debugging
+            try:
+                screenshot_path = "/tmp/linkedin_2fa_challenge.png"
+                driver.save_screenshot(screenshot_path)
+                log(f"📸 Screenshot saved: {screenshot_path}")
+            except Exception as ss_error:
+                log(f"⚠️ Could not save screenshot: {str(ss_error)}")
+            
+            # Save page HTML
+            try:
+                html_path = "/tmp/linkedin_2fa_challenge.html"
+                with open(html_path, 'w', encoding='utf-8') as f:
+                    f.write(driver.page_source)
+                log(f"📄 Page HTML saved: {html_path}")
+            except Exception as html_error:
+                log(f"⚠️ Could not save HTML: {str(html_error)}")
+            
+            log("�🔍 Waiting for 2FA verification code...")
+            
+            # Wait for verification code input field
+            try:
+                # Try to find the verification code input field
+                code_input = None
+                input_selectors = [
+                    "#input__email_verification_pin",
+                    "#input__phone_verification_pin", 
+                    "input[name='pin']",
+                    "input[autocomplete='one-time-code']",
+                    "input[id*='verification']",
+                    "input[id*='pin']"
+                ]
+                
+                for selector in input_selectors:
+                    try:
+                        code_input = driver.find_element(By.CSS_SELECTOR, selector)
+                        if code_input and code_input.is_displayed():
+                            log(f"✅ Found verification input field: {selector}")
+                            break
+                    except:
+                        continue
+                
+                if code_input:
+                    global verification_code_submitted, verification_code_value
+                    
+                    log("📱 2FA code input field detected")
+                    log("=" * 70)
+                    log("🔐 ENTER YOUR 2FA CODE VIA WEB INTERFACE:")
+                    log("   1. Check your email/phone for LinkedIn verification code")
+                    log("   2. A modal will appear on the web page")
+                    log("   3. Enter your 6-digit code in the input field")
+                    log("   4. Click 'Submit Code' button")
+                    log("   5. Automation will enter the code and continue")
+                    log("⏳ Waiting for code submission (max 5 minutes)...")
+                    log("=" * 70)
+                    
+                    # Reset verification state
+                    verification_code_submitted = False
+                    verification_code_value = None
+                    
+                    # Wait for user to submit code via web interface
+                    timeout = 300  # 5 minutes
+                    elapsed = 0
+                    while elapsed < timeout and not verification_code_submitted:
+                        time.sleep(1)
+                        elapsed += 1
+                        if elapsed % 15 == 0:
+                            log(f"⏳ Still waiting for 2FA code... ({elapsed}s elapsed)")
+                    
+                    if verification_code_submitted and verification_code_value:
+                        log(f"✅ Received code, entering it now...")
+                        
+                        # Enter the code
+                        code_input.clear()
+                        code_input.send_keys(verification_code_value)
+                        log("✅ Code entered into LinkedIn form")
+                        time.sleep(1)
+                        
+                        # Find and click submit button
+                        from selenium.webdriver.common.keys import Keys
+                        submit_button = None
+                        button_selectors = [
+                            "button[type='submit']",
+                            "button[data-litms-control-urn*='verify']",
+                            "button[aria-label*='Submit']",
+                            ".primary-action-button",
+                            "button.btn__primary--large"
+                        ]
+                        
+                        for btn_selector in button_selectors:
+                            try:
+                                submit_button = driver.find_element(By.CSS_SELECTOR, btn_selector)
+                                if submit_button and submit_button.is_displayed():
+                                    submit_button.click()
+                                    log(f"✅ Submit button clicked")
+                                    break
+                            except:
+                                continue
+                        
+                        if not submit_button:
+                            log("⚠️ Could not find submit button, using Enter key...")
+                            code_input.send_keys(Keys.RETURN)
+                        
+                        # Wait for redirect
+                        log("⏳ Waiting for LinkedIn to verify...")
+                        time.sleep(3)
+                        wait = WebDriverWait(driver, 30)
+                        try:
+                            wait.until(lambda d: "feed" in d.current_url or "home" in d.current_url or "mynetwork" in d.current_url)
+                            log("=" * 70)
+                            log("✅ Verification completed successfully!")
+                            log(f"✅ Redirected to: {driver.current_url}")
+                            log("=" * 70)
+                            return True
+                        except:
+                            log("❌ Verification may have failed - check code")
+                            return False
+                    else:
+                        log("⏰ Timeout waiting for 2FA code")
+                        return False
+                else:
+                    log("⚠️ Could not find verification input field")
+                    log("=" * 70)
+                    log("⏳ WAITING FOR MANUAL VERIFICATION:")
+                    log("   1. Complete the verification challenge on LinkedIn")
+                    log("   2. You should be redirected to feed/home")
+                    log("   3. Automation will detect completion and resume")
+                    log("⏳ Maximum wait time: 5 minutes")
+                    log("=" * 70)
+                    
+                    # Wait for URL to change to feed/home (verification completed)
+                    wait = WebDriverWait(driver, 300)  # 5 minutes
+                    wait.until(lambda d: "feed" in d.current_url or "home" in d.current_url or "mynetwork" in d.current_url)
+                    
+                    log("=" * 70)
+                    log("✅ Verification completed!")
+                    log(f"✅ Redirected to: {driver.current_url}")
+                    log("=" * 70)
+                    return True
+                    
+            except Exception as verification_error:
+                log("=" * 70)
+                log(f"⏰ Verification timeout or error: {str(verification_error)}")
+                log(f"⏰ Current URL after timeout: {driver.current_url}")
+                log("⚠️ Please check LinkedIn and try again")
+                log("=" * 70)
+                return False
+        else:
+            log("❌ LinkedIn login failed - checking for error messages")
+            try:
+                error_element = driver.find_element(By.CLASS_NAME, "alert-error")
+                log(f"❌ Login error: {error_element.text}")
+            except:
+                log("❌ Login failed - unknown error")
+            return False
+            
+    except Exception as e:
+        log(f"❌ Error during LinkedIn login: {str(e)}")
+        return False
+
+
+# --- AUTOMATION FUNCTION ---
+def run_automation(subject, email_content, attachment_path, cc_email, run_id=None, user_email=None, search_role=None, search_time=None):
+    # Wrap EVERYTHING in try-catch to catch silent failures
+    try:
+        print("=" * 80, flush=True)
+        print("🚀 DEBUG: run_automation FUNCTION CALLED", flush=True)
+        print(f"🚀 DEBUG: Thread ID: {threading.current_thread().ident}", flush=True)
+        print(f"🚀 DEBUG: Thread Name: {threading.current_thread().name}", flush=True)
+        print(f"🚀 DEBUG: Parameters received:", flush=True)
+        print(f"    - subject: {subject}", flush=True)
+        print(f"    - email_content length: {len(email_content) if email_content else 0}", flush=True)
+        print(f"    - attachment_path: {attachment_path}", flush=True)
+        print(f"    - cc_email: {cc_email}", flush=True)
+        print(f"    - run_id: {run_id}", flush=True)
+        print(f"    - user_email: {user_email}", flush=True)
+        print(f"    - search_role: {search_role}", flush=True)
+        print(f"    - search_time: {search_time}", flush=True)
+        print("=" * 80, flush=True)
+    except Exception as top_error:
+        print(f"❌ CRITICAL: Error in function entry: {str(top_error)}", flush=True)
+        import traceback
+        traceback.print_exc()
+        return
+    
+    log("🚀 Starting automation...")
+    log(f"📝 Run ID: {run_id}")
+    if user_email:
+        log(f"👤 User: {user_email}")
+    # Initialize resources referenced in finally/cleanup
+    driver = None
+    all_emails = set()
+
+    try:
+        print("✅ DEBUG: Entered main try block")
+        log("⚙️ Initializing automation process...")
+        print("✅ DEBUG: About to set email credentials")
+        # Log initial state
+        log("⚙️ Initializing automation process...")
+
+        # Fixed email credentials
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = "manudrive06@gmail.com"
+        sender_password = "ozds nrqo gduy mnwd"
+
+        # Chrome setup - always use D:\Profile directory
+        options = webdriver.ChromeOptions()
+        
+        # Only use headless mode if HEADLESS environment variable is not set to "false"
+        if os.environ.get('HEADLESS', 'true').lower() != 'false':
+            options.add_argument("--headless=new")
+            log("🔇 Running Chrome in headless mode")
+        else:
+            log("👁️ Running Chrome in visible mode (headless disabled)")
+        
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--window-size=1920,1080")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--dns-prefetch-disable")
+        options.add_argument("--disable-features=VizDisplayCompositor")
+
+        # Use appropriate profile directory based on environment
+        if os.environ.get('CHROME_BIN'):  # Docker/Cloud environment
+            profile_dir = "/tmp/chrome-profile"
+            log("🌐 Using Docker Chrome profile directory")
+        else:  # Local Windows environment
+            profile_dir = r"D:\Profile"
+            log("🏠 Using Windows Chrome profile directory")
+        
+        os.makedirs(profile_dir, exist_ok=True)
+        options.add_argument(f"--user-data-dir={profile_dir}")
+        log(f"🗂 Using Chrome profile directory: {profile_dir}")
+
+        options.page_load_strategy = 'normal'
+        log("✅ Chrome options configured")
+    except Exception as e:
+        error_msg = f"❌ Error during initialization: {str(e)}"
+        log(error_msg)
+        print(error_msg)
+        raise
+    
+    from selenium.webdriver.chrome.service import Service
+    
+    try:
+        log("=" * 60)
+        log("🔍 DEBUG: Starting Chrome initialization")
+        log(f"🔍 DEBUG: CHROME_BIN env = {os.environ.get('CHROME_BIN')}")
+        log(f"🔍 DEBUG: CHROMEDRIVER_PATH env = {os.environ.get('CHROMEDRIVER_PATH')}")
+        log("=" * 60)
+        
+        # Use explicit ChromeDriver path in Docker/Cloud, auto-install locally
+        if os.environ.get('CHROMEDRIVER_PATH'):
+            chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
+            log(f"🔧 Using ChromeDriver from: {chromedriver_path}")
+            
+            # Verify ChromeDriver exists
+            if os.path.exists(chromedriver_path):
+                log(f"✅ ChromeDriver file exists at {chromedriver_path}")
+            else:
+                log(f"❌ ChromeDriver file NOT FOUND at {chromedriver_path}")
+                raise FileNotFoundError(f"ChromeDriver not found at {chromedriver_path}")
+            
+            service = Service(chromedriver_path)
+            log("✅ Service object created")
+        else:
+            from webdriver_manager.chrome import ChromeDriverManager
+            log("🔄 Installing ChromeDriver via webdriver_manager...")
+            service = Service(ChromeDriverManager().install())
+            log("✅ ChromeDriver installed via webdriver_manager")
+        
+        log("🚀 DEBUG: About to launch Chrome browser...")
+        log(f"🚀 DEBUG: Chrome binary location from options: {options.binary_location if hasattr(options, 'binary_location') and options.binary_location else 'Not set'}")
+        
+        driver = webdriver.Chrome(service=service, options=options)
+        
+        # Set global driver for 2FA handling
+        global automation_driver
+        automation_driver = driver
+        
+        log("✅ Chrome launched successfully!")
+        log(f"✅ Chrome version: {driver.capabilities.get('browserVersion', 'unknown')}")
+        log(f"✅ ChromeDriver version: {driver.capabilities.get('chrome', {}).get('chromedriverVersion', 'unknown')}")
+        print("✅ Chrome instance ready")
+
+        # Login logic: check existing profile first, fallback to email/password
+        login_successful = False
+
+        # First, try to use existing profile
+        log("=" * 60)
+        log("🔍 DEBUG: Starting LinkedIn login check...")
+        log("🔍 DEBUG: Navigating to LinkedIn feed...")
+        
+        try:
+            driver.get("https://www.linkedin.com/feed/")
+            log(f"✅ DEBUG: Page loaded, current URL: {driver.current_url}")
+            log(f"✅ DEBUG: Page title: {driver.title}")
+        except Exception as nav_error:
+            log(f"❌ DEBUG: Navigation error: {str(nav_error)}")
+            raise
+        
+        log("⏳ DEBUG: Waiting 5 seconds for page to settle...")
+        time.sleep(5)  # Increased wait time
+        log(f"✅ DEBUG: After wait, URL: {driver.current_url}")
+
+        # Better login check: look for elements that only exist when logged in
+        try:
+            log("🔍 DEBUG: Checking login indicators...")
+            # Check for multiple indicators of being logged in
+            login_indicators = [
+                ".global-nav__me",  # User profile dropdown
+                ".feed-identity-module",  # Feed identity section
+                "[data-control-name='nav.settings_and_privacy']",  # Settings menu
+                ".nav-item__profile-member-photo"  # Profile photo
+            ]
+
+            logged_in = False
+            for indicator in login_indicators:
+                try:
+                    log(f"🔍 DEBUG: Checking indicator: {indicator}")
+                    elements = driver.find_elements(By.CSS_SELECTOR, indicator)
+                    log(f"🔍 DEBUG: Found {len(elements)} elements for {indicator}")
+                    if elements:
+                        logged_in = True
+                        log(f"✅ DEBUG: Login confirmed via indicator: {indicator}")
+                        break
+                except Exception as ind_error:
+                    log(f"⚠️ DEBUG: Error checking {indicator}: {str(ind_error)}")
+                    continue
+
+            # Also check URL - if redirected to login page, definitely not logged in
+            current_url = driver.current_url
+            log(f"🔍 DEBUG: Final URL check: {current_url}")
+            
+            if "login" in current_url or "authwall" in current_url:
+                logged_in = False
+                log("⚠️ Redirected to login page - not logged in")
+            elif logged_in:
+                log("✅ Existing profile login successful!")
+                login_successful = True
+            else:
+                log("⚠️ Could not find login indicators, profile may not be logged in")
+                log(f"🔍 DEBUG: Page source length: {len(driver.page_source)}")
+                # Save page source for debugging
+                try:
+                    with open('/tmp/linkedin_debug.html', 'w', encoding='utf-8') as f:
+                        f.write(driver.page_source)
+                    log("📄 DEBUG: Page source saved to /tmp/linkedin_debug.html")
+                except:
+                    pass
+
+        except Exception as e:
+            log(f"❌ DEBUG: Error checking login status: {str(e)}")
+            log(f"❌ DEBUG: Error type: {type(e).__name__}")
+            import traceback
+            log(f"❌ DEBUG: Traceback: {traceback.format_exc()}")
+            
+            # Check URL as fallback
+            try:
+                current_url = driver.current_url
+                log(f"🔍 DEBUG: Fallback URL check: {current_url}")
+                if "feed" in current_url or "home" in current_url or "mynetwork" in current_url:
+                    log("✅ Existing profile login successful! (URL check)")
+                    login_successful = True
+                else:
+                    log("⚠️ Profile not logged in (URL check failed)")
+            except Exception as url_error:
+                log(f"❌ DEBUG: Error getting URL in fallback: {str(url_error)}")
+
+        if not login_successful:
+            log("=" * 60)
+            log("🔍 DEBUG: Profile not logged in, checking for email/password login...")
+            log(f"🔍 DEBUG: LINKEDIN_EMAIL env = {'SET' if LINKEDIN_EMAIL else 'NOT SET'}")
+            log(f"🔍 DEBUG: LINKEDIN_PASSWORD env = {'SET' if LINKEDIN_PASSWORD else 'NOT SET'}")
+            log("=" * 60)
+            log("🔄 Profile not logged in, attempting email/password login")
+
+        if not login_successful and LINKEDIN_EMAIL and LINKEDIN_PASSWORD:
+            # Use email/password login - this will save session in the same profile directory
+            log("🔐 Attempting email/password login...")
+            login_result = linkedin_login(driver, LINKEDIN_EMAIL, LINKEDIN_PASSWORD)
+            if login_result:
+                login_successful = True
+                log("✅ Email/password login successful - session saved to profile")
+            else:
+                log("❌ Email/password login failed")
+
+        if not login_successful:
+            log("❌ No login method succeeded - automation may fail")
+        else:
+            log("✅ Proceeding with job search...")
+        
+        # Continue with job search...
+    except Exception as e:
+        error_msg = f"❌ Failed to launch Chrome: {str(e)}"
+        log(error_msg)
+        print(error_msg)
+        raise
+
+    try:
+        # Get search parameters from function args or fallback to profile preferences
+        profile_data = db.get_profile(user_email) if user_email else {}
+
+        # Use passed-in search parameters if provided, otherwise fall back to profile preferences
+        if not search_role:
+            search_role = profile_data.get('searchRole', '')
+        if not search_time:
+            search_time = profile_data.get('searchTimePeriod', 'past-week')
+        
+        # Convert roles to LinkedIn search format
+        roles = [role.strip() for role in search_role.split(',')]
+        search_keywords = ' OR '.join(f'{role.strip()} hiring' for role in roles)
+        
+        # Build LinkedIn search URL
+        base_url = "https://www.linkedin.com/search/results/content/?"
+        params = {
+            'datePosted': f'"{search_time}"',
+            'keywords': search_keywords
+        }
+        
+        # URL encode parameters
+        from urllib.parse import urlencode
+        search_url = base_url + urlencode(params)
+        log(f"🔍 Using search URL: {search_url}")
+        
+        search_urls = [search_url]
+        all_emails = set()
+
+        for url in search_urls:
+            log(f"🌐 Opening {url}")
+            driver.get(url)
+            time.sleep(5)
+            # Scroll with dynamic wait
+            last_height = driver.execute_script("return document.body.scrollHeight")
+            scroll_attempts = 0
+            max_attempts = 18
+            
+            while scroll_attempts < max_attempts:
+                # Scroll down
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(3)  # Wait for content to load
+                
+                # Calculate new scroll height and compare with last scroll height
+                new_height = driver.execute_script("return document.body.scrollHeight")
+                if new_height == last_height:
+                    # If heights are the same, content might be fully loaded
+                    break
+
+                last_height = new_height
+                scroll_attempts += 1
+                log(f"📜 Scrolling... ({scroll_attempts}/{max_attempts})")
+            
+            # Add wait for job posts
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+            
+            log("⏳ Waiting for posts to load...")
+            wait = WebDriverWait(driver, 20)
+            
+            # Try multiple possible selectors for job posts
+            selectors = [
+                ".feed-shared-update-v2",
+                "article.ember-view",
+                ".update-components-actor",
+                ".social-details-social-activity"
+            ]
+            
+            job_posts = []
+            for selector in selectors:
+                try:
+                    # Wait for elements to be present
+                    elements = wait.until(
+                        EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector))
+                    )
+                    if elements:
+                        log(f"✅ Found posts using selector: {selector}")
+                        job_posts = elements
+                        break
+                except Exception as e:
+                    log(f"⚠️ Selector {selector} failed: {str(e)}")
+                    continue
+            
+            if not job_posts:
+                log("❌ No job posts found with any selector")
+                return
+                
+            for post in job_posts:
+                try:
+                    # Try multiple selectors for title and description
+                    title_selectors = [
+                        ".feed-shared-text",
+                        ".feed-shared-text-view",
+                        ".update-components-text",
+                        ".share-update-card__update-text",
+                        ".feed-shared-update-v2__description",
+                        "span.break-words"
+                    ]
+                    
+                    title_elem = None
+                    for selector in title_selectors:
+                        try:
+                            title_elem = post.find_element(By.CSS_SELECTOR, selector)
+                            if title_elem:
+                                break
+                        except:
+                            continue
+                    
+                    title = title_elem.text if title_elem else "Job Title Not Found"
+                    
+                    # Try multiple selectors for company name
+                    company_selectors = [
+                        ".feed-shared-actor__name",
+                        ".update-components-actor__name",
+                        ".share-update-card__actor-name",
+                        ".feed-shared-actor__sub-description"
+                    ]
+                    
+                    company_elem = None
+                    for selector in company_selectors:
+                        try:
+                            company_elem = post.find_element(By.CSS_SELECTOR, selector)
+                            if company_elem:
+                                break
+                        except:
+                            continue
+                    
+                    company = company_elem.text if company_elem else "Company Not Found"
+                    
+                    # Save full text and create a truncated description
+                    full_text = title_elem.text if title_elem else ""
+                    description = full_text[:200] + "..." if len(full_text) > 200 else full_text
+                    
+                    # Find mailto links in the post
+                    mailtos = post.find_elements(By.XPATH, ".//a[contains(@href, 'mailto:')]")
+                    for m in mailtos:
+                        email = m.get_attribute("href").replace("mailto:", "")
+                        all_emails.add(email)
+                        
+                        # Save job post with email
+                        job_post = {
+                            "title": title,
+                            "company": company,
+                            "description": description,
+                            "full_text": full_text,  # Save complete post text
+                            "email": email,
+                            "location": "Remote/On-site",  # You can enhance this with actual location parsing
+                            "job_type": "Full-time",      # You can enhance this with actual job type parsing
+                            "posted_date": datetime.now().strftime("%Y-%m-%d"),
+                            "url": url,
+                            "job_url": url,
+                            "skills": []
+                        }
+                        save_job_post(job_post, user_email)
+                        
+                except Exception as e:
+                    log(f"Error extracting job post: {e}")
+                    continue
+
+        log(f"📧 Found {len(all_emails)} email(s).")
+
+        # CHECK EMAIL LIMIT FOR FREE USERS BEFORE SENDING
+        skipped_emails = []
+        if user_email:
+            try:
+                subscription = db.get_subscription(user_email)
+                user_plan = subscription.get('plan', 'free')
+                
+                if user_plan == 'free':
+                    # Count emails sent today
+                    from datetime import date
+                    today = date.today()
+                    
+                    conn = db.get_connection()
+                    cursor = conn.cursor()
+                    
+                    cursor.execute('''
+                        SELECT COUNT(*) as count
+                        FROM sent_emails
+                        WHERE user_email = ? AND DATE(sent_at) = DATE('now')
+                    ''', (user_email,))
+                    
+                    result = cursor.fetchone()
+                    conn.close()
+                    
+                    emails_today = result['count'] if result else 0
+                    
+                    if emails_today >= 10:
+                        print(f"❌ Daily limit reached! Free users can send 10 emails per day. Already sent: {emails_today}")
+                        print("⚠️ Stopping automation. Upgrade to Pro for unlimited emails.")
+                        send_event(f"<div class='upgrade-prompt'><h4>🚀 Daily Limit Reached!</h4><p>You've sent all 10 emails available on the Free plan today.</p><p><strong>Missing opportunities for {len(all_emails)} potential jobs!</strong></p><a href='/pricing' class='btn-upgrade'>Upgrade to Pro for Unlimited Emails</a></div>")
+                        return  # Stop the automation
+                    
+                    # Check if we're about to exceed the limit
+                    emails_to_send = len(all_emails)
+                    if emails_today + emails_to_send > 10:
+                        max_can_send = 10 - emails_today
+                        print(f"⚠️ Can only send {max_can_send} more emails today (already sent {emails_today}/10)")
+                        # Store skipped emails for upgrade prompt
+                        all_emails_list = list(all_emails)
+                        skipped_emails = all_emails_list[max_can_send:]
+                        all_emails = set(all_emails_list[:max_can_send])  # Limit to remaining quota
+                        print(f"📊 Will send {len(all_emails)} emails, {len(skipped_emails)} will be skipped due to free plan limit")
+                    
+                    print(f"✅ Email limit check passed. Plan: {user_plan}, Sent today: {emails_today}/10")
+            except Exception as e:
+                print(f"⚠️ Could not check email limit: {str(e)}")
+
+        # Function to check if email was already sent (using SQLite)
+        def is_duplicate_email(email, subject):
+            try:
+                # Query SQLite directly for this email+subject combination
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    SELECT sent_at FROM sent_emails
+                    WHERE recipient_email = ? AND subject = ? AND status IN ('sent', 'skipped')
+                    LIMIT 1
+                ''', (email, subject))
+                
+                result = cursor.fetchone()
+                conn.close()
+                
+                if result:
+                    return True, result['sent_at']
+                
+                return False, None
+                
+            except Exception as e:
+                print(f"❌ Error checking for duplicate email: {str(e)}")
+                # If we can't check reliably, assume it might be a duplicate
+                return True, None
+
+        # Send emails with enhanced duplicate checking
+        emails_sent_count = 0
+        for receiver_email in all_emails:
+            try:
+                # Check if this exact email+subject was already sent
+                is_duplicate, last_sent = is_duplicate_email(receiver_email, subject)
+                
+                if is_duplicate:
+                    when = f" (last sent: {last_sent})" if last_sent else ""
+                    print(f"⚠️ Already sent to {receiver_email} with subject '{subject}'{when} — skipping.")
+                    
+                    # Record skip with detailed reason
+                    save_sent_email({
+                        "email": receiver_email,
+                        "recipient_email": receiver_email,
+                        "subject": subject if subject else "",
+                        "cc": cc_email,
+                        "sent_at": datetime.now().isoformat(),
+                        "status": "skipped",
+                        "reason": "duplicate",
+                        "last_sent": last_sent,
+                        "source_url": ",".join(search_urls)
+                    }, run_id, user_email)
+                    continue
+
+                # Create message
+                msg = MIMEMultipart()
+                msg["From"] = sender_email
+                msg["To"] = receiver_email
+                msg["Cc"] = cc_email  # Add CC
+                msg["Subject"] = subject if subject else "Application"
+                
+                # Handle email content
+                if email_content is None:
+                    email_content = "No content provided"
+                # Ensure content is string and properly encoded
+                email_content = str(email_content).encode('utf-8').decode('utf-8')
+                msg.attach(MIMEText(email_content, "plain", "utf-8"))
+
+                # Handle attachment
+                if attachment_path and os.path.exists(attachment_path):
+                    with open(attachment_path, "rb") as attachment:
+                        part = MIMEBase("application", "octet-stream")
+                        part.set_payload(attachment.read())
+                        encoders.encode_base64(part)
+                        part.add_header(
+                            "Content-Disposition",
+                            f"attachment; filename={os.path.basename(attachment_path)}"
+                        )
+                        msg.attach(part)
+
+                # Extract company name from email for better UX
+                company_name = extract_company_from_email(receiver_email)
+                send_event(f"📧 Sending email to {company_name}...")
+                send_event(f"EMAIL_PENDING:{receiver_email}")
+                
+                server = smtplib.SMTP(smtp_server, smtp_port)
+                server.starttls()
+                server.login(sender_email, sender_password)
+                # Send to both receiver and CC recipient
+                recipients = [receiver_email]
+                if cc_email:
+                    recipients.append(cc_email)
+                server.sendmail(sender_email, recipients, msg.as_string())
+                server.quit()
+
+                emails_sent_count += 1
+                send_event(f"✅ Email sent to {company_name} successfully!")
+                send_event(f"EMAIL_SENT:{receiver_email}")
+                print(f"✅ Sent to {receiver_email} (CC: {cc_email})")
+                # Persist sent email record
+                save_sent_email({
+                    "email": receiver_email,
+                    "recipient_email": receiver_email,
+                    "subject": subject if subject else "",
+                    "cc": cc_email,
+                    "sent_at": datetime.now().isoformat(),
+                    "status": "sent",
+                    "source_url": ",".join(search_urls)
+                }, run_id, user_email)
+            except Exception as e:
+                log(f"❌ Failed to send email to {receiver_email}: {e}")
+                # Persist failure
+                try:
+                    save_sent_email({
+                        "email": receiver_email,
+                        "recipient_email": receiver_email,
+                        "subject": subject if subject else "",
+                        "cc": cc_email,
+                        "sent_at": datetime.now().isoformat(),
+                        "status": "failed",
+                        "error": str(e),
+                        "source_url": ",".join(search_urls)
+                    }, run_id, user_email)
+                except Exception:
+                    pass
+
+    finally:
+        try:
+            # Force close any remaining Chrome instances
+            if driver:
+                try:
+                    driver.quit()
+                    print("✅ Driver quit successfully")
+                except Exception as quit_error:
+                    print(f"⚠️ Driver quit failed: {str(quit_error)}")
+            
+            # Always cleanup Chrome processes (even if driver.quit() fails)
+            cleanup_chrome_processes()
+            print("🧹 Browser and Chrome instances closed.")
+
+            # Send completion status back to the frontend
+            send_event(f"<div class='success-message'>🎉 Automation completed! Sent {emails_sent_count} emails successfully.</div>")
+            print("✅ Automation completed successfully!")
+            print(f"📊 Summary:")
+            print(f"   - Emails found: {len(all_emails)}")
+            print(f"   - Emails sent: {emails_sent_count}")
+            
+            # Show upgrade prompt if emails were skipped
+            if len(skipped_emails) > 0:
+                skipped_companies = [extract_company_from_email(email) for email in skipped_emails[:5]]
+                companies_list = '<br>'.join([f"• {company}" for company in skipped_companies])
+                more_text = f"<br>• ...and {len(skipped_emails) - 5} more companies" if len(skipped_emails) > 5 else ""
+                
+                send_event(f"""<div class='upgrade-prompt-modal'>
+                    <h3>🌟 You're Missing Great Opportunities!</h3>
+                    <p><strong>{len(skipped_emails)} emails couldn't be sent</strong> due to your Free plan limit (10 emails/day).</p>
+                    <div class='missed-companies'>
+                        <p><strong>Companies you missed:</strong></p>
+                        {companies_list}{more_text}
+                    </div>
+                    <p class='upgrade-cta'>💎 Upgrade to Pro for unlimited emails and never miss an opportunity!</p>
+                    <a href='/pricing' class='btn-upgrade-big'>Upgrade to Pro Now</a>
+                </div>""")
+                print(f"📋 Skipped {len(skipped_emails)} emails due to free plan limit")
+            
+            # Return status if this was called from a route
+            return {
+                "status": "completed",
+                "emails_found": len(all_emails),
+                "message": "Automation completed successfully!"
+            }
+            
+        except Exception as e:
+            log(f"❌ Error during cleanup: {str(e)}")
+            # Still try to kill Chrome processes even if everything else fails
+            try:
+                cleanup_chrome_processes()
+            except:
+                pass
+
+
+# --- START AUTOMATION ---
+@app.route("/run_automation", methods=["POST"])
+@login_required
+def send_email():
+    print("📥 Received automation request")
+    
+    # Get the logged-in user's email for CC
+    user_email = session.get("user")
+    print(f"👤 User email: {user_email}")
+    
+    # CHECK EMAIL LIMIT BEFORE STARTING AUTOMATION
+    can_send, emails_sent, limit_message = check_email_limit(user_email)
+    if not can_send:
+        print(f"🚫 Blocking automation - limit reached!")
+        return jsonify({
+            "success": False,
+            "error": limit_message,
+            "limit_reached": True,
+            "upgrade_url": "/pricing"
+        }), 403
+    
+    print(f"✅ Email limit check passed. Sent today: {emails_sent}/10")
+    
+    # Get form data
+    subject = request.form.get("subject", "Application")
+    email_content = request.form.get("content", "").strip()
+    search_role = request.form.get("searchRole", "").strip()
+    search_time_period = request.form.get("searchTimePeriod", "past-week")
+    use_saved_resume = request.form.get("useSavedResume") == "true"
+    
+    # Save search preferences to user profile
+    try:
+        # Note: This requires extending the user_profiles table or using JSON storage
+        # For now, we'll just log it
+        print(f"Search preferences: role={search_role}, time={search_time_period}")
+    except Exception as e:
+        print(f"⚠️ Could not save search preferences: {e}")
+    print(f"📧 Subject: {subject}")
+    print(f"📝 Content length: {len(email_content)} characters")
+    print(f"📎 Using saved resume: {use_saved_resume}")
+    
+    resume_path = None
+    
+    if use_saved_resume:
+        # Get saved resume BLOB from database
+        try:
+            profile_data = db.get_profile(user_email)
+            if profile_data:
+                resume_blob = profile_data.get('resume_data')
+                resume_filename = profile_data.get('resume_filename')
+                
+                if resume_blob and resume_filename:
+                    print(f"📄 Retrieving saved resume: {resume_filename}")
+                    
+                    try:
+                        # Write BLOB to temporary file
+                        temp_dir = tempfile.gettempdir()
+                        resume_path = os.path.join(temp_dir, f"{user_email}_{resume_filename}")
+                        
+                        with open(resume_path, 'wb') as f:
+                            f.write(resume_blob)
+                        
+                        print(f"✅ Resume restored to temporary file: {resume_path}")
+                        print(f"✅ Resume size: {len(resume_blob)} bytes")
+                        
+                    except Exception as write_error:
+                        print(f"❌ Error writing resume: {str(write_error)}")
+                        flash("Error loading saved resume. Please upload a new resume.", "error")
+                        return redirect(url_for("send_page"))
+                else:
+                    flash("No resume found in your profile. Please upload a resume.", "error")
+                    return redirect(url_for("send_page"))
+            else:
+                flash("Profile not found. Please upload a resume.", "error")
+                return redirect(url_for("send_page"))
+        except Exception as e:
+            print(f"❌ Error accessing profile: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            flash("Error accessing profile. Please upload a resume.", "error")
+            return redirect(url_for("send_page"))
+    else:
+        # Handle new file upload - save to temporary location
+        if "resume" not in request.files:
+            print("❌ No resume file in request")
+            flash("Please upload a resume or use your saved resume.", "error")
+            return redirect(url_for("send_page"))
+            
+        resume = request.files["resume"]
+        if resume.filename == "":
+            print("❌ Empty resume filename")
+            flash("No resume file selected. Please choose a file or use your saved resume.", "error")
+            return redirect(url_for("send_page"))
+
+        # Save the uploaded resume to temporary location (works in Docker)
+        temp_dir = tempfile.gettempdir()
+        resume_path = os.path.join(temp_dir, f"{user_email}_{resume.filename}")
+        resume.save(resume_path)
+        print(f"📄 Resume saved to temporary file: {resume_path}")
+
+    # Clean up any existing Chrome instances before starting
+    print("🧹 DEBUG: Cleaning up Chrome processes...")
+    cleanup_chrome_processes()
+    print("✅ DEBUG: Chrome cleanup complete")
+
+    # Generate a unique run ID
+    run_id = datetime.now().strftime('%Y%m%d_%H%M%S')
+    print(f"🆔 DEBUG: Generated run_id: {run_id}")
+
+    # Initialize automation run in SQLite
+    try:
+        print("💾 DEBUG: Saving automation run to SQLite...")
+        save_automation_run(run_id, user_email, {
+            'subject': subject,
+            'usesSavedResume': use_saved_resume,
+            'resumePath': resume_path,
+            'searchRole': search_role,
+            'searchTimePeriod': search_time_period
+        })
+        print("✅ DEBUG: Automation run saved to SQLite")
+    except Exception as e:
+        print(f"⚠️ Could not save automation run: {e}")
+
+    # Start automation in background thread
+    print("=" * 60)
+    print("🧵 DEBUG: Starting automation thread...")
+    print(f"🧵 DEBUG: Thread args: subject={subject}, content_len={len(email_content)}, resume={resume_path}")
+    print(f"🧵 DEBUG: Thread args: run_id={run_id}, user={user_email}, role={search_role}, time={search_time_period}")
+    print("=" * 60)
+    
+    # Fixed argument order to match function signature:
+    # run_automation(subject, email_content, attachment_path, cc_email, run_id, user_email, search_role, search_time)
+    thread = threading.Thread(
+        target=run_automation,
+        args=(subject, email_content, resume_path, user_email, run_id, user_email, search_role, search_time_period),
+        daemon=True
+    )
+    thread.start()
+    print(f"✅ DEBUG: Thread started, thread is alive: {thread.is_alive()}")
+    print(f"✅ DEBUG: Thread name: {thread.name}")
+
+    flash("🚀 Automation started in background. Check console logs for updates.", "success")
+    return redirect(url_for("send_page"))
+
+
+# --- PRICING & PAYMENT ---
+@app.route("/pricing")
+@login_required
+def pricing_page():
+    """Display pricing plans"""
+    user_email = session.get("user")
+    subscription = db.get_subscription(user_email)
+    
+    return render_template("pricing.html", subscription=subscription)
+
+
+@app.route("/create_payment", methods=["POST"])
+@login_required
+def create_payment():
+    """Create Razorpay payment order"""
+    try:
+        if not razorpay_client:
+            return jsonify({'success': False, 'error': 'Payment gateway not configured'})
+        
+        data = request.get_json()
+        plan = data.get('plan')
+        price = data.get('price')
+        user_email = session.get("user")
+        
+        if not plan or not price:
+            return jsonify({'success': False, 'error': 'Invalid payment data'})
+        
+        # Get user profile for phone number
+        user_name = user_email.split('@')[0]  # Default name from email
+        user_contact = ''
+        
+        try:
+            profile = db.get_profile(user_email)
+            if profile:
+                user_contact = profile.get('phone', profile.get('contact', ''))
+                if profile.get('display_name'):
+                    user_name = profile.get('display_name')
+        except Exception as e:
+            print(f"⚠️ Could not fetch user profile: {e}")
+        
+        # Generate unique order ID
+        order_id = f"JMI_{int(time.time())}_{plan}"
+        
+        # Create Razorpay order
+        razorpay_order = razorpay_client.order.create({
+            'amount': int(float(price) * 100),  # Razorpay expects amount in paise (1 INR = 100 paise)
+            'currency': 'INR',
+            'receipt': order_id,
+            'notes': {
+                'plan': plan,
+                'user_email': user_email
+            }
+        })
+        
+        # Store pending payment in SQLite
+        # Note: This requires a pending_payments table which exists in database.py
+        try:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                INSERT INTO pending_payments (order_id, user_email, plan, amount, created_at)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ''', (order_id, user_email, plan, price))
+            
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"⚠️ Could not store pending payment: {e}")
+        
+        # Prepare prefill data
+        prefill_data = {
+            'email': user_email,
+            'name': user_name
+        }
+        
+        # Add contact only if available
+        if user_contact:
+            prefill_data['contact'] = user_contact
+        
+        return jsonify({
+            'success': True,
+            'razorpay_order_id': razorpay_order['id'],
+            'razorpay_key_id': RAZORPAY_KEY_ID,
+            'order_id': order_id,
+            'amount': int(float(price) * 100),  # Amount in paise for frontend
+            'currency': 'INR',
+            'name': 'JustMailIt',
+            'description': f'{plan} Plan Subscription',
+            'prefill': prefill_data
+        })
+        
+    except Exception as e:
+        print(f"❌ Payment creation error: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Failed to create payment: {str(e)}'
+        })
+
+
+@app.route("/payment/webhook", methods=["POST"])
+def payment_webhook():
+    """Razorpay webhook for automatic payment verification"""
+    try:
+        # Get webhook data
+        webhook_data = request.get_json()
+        
+        # Verify webhook signature (important for security)
+        webhook_signature = request.headers.get('X-Razorpay-Signature')
+        webhook_secret = os.getenv('RAZORPAY_WEBHOOK_SECRET', '')
+        
+        # Verify signature if webhook secret is configured
+        if webhook_secret and razorpay_client:
+            try:
+                razorpay_client.utility.verify_webhook_signature(
+                    json.dumps(webhook_data, separators=(',', ':')),
+                    webhook_signature,
+                    webhook_secret
+                )
+            except Exception as e:
+                print(f"⚠️ Webhook signature verification failed: {e}")
+                return jsonify({'success': False, 'error': 'Invalid signature'}), 400
+        
+        # Handle payment.captured event
+        event = webhook_data.get('event')
+        
+        if event == 'payment.captured':
+            payment = webhook_data.get('payload', {}).get('payment', {}).get('entity', {})
+            razorpay_order_id = payment.get('order_id')  # Razorpay's order ID
+            razorpay_payment_id = payment.get('id')
+            amount = payment.get('amount') / 100  # Convert from paise to INR
+            
+            # Update payment and activate subscription
+            if razorpay_order_id:
+                try:
+                    conn = db.get_connection()
+                    cursor = conn.cursor()
+                    
+                    # Get pending payment by Razorpay order ID
+                    cursor.execute('''
+                        SELECT * FROM pending_payments WHERE order_id = ?
+                    ''', (razorpay_order_id,))
+                    
+                    payment_data = cursor.fetchone()
+                    conn.close()
+                    
+                    if payment_data:
+                        user_email = payment_data['user_email']
+                        plan = payment_data['plan']
+                        doc_order_id = payment_data['order_id']
+                        amount = payment_data['amount']
+                        
+                        # Activate subscription
+                        activate_subscription(user_email, plan, amount, doc_order_id)
+                        
+                        print(f"✅ Payment webhook: {user_email} upgraded to {plan} (Payment ID: {razorpay_payment_id})")
+                except Exception as e:
+                    print(f"⚠️ Could not process webhook: {e}")
+        
+        return jsonify({'success': True}), 200
+        
+    except Exception as e:
+        print(f"❌ Webhook error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route("/payment/callback")
+def payment_callback():
+    """Handle return URL after payment"""
+    order_id = request.args.get('order_id')
+    
+    # Redirect to pricing page with status
+    return redirect(url_for('pricing_page', order_id=order_id, status='success'))
+
+
+@app.route("/payment/success", methods=["POST"])
+@login_required
+def payment_success():
+    """Handle immediate payment success from Razorpay frontend"""
+    try:
+        data = request.get_json()
+        razorpay_payment_id = data.get('razorpay_payment_id')
+        razorpay_order_id = data.get('razorpay_order_id')
+        razorpay_signature = data.get('razorpay_signature')
+        our_order_id = data.get('order_id')
+        
+        # Verify payment signature
+        if razorpay_client:
+            try:
+                params_dict = {
+                    'razorpay_order_id': razorpay_order_id,
+                    'razorpay_payment_id': razorpay_payment_id,
+                    'razorpay_signature': razorpay_signature
+                }
+                razorpay_client.utility.verify_payment_signature(params_dict)
+                print(f"✅ Payment signature verified: {razorpay_payment_id}")
+            except Exception as e:
+                print(f"❌ Payment signature verification failed: {e}")
+                return jsonify({'success': False, 'error': 'Invalid payment signature'})
+        
+        # Get payment details from SQLite
+        try:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute('SELECT * FROM pending_payments WHERE order_id = ?', (our_order_id,))
+            payment_data = cursor.fetchone()
+            conn.close()
+            
+            if payment_data:
+                user_email = payment_data['user_email']
+                plan = payment_data['plan']
+                amount = payment_data['amount']
+                
+                # Activate subscription
+                activate_subscription(user_email, plan, amount, our_order_id)
+                
+                print(f"✅ Payment success: {user_email} upgraded to {plan} (Payment ID: {razorpay_payment_id})")
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Successfully upgraded to {plan} plan!',
+                    'status': 'completed'
+                })
+            else:
+                return jsonify({'success': False, 'error': 'Payment record not found'})
+        except Exception as e:
+            print(f"❌ Error processing payment: {e}")
+            return jsonify({'success': False, 'error': 'Payment processing failed'})
+        
+    except Exception as e:
+        print(f"❌ Payment success handler error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+def activate_subscription(user_email, plan, price, order_id):
+    """Activate user subscription after successful payment"""
+    try:
+        from datetime import timedelta
+        next_billing = datetime.now() + timedelta(days=30)
+        
+        subscription_data = {
+            'plan': plan,
+            'status': 'active',
+            'amount': price,
+            'razorpay_order_id': order_id,
+            'expires_at': next_billing.isoformat()
+        }
+        
+        db.create_or_update_subscription(user_email, subscription_data)
+        print(f"✅ Subscription activated: {user_email} - {plan} plan")
+        
+    except Exception as e:
+        print(f"❌ Activate subscription error: {e}")
+
+
+@app.route("/check_payment_status/<order_id>", methods=["GET"])
+@login_required
+def check_payment_status(order_id):
+    """Check if payment has been completed"""
+    try:
+        user_email = session.get("user")
+        
+        # Check if user has active subscription
+        subscription = db.get_subscription(user_email)
+        
+        if subscription and subscription.get('status') == 'active':
+            # Check if subscription is recent (within last 5 minutes)
+            started_at = subscription.get('started_at')
+            if started_at:
+                # Parse timestamp if it's a string
+                if isinstance(started_at, str):
+                    try:
+                        # Try to parse ISO format timestamp
+                        start_date = datetime.fromisoformat(started_at.replace('Z', '+00:00'))
+                    except:
+                        start_date = None
+                else:
+                    start_date = started_at
+                
+                if start_date and (datetime.now() - start_date).total_seconds() < 300:
+                    return jsonify({
+                        'success': True,
+                        'status': 'completed',
+                        'plan': subscription.get('plan'),
+                        'message': 'Payment verified and subscription activated!'
+                    })
+        
+        # Check pending payment status
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT * FROM pending_payments WHERE order_id = ?', (order_id,))
+        payment_data = cursor.fetchone()
+        conn.close()
+        
+        if payment_data:
+            return jsonify({
+                'success': True,
+                'status': 'pending',
+                'message': 'Waiting for payment confirmation...'
+            })
+        
+        return jsonify({
+            'success': True,
+            'status': 'pending',
+            'message': 'Payment pending'
+        })
+        
+    except Exception as e:
+        print(f"❌ Payment status check error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to check payment status'
+        })
+
+
+# ========== ADMIN PANEL ROUTES ==========
+
+# Admin email - change this to your admin email
+ADMIN_EMAIL = "manuchaturvedi28mc@gmail.com"
+
+def admin_required(f):
+    """Decorator to check if user is admin"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user" not in session:
+            flash("Please log in first!", "warning")
+            return redirect(url_for('landing'))
+        
+        # session['user'] is a string (email), not a dict
+        user_email = session.get('user', '')
+        if user_email != ADMIN_EMAIL:
+            flash("Access denied. Admin only!", "danger")
+            return redirect(url_for('dashboard'))
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/admin')
+@admin_required
+def admin_panel():
+    """Admin panel dashboard"""
+    try:
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get total users
+        cursor.execute("SELECT COUNT(*) FROM user_profiles")
+        total_users = cursor.fetchone()[0]
+        
+        # Get new users today
+        cursor.execute("""
+            SELECT COUNT(*) FROM user_profiles 
+            WHERE DATE(created_at) = DATE('now')
+        """)
+        new_users_today = cursor.fetchone()[0]
+        
+        # Get total emails sent
+        cursor.execute("SELECT COUNT(*) FROM sent_emails")
+        total_emails = cursor.fetchone()[0]
+        
+        # Get emails sent today
+        cursor.execute("""
+            SELECT COUNT(*) FROM sent_emails 
+            WHERE DATE(sent_at) = DATE('now')
+        """)
+        emails_today = cursor.fetchone()[0]
+        
+        # Get active automation runs
+        cursor.execute("""
+            SELECT COUNT(*) FROM automation_runs 
+            WHERE status = 'running'
+        """)
+        active_runs = cursor.fetchone()[0]
+        
+        # Get total automation runs
+        cursor.execute("SELECT COUNT(*) FROM automation_runs")
+        total_runs = cursor.fetchone()[0]
+        
+        # Get premium users count
+        cursor.execute("""
+            SELECT COUNT(*) FROM subscriptions 
+            WHERE status = 'active' AND plan != 'free'
+        """)
+        premium_users = cursor.fetchone()[0]
+        
+        # Get recent users (last 10)
+        cursor.execute("""
+            SELECT email, display_name, created_at 
+            FROM user_profiles 
+            ORDER BY created_at DESC 
+            LIMIT 10
+        """)
+        recent_users = [dict(row) for row in cursor.fetchall()]
+        
+        # Get user email statistics with subscription info
+        cursor.execute("""
+            SELECT 
+                up.email,
+                up.display_name,
+                up.created_at,
+                COUNT(DISTINCT se.id) as emails_sent,
+                COUNT(DISTINCT ar.id) as automation_runs,
+                COALESCE(s.plan, 'free') as plan,
+                COALESCE(s.status, 'inactive') as subscription_status,
+                s.expires_at
+            FROM user_profiles up
+            LEFT JOIN sent_emails se ON up.email = se.user_email
+            LEFT JOIN automation_runs ar ON up.email = ar.user_email
+            LEFT JOIN subscriptions s ON up.email = s.user_email
+            GROUP BY up.email
+            ORDER BY emails_sent DESC, up.created_at DESC
+            LIMIT 50
+        """)
+        user_stats = [dict(row) for row in cursor.fetchall()]
+        
+        # Get recent email activity
+        cursor.execute("""
+            SELECT 
+                se.user_email,
+                se.recipient_email,
+                se.subject,
+                se.company,
+                se.job_title,
+                se.sent_at,
+                se.status
+            FROM sent_emails se
+            ORDER BY se.sent_at DESC
+            LIMIT 50
+        """)
+        recent_emails = [dict(row) for row in cursor.fetchall()]
+        
+        # Get daily email stats (last 7 days)
+        cursor.execute("""
+            SELECT 
+                DATE(sent_at) as date,
+                COUNT(*) as count
+            FROM sent_emails
+            WHERE sent_at >= DATE('now', '-7 days')
+            GROUP BY DATE(sent_at)
+            ORDER BY date DESC
+        """)
+        daily_stats = [dict(row) for row in cursor.fetchall()]
+        
+        conn.close()
+        
+        stats = {
+            'total_users': total_users,
+            'new_users_today': new_users_today,
+            'total_emails': total_emails,
+            'emails_today': emails_today,
+            'active_runs': active_runs,
+            'total_runs': total_runs,
+            'premium_users': premium_users
+        }
+        
+        return render_template('admin.html',
+                             stats=stats,
+                             recent_users=recent_users,
+                             user_stats=user_stats,
+                             recent_emails=recent_emails,
+                             daily_stats=daily_stats)
+    
+    except Exception as e:
+        print(f"Admin panel error: {e}")
+        flash(f"Error loading admin panel: {str(e)}", "danger")
+        return redirect(url_for('dashboard'))
+
+@app.route('/admin/api/stats')
+@admin_required
+def admin_api_stats():
+    """API endpoint for real-time admin stats"""
+    try:
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get various statistics
+        cursor.execute("SELECT COUNT(*) FROM user_profiles")
+        total_users = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM sent_emails WHERE DATE(sent_at) = DATE('now')")
+        emails_today = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM automation_runs WHERE status = 'running'")
+        active_runs = cursor.fetchone()[0]
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'total_users': total_users,
+            'emails_today': emails_today,
+            'active_runs': active_runs
+        })
+    
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/user/<email>')
+@admin_required
+def admin_user_detail(email):
+    """View detailed information about a specific user"""
+    try:
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get user profile
+        cursor.execute("SELECT * FROM user_profiles WHERE email = ?", (email,))
+        user = dict(cursor.fetchone())
+        
+        # Get user's sent emails
+        cursor.execute("""
+            SELECT * FROM sent_emails 
+            WHERE user_email = ? 
+            ORDER BY sent_at DESC
+        """, (email,))
+        sent_emails = [dict(row) for row in cursor.fetchall()]
+        
+        # Get user's automation runs
+        cursor.execute("""
+            SELECT * FROM automation_runs 
+            WHERE user_email = ? 
+            ORDER BY started_at DESC
+        """, (email,))
+        automation_runs = [dict(row) for row in cursor.fetchall()]
+        
+        # Get user's job posts
+        cursor.execute("""
+            SELECT * FROM job_posts 
+            WHERE user_email = ? 
+            ORDER BY created_at DESC
+        """, (email,))
+        job_posts = [dict(row) for row in cursor.fetchall()]
+        
+        # Get user's subscription info
+        cursor.execute("""
+            SELECT * FROM subscriptions 
+            WHERE user_email = ?
+        """, (email,))
+        subscription_row = cursor.fetchone()
+        subscription = dict(subscription_row) if subscription_row else None
+        
+        conn.close()
+        
+        return render_template('admin_user_detail.html',
+                             user=user,
+                             sent_emails=sent_emails,
+                             automation_runs=automation_runs,
+                             job_posts=job_posts,
+                             subscription=subscription)
+    
+    except Exception as e:
+        print(f"Admin user detail error: {e}")
+        flash(f"Error loading user details: {str(e)}", "danger")
+        return redirect(url_for('admin_panel'))
+
+@app.route('/admin/upgrade_user', methods=['POST'])
+@admin_required
+def admin_upgrade_user():
+    """Admin endpoint to upgrade user to Pro without payment"""
+    try:
+        data = request.get_json()
+        user_email = data.get('email')
+        duration_days = int(data.get('duration_days', 365))  # Default 1 year
+        
+        if not user_email:
+            return jsonify({'success': False, 'message': 'Email is required'}), 400
+        
+        # Check if user exists
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT email FROM user_profiles WHERE email = ?", (user_email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            conn.close()
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        
+        # Calculate expiration date
+        from datetime import datetime, timedelta
+        expires_at = (datetime.now() + timedelta(days=duration_days)).isoformat()
+        
+        # Create or update subscription
+        subscription_data = {
+            'plan': 'pro',
+            'status': 'active',
+            'razorpay_order_id': None,
+            'razorpay_payment_id': None,
+            'razorpay_subscription_id': 'ADMIN_UPGRADE',
+            'amount': 0,
+            'coupon_code': 'ADMIN_GRANT',
+            'expires_at': expires_at
+        }
+        
+        db.create_or_update_subscription(user_email, subscription_data)
+        conn.close()
+        
+        print(f"✅ Admin upgraded {user_email} to Pro until {expires_at}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'User upgraded to Pro for {duration_days} days',
+            'expires_at': expires_at
+        })
+        
+    except Exception as e:
+        print(f"❌ Admin upgrade error: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/downgrade_user', methods=['POST'])
+@admin_required
+def admin_downgrade_user():
+    """Admin endpoint to downgrade user to Free plan"""
+    try:
+        data = request.get_json()
+        user_email = data.get('email')
+        
+        if not user_email:
+            return jsonify({'success': False, 'message': 'Email is required'}), 400
+        
+        # Update subscription to free
+        subscription_data = {
+            'plan': 'free',
+            'status': 'inactive',
+            'razorpay_order_id': None,
+            'razorpay_payment_id': None,
+            'razorpay_subscription_id': None,
+            'amount': 0,
+            'coupon_code': None,
+            'expires_at': None
+        }
+        
+        db.create_or_update_subscription(user_email, subscription_data)
+        
+        print(f"✅ Admin downgraded {user_email} to Free plan")
+        
+        return jsonify({
+            'success': True,
+            'message': 'User downgraded to Free plan'
+        })
+        
+    except Exception as e:
+        print(f"❌ Admin downgrade error: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/api/user_count')
+@admin_required
+def admin_get_user_count():
+    """Get user count based on target filter"""
+    try:
+        target = request.args.get('target', 'all')
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        if target == 'all':
+            cursor.execute("SELECT COUNT(*) FROM user_profiles")
+        elif target == 'free':
+            cursor.execute("""
+                SELECT COUNT(*) FROM user_profiles up
+                LEFT JOIN subscriptions s ON up.email = s.user_email
+                WHERE s.plan IS NULL OR s.plan = 'free' OR s.status != 'active'
+            """)
+        elif target == 'pro':
+            cursor.execute("""
+                SELECT COUNT(*) FROM user_profiles up
+                INNER JOIN subscriptions s ON up.email = s.user_email
+                WHERE s.plan = 'pro' AND s.status = 'active'
+            """)
+        
+        count = cursor.fetchone()[0]
+        conn.close()
+        
+        return jsonify({'success': True, 'count': count})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/send_promotional_email', methods=['POST'])
+@admin_required
+def admin_send_promotional_email():
+    """Send promotional email to selected users"""
+    try:
+        data = request.get_json()
+        subject = data.get('subject', '')
+        body = data.get('body', '')
+        target = data.get('target', 'all')
+        
+        if not subject or not body:
+            return jsonify({'success': False, 'message': 'Subject and body are required'}), 400
+        
+        # Get target users
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        if target == 'all':
+            cursor.execute("SELECT email, display_name FROM user_profiles")
+        elif target == 'free':
+            cursor.execute("""
+                SELECT up.email, up.display_name 
+                FROM user_profiles up
+                LEFT JOIN subscriptions s ON up.email = s.user_email
+                WHERE s.plan IS NULL OR s.plan = 'free' OR s.status != 'active'
+            """)
+        elif target == 'pro':
+            cursor.execute("""
+                SELECT up.email, up.display_name 
+                FROM user_profiles up
+                INNER JOIN subscriptions s ON up.email = s.user_email
+                WHERE s.plan = 'pro' AND s.status = 'active'
+            """)
+        
+        users = cursor.fetchall()
+        conn.close()
+        
+        # Send emails
+        sent_count = 0
+        failed_count = 0
+        
+        # Gmail SMTP settings
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = SMTP_USER
+        sender_password = SMTP_PASSWORD
+        
+        for user in users:
+            user_email = user[0]
+            user_name = user[1] or 'User'
+            
+            try:
+                # Get user subscription plan
+                subscription = db.get_subscription(user_email)
+                user_plan = subscription.get('plan', 'free')
+                
+                # Replace placeholders in body
+                personalized_body = body.replace('{name}', user_name)
+                personalized_body = personalized_body.replace('{email}', user_email)
+                personalized_body = personalized_body.replace('{plan}', user_plan.upper())
+                
+                # Create email
+                msg = MIMEMultipart()
+                msg["From"] = f"JustMailIt <{sender_email}>"
+                msg["To"] = user_email
+                msg["Subject"] = subject
+                msg["Reply-To"] = sender_email
+                
+                msg.attach(MIMEText(personalized_body, "plain", "utf-8"))
+                
+                # Send email
+                server = smtplib.SMTP(smtp_server, smtp_port)
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, user_email, msg.as_string())
+                server.quit()
+                
+                sent_count += 1
+                print(f"✅ Promotional email sent to {user_email}")
+                
+            except Exception as email_error:
+                failed_count += 1
+                print(f"❌ Failed to send promotional email to {user_email}: {str(email_error)}")
+        
+        return jsonify({
+            'success': True,
+            'sent': sent_count,
+            'failed': failed_count,
+            'message': f'Sent {sent_count} emails successfully'
+        })
+        
+    except Exception as e:
+        print(f"❌ Promotional email error: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/scrape_jobs')
+@admin_required
+def admin_scrape_jobs():
+    """Admin endpoint to scrape jobs without sending emails - SSE stream"""
+    from flask import Response, stream_with_context
+    import queue
+    import threading
+    
+    def generate():
+        # Get parameters
+        custom_url = request.args.get('url', '').strip()
+        skills = request.args.get('skills', '').strip()
+        scrolls = int(request.args.get('scrolls', 10))
+        
+        # Use admin's session email instead of requiring user input
+        user_email = session.get('user', 'admin@justmailit.in')
+        
+        # Build LinkedIn search URL based on skills (if custom URL not provided)
+        if custom_url:
+            url = custom_url
+            log(f"📍 Using custom URL: {url}")
+        elif skills:
+            # Build search URL using skills like the main automation
+            from urllib.parse import urlencode
+            skill_list = [s.strip() for s in skills.split(',')]
+            search_keywords = ' OR '.join(f'{skill.strip()} hiring' for skill in skill_list)
+            
+            base_url = "https://www.linkedin.com/search/results/content/?"
+            params = {
+                'datePosted': '"past-week"',
+                'keywords': search_keywords
+            }
+            url = base_url + urlencode(params)
+            log(f"🔍 Built search URL for skills: {skills}")
+            log(f"📍 Search URL: {url}")
+        else:
+            # Default to feed if no URL or skills provided
+            url = 'https://www.linkedin.com/feed/'
+            log(f"📍 Using default feed URL: {url}")
+        
+        # Create a queue for messages
+        message_queue = queue.Queue()
+        
+        def send_event(msg):
+            """Send SSE event"""
+            message_queue.put(msg)
+        
+        def log(msg):
+            """Log and send message"""
+            print(msg)
+            send_event(msg)
+        
+        def scrape_jobs_thread():
+            """Background thread for scraping"""
+            driver = None
+            try:
+                log("🚀 Starting admin job scraping...")
+                log(f"👤 Admin user: {user_email}")
+                log(f"📍 URL: {url}")
+                log(f"🔢 Scrolls: {scrolls}")
+                if skills:
+                    log(f"🎯 Skills filter: {skills}")
+                
+                log("⚙️ Initializing Chrome driver...")
+                
+                # Initialize Chrome driver
+                from selenium import webdriver
+                from selenium.webdriver.chrome.options import Options
+                from selenium.webdriver.common.by import By
+                from selenium.webdriver.support.ui import WebDriverWait
+                from selenium.webdriver.support import expected_conditions as EC
+                import time
+                
+                chrome_options = Options()
+                chrome_options.add_argument("--headless")
+                chrome_options.add_argument("--no-sandbox")
+                chrome_options.add_argument("--disable-dev-shm-usage")
+                chrome_options.add_argument("--disable-gpu")
+                chrome_options.add_argument("--window-size=1920,1080")
+                
+                # Use profile for login persistence
+                profile_dir = os.path.join(os.getcwd(), "chrome-profile")
+                chrome_options.add_argument(f"user-data-dir={profile_dir}")
+                chrome_options.add_argument("--profile-directory=Default")
+                
+                log("🌐 Launching Chrome...")
+                driver = webdriver.Chrome(options=chrome_options)
+                
+                log(f"🔗 Opening URL: {url}")
+                driver.get(url)
+                time.sleep(5)
+                
+                # Scroll and collect posts
+                log(f"📜 Starting to scroll ({scrolls} times)...")
+                last_height = driver.execute_script("return document.body.scrollHeight")
+                
+                for i in range(scrolls):
+                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(3)
+                    
+                    new_height = driver.execute_script("return document.body.scrollHeight")
+                    log(f"📜 Scrolling... ({i+1}/{scrolls})")
+                    
+                    if new_height == last_height:
+                        log("✅ Reached end of feed")
+                        break
+                    last_height = new_height
+                
+                log("⏳ Waiting for posts to load...")
+                wait = WebDriverWait(driver, 20)
+                
+                # Try multiple selectors for job posts
+                selectors = [
+                    ".feed-shared-update-v2",
+                    "article.ember-view",
+                    ".update-components-actor",
+                    ".social-details-social-activity"
+                ]
+                
+                job_posts = []
+                for selector in selectors:
+                    try:
+                        elements = wait.until(
+                            EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector))
+                        )
+                        if elements:
+                            log(f"✅ Found {len(elements)} posts using selector: {selector}")
+                            job_posts = elements
+                            break
+                    except Exception as e:
+                        log(f"⚠️ Selector {selector} failed")
+                        continue
+                
+                if not job_posts:
+                    log("❌ No job posts found")
+                    send_event("completed")
+                    return
+                
+                all_emails = set()
+                jobs_saved = 0
+                
+                log(f"🔍 Scanning {len(job_posts)} posts for job opportunities...")
+                
+                for idx, post in enumerate(job_posts):
+                    try:
+                        # Extract post content
+                        title_selectors = [
+                            ".feed-shared-text",
+                            ".feed-shared-text-view",
+                            ".update-components-text",
+                            ".share-update-card__update-text",
+                            ".feed-shared-update-v2__description",
+                            "span.break-words"
+                        ]
+                        
+                        title_elem = None
+                        for selector in title_selectors:
+                            try:
+                                title_elem = post.find_element(By.CSS_SELECTOR, selector)
+                                if title_elem:
+                                    break
+                            except:
+                                continue
+                        
+                        if not title_elem:
+                            continue
+                        
+                        title = title_elem.text
+                        full_text = title
+                        
+                        # Filter by skills if provided (additional filtering on top of search)
+                        if skills and not custom_url:
+                            # If we built the search URL, jobs should already be filtered
+                            # This is just an additional check
+                            skill_list = [s.strip().lower() for s in skills.split(',')]
+                            if not any(skill in full_text.lower() for skill in skill_list):
+                                continue
+                        
+                        # Extract company
+                        company_selectors = [
+                            ".feed-shared-actor__name",
+                            ".update-components-actor__name",
+                            ".share-update-card__actor-name",
+                            ".feed-shared-actor__sub-description"
+                        ]
+                        
+                        company_elem = None
+                        for selector in company_selectors:
+                            try:
+                                company_elem = post.find_element(By.CSS_SELECTOR, selector)
+                                if company_elem:
+                                    break
+                            except:
+                                continue
+                        
+                        company = company_elem.text if company_elem else "Company Not Found"
+                        description = full_text[:200] + "..." if len(full_text) > 200 else full_text
+                        
+                        # Find mailto links
+                        mailtos = post.find_elements(By.XPATH, ".//a[contains(@href, 'mailto:')]")
+                        
+                        for m in mailtos:
+                            email = m.get_attribute("href").replace("mailto:", "")
+                            all_emails.add(email)
+                            
+                            # Save job post for ALL USERS (visible to everyone)
+                            job_post = {
+                                "title": title,
+                                "company": company,
+                                "description": description,
+                                "full_text": full_text,
+                                "email": email,
+                                "location": "Remote/On-site",
+                                "job_type": "Full-time",
+                                "posted_date": datetime.now().strftime("%Y-%m-%d"),
+                                "url": url,
+                                "job_url": url,
+                                "skills": skills.split(',') if skills else []
+                            }
+                            
+                            # Save for the specified user AND make it visible to all users
+                            save_job_post(job_post, user_email)
+                            # Also save without user_email so it appears for everyone
+                            save_job_post(job_post, None)
+                            jobs_saved += 1
+                            log(f"💾 Saved job from {company} - {email} (visible to all users)")
+                    
+                    except Exception as e:
+                        continue
+                
+                log(f"📧 Found {len(all_emails)} unique email(s)")
+                log(f"💾 Saved {jobs_saved} job post(s) to database (visible to all users)")
+                log("✅ Automation completed!")
+                send_event("completed")
+                
+            except Exception as e:
+                error_msg = f"❌ Error: {str(e)}"
+                log(error_msg)
+                print(f"ADMIN SCRAPING ERROR: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                send_event("error")
+            
+            finally:
+                if driver:
+                    try:
+                        driver.quit()
+                        log("🧹 Browser closed")
+                    except:
+                        pass
+        
+        # Start scraping in background thread
+        thread = threading.Thread(target=scrape_jobs_thread)
+        thread.daemon = True
+        thread.start()
+        
+        # Stream messages from queue
+        while True:
+            try:
+                msg = message_queue.get(timeout=1)
+                yield f"data: {msg}\n\n"
+                
+                if msg in ['completed', 'error']:
+                    break
+            except queue.Empty:
+                # Check if thread is still alive
+                if not thread.is_alive():
+                    break
+                continue
+    
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')
+
+
+if __name__ == "__main__":
+    import sys
+    # Force unbuffered output
+    sys.stdout.flush()
+    sys.stderr.flush()
+    
+    # Get port from environment variable (Render provides this)
+    port = int(os.environ.get("PORT", 5000))
+    print(f"\n{'='*60}")
+    print(f"🚀 SERVER STARTING ON PORT {port}")
+    print(f"{'='*60}\n")
+    # Use 0.0.0.0 to accept connections from all interfaces
+    app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)

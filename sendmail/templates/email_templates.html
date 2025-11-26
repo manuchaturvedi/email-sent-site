@@ -98,6 +98,71 @@
             transform: scale(1.05);
         }
         
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+            
+            .container {
+                margin-top: 1rem;
+                margin-bottom: 1rem;
+                padding: 0 1rem;
+            }
+            
+            .template-card {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+                border-radius: 12px;
+            }
+            
+            .template-title {
+                font-size: 1.25rem;
+            }
+            
+            .template-content {
+                padding: 1rem;
+                font-size: 0.85rem;
+            }
+            
+            .copy-btn {
+                position: static;
+                display: block;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .tips-section ul {
+                padding-left: 1.5rem;
+            }
+            
+            .tips-section li {
+                margin-bottom: 0.75rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .template-card {
+                padding: 1rem;
+                border-radius: 10px;
+            }
+            
+            .template-title {
+                font-size: 1.1rem;
+            }
+            
+            .template-badge {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.8rem;
+            }
+            
+            .template-content {
+                font-size: 0.8rem;
+                padding: 0.75rem;
+            }
+        }
+        
         .copy-btn.copied {
             background: #10b981;
         }
@@ -365,7 +430,7 @@ P.S. Feel free to reply with any questions or concerns you may have.</div>
         <!-- Marketing Campaign Template -->
         <div class="template-card">
             <span class="template-badge"><i class="bi bi-megaphone me-1"></i> Marketing</span>
-            <h2 class="template-title">Product Launch Campaign</h2>
+            <h2 class="template-title">Product Launch Automation</h2>
             <p class="template-description">
                 Engaging product launch email with clear benefits, features, and compelling call-to-action for high conversion.
             </p>

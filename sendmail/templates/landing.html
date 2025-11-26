@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JustMailIt - Automate Your Job Search</title>
+  <title>JustMailIt - Send Unlimited Job Application Emails to Recruiters Automatically</title>
   
   <!-- Preconnect to external domains for faster loading -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -314,15 +314,13 @@
       line-height: 1.5;
     }
     
-    .modal-right {
-      flex: 1;
-      padding: 3rem;
-      overflow-y: auto;
-      background: white;
-      border-radius: 0 20px 20px 0;
-    }
-    
-    .modal-title {
+      .modal-right {
+        flex: 1;
+        padding: 3rem;
+        overflow-y: auto;
+        background: white;
+        border-radius: 20px;
+      }    .modal-title {
       font-size: 1.8rem;
       font-weight: 700;
       color: #2d3748;
@@ -475,6 +473,22 @@
     
     .btn-google i {
       color: #DB4437;
+    }
+    
+    .btn-facebook {
+      background: #1877f2;
+      color: white;
+      border-color: #1877f2;
+    }
+    
+    .btn-facebook:hover {
+      background: #166fe5;
+      border-color: #166fe5;
+      color: white;
+    }
+    
+    .btn-facebook i {
+      color: white;
     }
     
     .btn-linkedin i {
@@ -841,6 +855,122 @@
     }
     
     .password-reset-content .btn-reset:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Email Collection Modal */
+    .email-collection-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 10003;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .email-collection-modal.show {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .email-collection-content {
+      background: white;
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.4s ease;
+    }
+    
+    .email-collection-content h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    
+    .email-collection-content p {
+      color: #4a5568;
+      text-align: center;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    
+    .email-collection-content .form-control {
+      padding: 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1rem;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    
+    .email-collection-content .form-control:focus {
+      border-color: #7c88ff;
+      box-shadow: 0 0 0 4px rgba(124, 136, 255, 0.1);
+      outline: none;
+    }
+
+    .email-collection-content .error-message {
+      color: #e53e3e;
+      font-size: 0.875rem;
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+    
+    .email-collection-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    
+    .email-collection-buttons .btn-cancel {
+      flex: 1;
+      background: #e2e8f0;
+      color: #4a5568;
+      padding: 1rem;
+      border-radius: 12px;
+      border: none;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .email-collection-buttons .btn-cancel:hover {
+      background: #cbd5e0;
+    }
+    
+    .email-collection-buttons .btn-submit {
+      flex: 1;
+      background: linear-gradient(135deg, #7c88ff, #667eea);
+      color: white;
+      padding: 1rem;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .email-collection-buttons .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(124, 136, 255, 0.3);
+    }
+    
+    .email-collection-buttons .btn-submit:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
@@ -1845,6 +1975,22 @@
       </form>
     </div>
   </div>
+
+  <!-- Email Collection Modal (for Facebook users without email) -->
+  <div class="email-collection-modal" id="emailCollectionModal">
+    <div class="email-collection-content">
+      <h2>📧 Email Required</h2>
+      <p>We need your email address to continue. Please enter a valid email to use our service.</p>
+      <form id="emailCollectionForm" onsubmit="handleEmailCollection(event)">
+        <input type="email" class="form-control" id="facebookUserEmail" placeholder="Enter your email address" required>
+        <div id="emailCollectionError" class="error-message" style="display: none;"></div>
+        <div class="email-collection-buttons">
+          <button type="button" class="btn-cancel" onclick="cancelEmailCollection()">Cancel</button>
+          <button type="submit" class="btn-submit">Continue</button>
+        </div>
+      </form>
+    </div>
+  </div>
   
   <!-- Login Modal -->
   <div class="login-modal" id="loginModal">
@@ -1942,6 +2088,11 @@
           Continue with Google
         </button>
         
+        <button class="btn-social btn-facebook" onclick="handleFacebookAuth()">
+          <i class="bi bi-facebook"></i>
+          Continue with Facebook
+        </button>
+        
         <!-- Terms -->
         <p class="terms-text">
           By continuing you agree to our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.
@@ -1978,14 +2129,36 @@
   <!-- Hero Section -->
   <section class="hero-section">
     <div class="container">
-      <h1 class="hero-title">
-        Land Your Dream Job<br>
-        <span class="hero-highlight">10x Faster</span>
+      <h1 class="hero-title" style="font-weight:700;line-height:1.25;margin-bottom:0.75rem;color:#1f2937;text-align:center;">
+        Land Your Dream Job
       </h1>
-      <p class="hero-subtitle">
+      <div class="hero-speed-line" style="font-weight:600;letter-spacing:0.5px;text-align:center;margin-bottom:1.25rem;background:linear-gradient(135deg,#c7f9e9 0%,#bcd7ff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">
+        10x Faster
+      </div>
+      <p class="hero-subtitle" style="max-width:600px;margin:0 auto 2rem;line-height:1.55;color:#4b5563;font-weight:400;text-align:center;">
         Automate your job applications and email outreach.<br>
         Save hours every day with intelligent automation.
       </p>
+      <style>
+        @media (max-width:576px){
+          .hero-title{font-size:1.65rem;}
+          .hero-speed-line{font-size:1.1rem;}
+          .hero-subtitle{font-size:0.85rem;line-height:1.5;margin-bottom:1.75rem;}
+        }
+        @media (min-width:992px){
+          .hero-title{font-size:3.6rem!important;}
+          .hero-speed-line{font-size:2.5rem!important;}
+          .hero-subtitle{font-size:1.2rem;line-height:1.65;}
+        }
+        /* default (tablet) */
+        .hero-title{font-size:2.3rem;}
+        .hero-speed-line{font-size:1.4rem;}
+        .hero-subtitle{font-size:0.95rem;}
+        .btn-primary-hero{background:linear-gradient(135deg,#c7f9e9 0%,#8b9fff 100%);border:none;border-radius:36px;padding:0.9rem 2.2rem;font-weight:600;font-size:0.95rem;box-shadow:0 6px 18px rgba(139,159,255,0.25);transition:all .25s ease;}
+        .btn-primary-hero:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(139,159,255,0.35);} 
+        .btn-secondary-hero{background:#fff;border:2px solid #e0f6ef;border-radius:36px;padding:0.9rem 2.2rem;font-weight:600;font-size:0.95rem;color:#4b5563;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.06);margin-left:0.75rem;transition:all .25s ease;}
+        .btn-secondary-hero:hover{border-color:#c7f9e9;color:#1f2937;}
+      </style>
       <div class="hero-cta">
         <button class="btn-primary-hero" onclick="openLoginModal()">
           <i class="bi bi-rocket-takeoff me-2"></i>Start Free Today
@@ -2000,7 +2173,7 @@
         <div class="row">
           <div class="col-md-4">
             <div class="stat-item animate-fade-in">
-              <div class="stat-number" data-count="10">0</div>
+              <div class="stat-number" data-count="1000">0</div>
               <div class="stat-label">Emails Per Day</div>
             </div>
           </div>
@@ -2012,7 +2185,7 @@
           </div>
           <div class="col-md-4">
             <div class="stat-item animate-fade-in animate-delay-2">
-              <div class="stat-number" data-count="3">0</div>
+              <div class="stat-number" data-count="4">0</div>
               <div class="stat-label">Times More Responses</div>
             </div>
           </div>
@@ -2036,7 +2209,7 @@
                 <div class="manual-way" style="background: white; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-left: 4px solid #ef4444;">
                   <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                     <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(220,38,38,0.2)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 1.5rem;">
-                      Ã°Å¸ËœÂ©
+                      😫
                     </div>
                     <div>
                       <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #2d3748;">Manual Job Search</h4>
@@ -2067,7 +2240,7 @@
                 <div class="justmailit-way" style="background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-left: 4px solid #10b981;">
                   <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                     <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(168,230,207,0.2), rgba(139,159,255,0.2)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.5rem;">
-                      Ã°Å¸Å¡â‚¬
+                      🎯
                     </div>
                     <div>
                       <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #2d3748;">JustMailIt</h4>
@@ -2105,6 +2278,16 @@
 
             <!-- Key Benefits -->
             <div class="benefits-list" style="margin-bottom: 2rem;">
+              <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; padding: 1.5rem; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="flex-shrink: 0; width: 60px; height: 60px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem;">
+                  ✨
+                </div>
+                <div>
+                  <h4 style="font-size: 1.1rem; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem;">Stop Staring at Blank Emails</h4>
+                  <p style="margin: 0; color: #718096; font-size: 0.95rem;">Our AI Email Generator analyzes your resume and creates professional, personalized emails in seconds. No more writer's block!</p>
+                </div>
+              </div>
+              
               <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; padding: 1.5rem; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                 <div style="flex-shrink: 0; width: 60px; height: 60px; background: linear-gradient(135deg, #a8e6cf, #8b9fff); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem;">
                   <i class="bi bi-envelope-heart-fill"></i>
@@ -2155,6 +2338,109 @@
     <div style="position: absolute; bottom: -100px; left: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(139,159,255,0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
   </section>
 
+  <!-- AI Email Generator Highlight Section -->
+  <section style="padding: 4rem 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative; overflow: hidden;">
+    <!-- Animated background elements -->
+    <div style="position: absolute; top: -50px; right: -50px; width: 300px; height: 300px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(60px);"></div>
+    <div style="position: absolute; bottom: -100px; left: -100px; width: 400px; height: 400px; background: rgba(255,255,255,0.08); border-radius: 50%; filter: blur(80px);"></div>
+    
+    <div class="container" style="position: relative; z-index: 1;">
+      <div class="row align-items-center">
+        <div class="col-lg-7 mb-4 mb-lg-0">
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+            <span class="badge" style="background: rgba(255,255,255,0.25); color: white; font-size: 0.75rem; padding: 0.5rem 1rem; border-radius: 50px; font-weight: 600;">
+              <i class="bi bi-stars me-1"></i>NEW FEATURE
+            </span>
+            <span style="color: rgba(255,255,255,0.9); font-weight: 600;">Powered by AI</span>
+          </div>
+          
+          <h2 style="color: white; font-size: 2.75rem; font-weight: 800; margin-bottom: 1.25rem; line-height: 1.2;">
+            AI-Powered Email Generator
+          </h2>
+          
+          <p style="color: rgba(255,255,255,0.95); font-size: 1.25rem; margin-bottom: 2rem; line-height: 1.6;">
+            Our AI Email Generator analyzes your resume and creates professional, personalized emails in seconds. No more writer's block!
+          </p>
+          
+          <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem;">
+            <div style="display: flex; align-items: start; gap: 0.75rem;">
+              <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="bi bi-file-earmark-person" style="color: white; font-size: 1.25rem;"></i>
+              </div>
+              <div>
+                <div style="color: white; font-weight: 700; margin-bottom: 0.25rem;">Smart Resume Analysis</div>
+                <div style="color: rgba(255,255,255,0.85); font-size: 0.9rem;">Extracts your name, email, phone & skills</div>
+              </div>
+            </div>
+            
+            <div style="display: flex; align-items: start; gap: 0.75rem;">
+              <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="bi bi-envelope-heart" style="color: white; font-size: 1.25rem;"></i>
+              </div>
+              <div>
+                <div style="color: white; font-weight: 700; margin-bottom: 0.25rem;">3 Subject Line Options</div>
+                <div style="color: rgba(255,255,255,0.85); font-size: 0.9rem;">Choose the perfect one for each job</div>
+              </div>
+            </div>
+            
+            <div style="display: flex; align-items: start; gap: 0.75rem;">
+              <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="bi bi-lightning-charge-fill" style="color: white; font-size: 1.25rem;"></i>
+              </div>
+              <div>
+                <div style="color: white; font-weight: 700; margin-bottom: 0.25rem;">Instant Generation</div>
+                <div style="color: rgba(255,255,255,0.85); font-size: 0.9rem;">Professional email body in 2 seconds</div>
+              </div>
+            </div>
+          </div>
+          
+          <button class="btn btn-lg" onclick="openLoginModal()" style="background: white; color: #667eea; padding: 1rem 2.5rem; border-radius: 12px; font-weight: 700; border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.15); transition: all 0.3s ease;">
+            <i class="bi bi-stars me-2"></i>Try AI Email Generator Free
+            <i class="bi bi-arrow-right ms-2"></i>
+          </button>
+        </div>
+        
+        <div class="col-lg-5">
+          <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 20px; padding: 2rem; border: 2px solid rgba(255,255,255,0.2);">
+            <div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                <i class="bi bi-envelope-fill" style="color: #667eea; font-size: 1.25rem;"></i>
+                <div style="font-weight: 700; color: #2d3748;">Generated Subject Lines</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="padding: 0.75rem; background: rgba(102,126,234,0.1); border-left: 3px solid #667eea; border-radius: 6px; font-size: 0.9rem; color: #2d3748;">
+                  Application for Software Developer Position
+                </div>
+                <div style="padding: 0.75rem; background: rgba(102,126,234,0.05); border-left: 3px solid #cbd5e0; border-radius: 6px; font-size: 0.9rem; color: #4a5568;">
+                  Experienced Professional Developer Seeking...
+                </div>
+                <div style="padding: 0.75rem; background: rgba(102,126,234,0.05); border-left: 3px solid #cbd5e0; border-radius: 6px; font-size: 0.9rem; color: #4a5568;">
+                  Software Developer Application | Your Name
+                </div>
+              </div>
+            </div>
+            
+            <div style="background: white; border-radius: 12px; padding: 1.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                <i class="bi bi-file-text-fill" style="color: #764ba2; font-size: 1.25rem;"></i>
+                <div style="font-weight: 700; color: #2d3748;">Email Body Preview</div>
+              </div>
+              <div style="font-size: 0.85rem; color: #4a5568; line-height: 1.6; font-family: monospace; max-height: 200px; overflow: hidden; position: relative;">
+                Dear Hiring Manager,<br><br>
+                I am writing to express my interest in the Software Developer position...<br><br>
+                <strong>Contact Information:</strong><br>
+                Email: your.email@gmail.com<br>
+                Phone: +91 XXXXXXXXXX<br><br>
+                With expertise in Python, Java, React, and AWS...
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, white);"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Data Visualization Section -->
   <section class="data-viz-section">
     <div class="container">
@@ -2203,7 +2489,7 @@
             <i class="bi bi-rocket-takeoff-fill"></i>
           </div>
           <h3 class="comparison-label">With JustMailIt</h3>
-          <div class="comparison-value">2hrs</div>
+          <div class="comparison-value">0.5hrs</div>
           <p class="comparison-metric">Per Week</p>
         </div>
       </div>
@@ -2213,18 +2499,18 @@
   <!-- Features Section -->
   <section class="features-section">
     <div class="container">
-      <h2 class="section-title">Powerful Features to Accelerate Your Job Search</h2>
-      <p class="section-subtitle">Everything you need to land interviews faster</p>
+      <h2 class="section-title">Everything You Need in One Tool</h2>
+      <p class="section-subtitle">All features included - no hidden charges</p>
       
       <div class="row g-4">
         <div class="col-md-4">
           <div class="feature-card">
             <div class="feature-icon">
-              <i class="bi bi-briefcase"></i>
+              <i class="bi bi-linkedin"></i>
             </div>
-            <h3 class="feature-title">Job Scraping</h3>
+            <h3 class="feature-title">Auto-Find Jobs on LinkedIn</h3>
             <p class="feature-description">
-              Automatically extract hiring manager emails from Job Posts. No more manual searching.
+              Tell us your skills (Python, React, etc.) and we automatically find matching job posts on LinkedIn. No manual searching!
             </p>
           </div>
         </div>
@@ -2232,11 +2518,26 @@
         <div class="col-md-4">
           <div class="feature-card">
             <div class="feature-icon">
-              <i class="bi bi-envelope-check"></i>
+              <i class="bi bi-envelope-at"></i>
             </div>
-            <h3 class="feature-title">Smart Email Sender</h3>
+            <h3 class="feature-title">Extract Recruiter Emails</h3>
             <p class="feature-description">
-              Send personalized emails to hiring managers with your resume attached automatically.
+              We automatically find and extract hiring manager/recruiter email addresses from job posts. You don't lift a finger.
+            </p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="feature-card" style="background: linear-gradient(135deg, rgba(102,126,234,0.05) 0%, rgba(118,75,162,0.05) 100%); border: 2px solid #667eea;">
+            <div class="feature-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <i class="bi bi-stars" style="color: white;"></i>
+            </div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <h3 class="feature-title mb-0">AI Email Generator</h3>
+              <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-size: 0.7rem;">NEW</span>
+            </div>
+            <p class="feature-description">
+              <strong>Upload your resume once</strong> and AI automatically creates personalized email subject lines and body text with your contact info and skills. No writing needed!
             </p>
           </div>
         </div>
@@ -2244,11 +2545,11 @@
         <div class="col-md-4">
           <div class="feature-card">
             <div class="feature-icon">
-              <i class="bi bi-briefcase"></i>
+              <i class="bi bi-send-check"></i>
             </div>
-            <h3 class="feature-title">Job Post Manager</h3>
+            <h3 class="feature-title">Send Unlimited Emails</h3>
             <p class="feature-description">
-              Track all your job applications, emails sent, and follow-ups in one beautiful dashboard.
+              We send personalized emails from YOUR Gmail to recruiters with your resume attached. No daily limits. Get copy of every email sent.
             </p>
           </div>
         </div>
@@ -2256,11 +2557,11 @@
         <div class="col-md-4">
           <div class="feature-card">
             <div class="feature-icon">
-              <i class="bi bi-file-text"></i>
+              <i class="bi bi-folder-check"></i>
             </div>
-            <h3 class="feature-title">Email Templates</h3>
+            <h3 class="feature-title">Track All Applications</h3>
             <p class="feature-description">
-              Professional, proven email templates that get responses. Customize them to your style.
+              See all job posts found, emails sent, and responses received in one beautiful dashboard. Never lose track of applications.
             </p>
           </div>
         </div>
@@ -2268,23 +2569,11 @@
         <div class="col-md-4">
           <div class="feature-card">
             <div class="feature-icon">
-              <i class="bi bi-graph-up"></i>
+              <i class="bi bi-shield-lock"></i>
             </div>
-            <h3 class="feature-title">Analytics Dashboard</h3>
+            <h3 class="feature-title">100% Safe & Secure</h3>
             <p class="feature-description">
-              Track your success rate, emails sent, and optimize your job search strategy.
-            </p>
-          </div>
-        </div>
-        
-        <div class="col-md-4">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="bi bi-shield-check"></i>
-            </div>
-            <h3 class="feature-title">Safe & Secure</h3>
-            <p class="feature-description">
-              Your data is encrypted and secure. We never share your information with anyone.
+              Your data is encrypted and secure. We use Google Firebase authentication. We NEVER share your information with anyone.
             </p>
           </div>
         </div>
@@ -2295,18 +2584,18 @@
   <!-- How It Works Section -->
   <section class="how-it-works-section" id="how-it-works">
     <div class="container">
-      <h2 class="section-title">How It Works</h2>
-      <p class="section-subtitle">Get started in 3 simple steps</p>
+      <h2 class="section-title">How It Works - Super Simple!</h2>
+      <p class="section-subtitle">Just 3 steps to start getting interviews</p>
       
       <div class="row justify-content-center">
         <div class="col-lg-8">
           <div class="step-card">
             <div class="step-number">1</div>
             <div class="step-content">
-              <h3>Enter Job Search Criteria</h3>
+              <h3>Setup Your Profile Once</h3>
               <p>
-                Tell us what job you're looking for, your location, and when the jobs were posted. 
-                We'll search jobs for matching opportunities.
+                Add your resume, write email subject & body (or use AI to generate), and connect your Gmail. 
+                Takes 5 minutes. You only do this once.
               </p>
             </div>
           </div>
@@ -2314,10 +2603,10 @@
           <div class="step-card">
             <div class="step-number">2</div>
             <div class="step-content">
-              <h3>We Find Hiring Managers</h3>
+              <h3>Choose Your Job Skills</h3>
               <p>
-                Our smart automation scrapes job posts, extracts company details, and finds 
-                hiring manager emails automatically. No manual work required.
+                Enter the skills/technologies you want to work with (like "Python, React, Node.js"). 
+                We'll search LinkedIn for jobs matching those skills.
               </p>
             </div>
           </div>
@@ -2325,10 +2614,11 @@
           <div class="step-card">
             <div class="step-number">3</div>
             <div class="step-content">
-              <h3>Personalized Emails Sent</h3>
+              <h3>Click START - We Do Everything Else</h3>
               <p>
-                We send professional, personalized emails with your resume to each hiring manager. 
-                Track all emails and responses from your dashboard.
+                <strong>Our automation:</strong> Finds LinkedIn job posts → Extracts recruiter emails → 
+                Sends personalized emails with your resume attached → You receive copies of all sent emails. 
+                <strong>Just wait for interview calls!</strong>
               </p>
             </div>
           </div>
@@ -2940,16 +3230,28 @@
           );
           if (resendOption) {
             try {
-              await userCredential.user.sendEmailVerification();
-              showNotification(
-                'Verification Email Sent ✉️',
-                `A new verification email has been sent to ${email}. Please check your inbox and spam folder, then click the verification link.`,
-                'success'
-              );
+              // Call our custom verification API (sends from mail@justmailit.in)
+              const resendResponse = await fetch('/api/send-verification', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: email })
+              });
+              
+              if (resendResponse.ok) {
+                showNotification(
+                  'Verification Email Sent ✉️',
+                  `A new verification email has been sent to ${email} from mail@justmailit.in. Please check your inbox, then click the verification link.`,
+                  'success'
+                );
+              } else {
+                throw new Error('Failed to send verification email');
+              }
             } catch (resendError) {
               showNotification(
                 'Email Not Verified',
-                'Unable to resend verification email. Please check your email inbox and spam folder for the original verification link, or try signing up again.',
+                'Unable to resend verification email. Please check your email inbox for the original verification link, or try signing up again.',
                 'error'
               );
             }
@@ -3169,47 +3471,45 @@
         // Update display name first
         await user.updateProfile({ displayName: name });
         
-        // Send email verification with enhanced action code settings
-        const actionCodeSettings = {
-          url: window.location.origin + '/?verified=true',
-          handleCodeInApp: false,
-          // iOS and Android deep linking (optional)
-          iOS: {
-            bundleId: 'com.justmailit.app'
-          },
-          android: {
-            packageName: 'com.justmailit.app',
-            installApp: true,
-            minimumVersion: '12'
-          },
-          // Continue URL after verification
-          dynamicLinkDomain: window.location.hostname
-        };
-        
+        // Send custom verification email from our server (mail@justmailit.in)
         try {
-          await user.sendEmailVerification(actionCodeSettings);
-          console.log('✓ Verification email sent to:', email);
+          const verificationResponse = await fetch('/api/send-verification', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email })
+          });
           
-          // Sign out immediately - user MUST verify email before signing in
-          await firebase.auth().signOut();
+          const verificationData = await verificationResponse.json();
           
-          // Show success modal with detailed instructions
-          showNotification(
-            'Welcome to JustMailIt! 🎉',
-            `Thank you for signing up, ${name}! We've sent a verification email to ${email}. Please check your inbox (and spam/junk folder) and click the "Verify Email" button to activate your account. Once verified, you can sign in and start sending unlimited job application emails!`,
-            'success'
-          );
-          
-          document.getElementById('signupForm').reset();
-          btn.disabled = false;
-          btn.innerHTML = 'Sign Up';
-          
-          // Switch to sign-in form after user closes notification
-          setTimeout(() => {
-            switchAuthTab('signin');
-            // Pre-fill the email
-            document.getElementById('signinEmail').value = email;
-          }, 1000);
+          if (verificationResponse.ok) {
+            console.log('✓ Verification email sent to:', email);
+            
+            // Sign out immediately - user MUST verify email before signing in
+            await firebase.auth().signOut();
+            
+            // Show success modal with detailed instructions
+            showNotification(
+              'Welcome to JustMailIt! 🎉',
+              `Thank you for signing up, ${name}! We've sent a verification email to ${email} from mail@justmailit.in. Please check your inbox and click the "Verify Email" link to activate your account. Once verified, you can sign in and start sending unlimited job application emails!`,
+              'success'
+            );
+            
+            document.getElementById('signupForm').reset();
+            btn.disabled = false;
+            btn.innerHTML = 'Sign Up';
+            
+            // Switch to sign-in form after user closes notification
+            setTimeout(() => {
+              switchAuthTab('signin');
+              // Pre-fill the email
+              document.getElementById('signinEmail').value = email;
+            }, 1000);
+            
+          } else {
+            throw new Error(verificationData.error || 'Failed to send verification email');
+          }
           
         } catch (emailError) {
           console.error('Email verification send error:', emailError);
@@ -3217,19 +3517,9 @@
           // Delete the created account if email couldn't be sent
           await user.delete();
           
-          let emailErrorMsg = 'Unable to send verification email. ';
-          
-          if (emailError.code === 'auth/invalid-email') {
-            emailErrorMsg += 'The email address appears to be invalid or does not exist.';
-          } else if (emailError.code === 'auth/quota-exceeded') {
-            emailErrorMsg += 'Email quota exceeded. Please try again later.';
-          } else {
-            emailErrorMsg += 'Please verify your email address is correct and try again.';
-          }
-          
           showNotification(
             'Email Delivery Failed',
-            emailErrorMsg + ' The account was not created.',
+            'Unable to send verification email. Please check your email address and try again. The account was not created.',
             'error'
           );
           
@@ -3279,8 +3569,140 @@
       
       try {
         const provider = new firebase.auth.FacebookAuthProvider();
+        provider.addScope('email'); // Request email permission
         const result = await auth.signInWithPopup(provider);
-        const idToken = await result.user.getIdToken();
+        
+        // Check if email is available
+        if (!result.user.email) {
+          console.log('Facebook user has no email, prompting for email collection');
+          // Store user info temporarily for later use
+          window.facebookUserInfo = {
+            user: result.user,
+            displayName: result.user.displayName,
+            uid: result.user.uid
+          };
+          
+          // Show email collection modal
+          showEmailCollectionModal();
+          return;
+        }
+        
+        // Proceed with normal login if email exists
+        await completeFacebookLogin(result.user);
+        
+      } catch (error) {
+        console.error('Facebook auth error:', error);
+        if (error.code !== 'auth/popup-closed-by-user') {
+          showNotification('Sign In Failed', 'Failed to sign in with Facebook. Please try again.', 'error');
+        }
+      }
+    }
+    
+    function showEmailCollectionModal() {
+      const modal = document.getElementById('emailCollectionModal');
+      const emailInput = document.getElementById('facebookUserEmail');
+      const errorDiv = document.getElementById('emailCollectionError');
+      
+      emailInput.value = '';
+      errorDiv.style.display = 'none';
+      modal.classList.add('show');
+    }
+    
+    function cancelEmailCollection() {
+      const modal = document.getElementById('emailCollectionModal');
+      modal.classList.remove('show');
+      
+      // Sign out the Facebook user since they cancelled
+      if (window.facebookUserInfo && window.facebookUserInfo.user) {
+        auth.signOut();
+        window.facebookUserInfo = null;
+      }
+      
+      showNotification('Cancelled', 'Facebook sign in cancelled. Email is required to use our service.', 'warning');
+    }
+    
+    async function handleEmailCollection(event) {
+      event.preventDefault();
+      
+      const emailInput = document.getElementById('facebookUserEmail');
+      const errorDiv = document.getElementById('emailCollectionError');
+      const submitBtn = event.target.querySelector('.btn-submit');
+      
+      const email = emailInput.value.trim();
+      
+      // Validate email format
+      if (!validateEmailFormat(email)) {
+        errorDiv.textContent = 'Please enter a valid email address';
+        errorDiv.style.display = 'block';
+        return;
+      }
+      
+      // Check for common typos
+      const typoSuggestion = checkEmailTypo(email);
+      if (typoSuggestion) {
+        const useCorrection = await showConfirm(
+          'Did you mean?',
+          `Did you mean "${typoSuggestion}"? Click OK to use the corrected email or Cancel to keep "${email}".`
+        );
+        
+        if (useCorrection) {
+          emailInput.value = typoSuggestion;
+          return; // Let user resubmit with corrected email
+        }
+      }
+      
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Processing...';
+      
+      try {
+        // Update user's email in Firebase (this will require email verification)
+        await window.facebookUserInfo.user.updateEmail(email);
+        
+        // Send verification email
+        await window.facebookUserInfo.user.sendEmailVerification({
+          url: 'https://justmailit.in/?verified=true',
+          handleCodeInApp: false
+        });
+        
+        // Close modal
+        document.getElementById('emailCollectionModal').classList.remove('show');
+        
+        // Show success notification
+        showNotification(
+          'Email Added Successfully',
+          `We've sent a verification email to ${email}. Please verify your email and then sign in again with Facebook.`,
+          'success'
+        );
+        
+        // Sign out user so they can verify and sign in again
+        await auth.signOut();
+        window.facebookUserInfo = null;
+        
+      } catch (error) {
+        console.error('Email update error:', error);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Continue';
+        
+        if (error.code === 'auth/email-already-in-use') {
+          errorDiv.textContent = 'This email is already registered. Please use a different email or sign in with email/password.';
+        } else if (error.code === 'auth/invalid-email') {
+          errorDiv.textContent = 'Invalid email format. Please enter a valid email address.';
+        } else if (error.code === 'auth/requires-recent-login') {
+          errorDiv.textContent = 'Session expired. Please try signing in with Facebook again.';
+          setTimeout(() => {
+            document.getElementById('emailCollectionModal').classList.remove('show');
+            window.facebookUserInfo = null;
+          }, 2000);
+        } else {
+          errorDiv.textContent = 'Failed to add email. Please try again.';
+        }
+        errorDiv.style.display = 'block';
+      }
+    }
+    
+    async function completeFacebookLogin(user) {
+      try {
+        const idToken = await user.getIdToken();
         
         // Send token to backend
         const response = await fetch('/login', {
@@ -3290,12 +3712,12 @@
           },
           body: JSON.stringify({ 
             idToken: idToken,
-            displayName: result.user.displayName 
+            displayName: user.displayName 
           })
         });
         
         if (response.ok) {
-          showSuccess('Sign in successful! Redirecting...');
+          showNotification('Success', 'Sign in successful! Redirecting...', 'success');
           setTimeout(() => {
             window.location.href = '/dashboard';
           }, 1000);
@@ -3303,10 +3725,8 @@
           throw new Error('Authentication failed');
         }
       } catch (error) {
-        console.error('Facebook auth error:', error);
-        if (error.code !== 'auth/popup-closed-by-user') {
-          showError('Failed to sign in with Facebook. Please try again.');
-        }
+        console.error('Backend auth error:', error);
+        showNotification('Authentication Failed', 'Failed to authenticate with server. Please try again.', 'error');
       }
     }
     
@@ -3386,19 +3806,26 @@
       clearMessages();
       
       try {
-        // Configure password reset email with action code settings
-        const actionCodeSettings = {
-          url: window.location.origin + '/?reset=success',
-          handleCodeInApp: false
-        };
+        // Call our custom password reset API (sends from mail@justmailit.in)
+        const resetResponse = await fetch('/forgot-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email: email })
+        });
         
-        await auth.sendPasswordResetEmail(email, actionCodeSettings);
+        const resetData = await resetResponse.json();
         
-        showNotification(
-          'Password Reset Email Sent! ✉️',
-          `We've sent a password reset link to ${email}. Please check your inbox (and spam folder). Click the link in the email to create a new password. The link will expire in 1 hour.`,
-          'success'
-        );
+        if (resetResponse.ok) {
+          showNotification(
+            'Password Reset Email Sent! ✉️',
+            `We've sent a password reset link to ${email} from mail@justmailit.in. Please check your inbox. Click the link in the email to create a new password. The link will expire in 1 hour.`,
+            'success'
+          );
+        } else {
+          throw new Error(resetData.message || 'Failed to send reset email');
+        }
       } catch (error) {
         console.error('Password reset error:', error);
         let errorTitle = 'Password Reset Failed';
@@ -3471,13 +3898,16 @@
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
+        const href = this.getAttribute('href');
+        if (href && href !== '#') {
+          e.preventDefault();
+          const target = document.querySelector(href);
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
         }
       });
     });

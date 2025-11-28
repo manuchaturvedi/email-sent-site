@@ -2266,9 +2266,8 @@
         <ul class="navbar-nav mx-auto">
           <li class="nav-item"><a class="nav-link" href="/" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-house-fill"></i> Home</a></li>
           <li class="nav-item"><a class="nav-link" href="/about" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-info-circle-fill"></i> About</a></li>
-          <li class="nav-item"><a class="nav-link" href="/blog" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-newspaper"></i> Blog</a></li>
-          <li class="nav-item"><a class="nav-link" href="/documentation" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-book-fill"></i> Docs</a></li>
-          <li class="nav-item"><a class="nav-link" href="/contact" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-envelope-fill"></i> Contact</a></li>
+          <li class="nav-item"><a class="nav-link" href="/privacy" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-shield-check"></i> Privacy</a></li>
+          <li class="nav-item"><a class="nav-link" href="mailto:mail@justmailit.in" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-envelope-fill"></i> Contact</a></li>
         </ul>
         <ul class="navbar-nav">
           <li class="nav-item"><a class="nav-link" href="#" onclick="openLoginModal('signin'); return false;" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
@@ -2279,6 +2278,28 @@
   </nav>
 
   <!-- Hero Section -->
+  <!-- Trust Banner -->
+  <div style="background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%); border-bottom: 1px solid #bbf7d0; padding: 12px 0; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <div class="container">
+      <div class="d-flex flex-wrap justify-content-center align-items-center gap-3" style="font-size: 0.9rem; color: #1f2937;">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-shield-lock-fill" style="color: #16a34a; font-size: 1.1rem;"></i>
+          <span><strong>SSL Encrypted</strong> - Your data is secure</span>
+        </div>
+        <span style="color: #cbd5e1;">|</span>
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-shield-check-fill" style="color: #2563eb; font-size: 1.1rem;"></i>
+          <span><strong>Firebase Authentication</strong> - Trusted login</span>
+        </div>
+        <span style="color: #cbd5e1;">|</span>
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-file-text-fill" style="color: #7c3aed; font-size: 1.1rem;"></i>
+          <span><a href="/privacy" style="color: #1f2937; text-decoration: none; font-weight: 600;">Privacy Policy</a> & <a href="/terms" style="color: #1f2937; text-decoration: none; font-weight: 600;">Terms</a></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <section class="hero-section">
     <div class="container">
       <h1 class="hero-title" style="font-weight:700;line-height:1.25;margin-bottom:0.75rem;color:#1f2937;text-align:center;">
@@ -2968,9 +2989,18 @@
             </a>
 
           </div>
+          <!-- Security & Trust Badges -->
+          <div class="footer-badge mb-2">
+            <i class="bi bi-shield-lock-fill text-success"></i>
+            <span>SSL Encrypted</span>
+          </div>
+          <div class="footer-badge mb-2">
+            <i class="bi bi-shield-check-fill text-primary"></i>
+            <span>Firebase Auth</span>
+          </div>
           <div class="footer-badge">
-            <i class="bi bi-shield-check-fill"></i>
-            <span>Open Source Project</span>
+            <i class="bi bi-code-square text-info"></i>
+            <span>Open Source</span>
           </div>
         </div>
         
@@ -2985,9 +3015,12 @@
         <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
           <h5 class="footer-heading">Company</h5>
           <a href="/about" class="footer-link">About Us</a>
-          <a href="/careers" class="footer-link">Careers</a>
-          <a href="/blog" class="footer-link">Blog</a>
-          <a href="/contact" class="footer-link">Contact</a>
+          <a href="mailto:mail@justmailit.in" class="footer-link">
+            <i class="bi bi-envelope-fill me-1"></i>Contact Us
+          </a>
+          <a href="mailto:manudrive06@gmail.com" class="footer-link">
+            <i class="bi bi-headset me-1"></i>Support
+          </a>
         </div>
         
         <div class="col-lg-2 col-md-3 col-6 mb-4 mb-lg-0">
@@ -2995,15 +3028,17 @@
           <a href="/documentation" class="footer-link">Documentation</a>
           <a href="/help" class="footer-link">Help Center</a>
           <a href="/api" class="footer-link">API Reference</a>
-          <a href="/community" class="footer-link">Community</a>
-        </div>
-        
         <div class="col-lg-2 col-md-3 col-6">
-          <h5 class="footer-heading">Legal</h5>
-          <a href="/privacy" class="footer-link">Privacy Policy</a>
-          <a href="/terms" class="footer-link">Terms of Service</a>
-          <a href="/cookies" class="footer-link">Cookie Policy</a>
-          <a href="/gdpr" class="footer-link">GDPR Compliance</a>
+          <h5 class="footer-heading">Legal & Privacy</h5>
+          <a href="/privacy" class="footer-link">
+            <i class="bi bi-shield-fill-check me-1"></i>Privacy Policy
+          </a>
+          <a href="/terms" class="footer-link">
+            <i class="bi bi-file-text me-1"></i>Terms of Service
+          </a>
+          <a href="/about" class="footer-link">
+            <i class="bi bi-info-circle me-1"></i>About Us
+          </a>
         </div>
       </div>
     </div>
@@ -3012,13 +3047,20 @@
       <div class="container">
         <div class="row align-items-center">
           <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-            <p class="footer-copyright">
-              Ã‚Â© 2001-2025 JustMailIt. All rights reserved.
+            <p class="footer-copyright mb-1">
+              © 2001-2025 JustMailIt. All rights reserved.
+            </p>
+            <p class="mb-0" style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">
+              <i class="bi bi-lock-fill"></i> Your data is encrypted and secure. 
+              <i class="bi bi-shield-check ms-2"></i> Trusted authentication via Firebase.
             </p>
           </div>
           <div class="col-md-6 text-center text-md-end">
-            <p class="footer-credits">
+            <p class="footer-credits mb-1">
               Built with ❤️ by JustMailIt Team
+            </p>
+            <p class="mb-0" style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">
+              Contact: mail@justmailit.in | Support: manudrive06@gmail.com
             </p>
           </div>
         </div>

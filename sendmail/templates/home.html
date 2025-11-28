@@ -1851,11 +1851,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Bind common buttons if present
-  const genBtn = document.getElementById('generateEmailTemplateBtn');
-  const runBtn = document.getElementById('runNewAutomationBtn');
-  genBtn?.addEventListener('click', (e) => { e.preventDefault(); showPopup(); });
-  runBtn?.addEventListener('click', (e) => { e.preventDefault(); showPopup(); });
+  // Bind common buttons if present (but NOT the dashboard CTA buttons)
+  // Dashboard CTA buttons (generateEmailTemplateBtn, runNewAutomationBtn) should just navigate to /send
+  // They are simple <a> links and don't need event listeners
 });
 
 // Handle Resume Upload with Auto-extraction

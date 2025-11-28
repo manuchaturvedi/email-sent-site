@@ -1915,10 +1915,13 @@ def job_posts():
     # Sort posts by date, newest first
     posts.sort(key=lambda x: x["posted_date"], reverse=True)
     
+    # Check if user is admin
+    is_admin = (user_email == ADMIN_EMAIL)
+    
     # Pass current date as formatted string to template
     from datetime import datetime
     current_date = datetime.now().strftime('%b %d, %Y')
-    return render_template("job_posts.html", job_posts=posts, current_date=current_date)
+    return render_template("job_posts.html", job_posts=posts, current_date=current_date, is_admin=is_admin)
 
 
 @app.route("/send_job_email", methods=["POST"])

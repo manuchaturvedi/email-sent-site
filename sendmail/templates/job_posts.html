@@ -1639,7 +1639,7 @@
                             </button>
                         {% endif %}
                         
-                        {% if session.get('is_admin') %}
+                        {% if is_admin %}
                         <button class="btn-delete-job" 
                                 data-job-id="{{ post.get('id', '') }}"
                                 title="Delete inappropriate job post">

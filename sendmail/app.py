@@ -69,14 +69,30 @@ def run_scheduler():
                     if now >= next_run_time:
                         print(f"[SCHEDULER] Running scheduled job #{job['id']}: {job['job_name']}")
                         
-                        # Run scraping in a separate thread
+                        # Run scraping via admin scraping (scrape only, no emails)
                         def run_job(job_data):
                             try:
-                                scrape_jobs_thread(
-                                    search_role=job_data['search_role'],
-                                    search_time='past-week',
-                                    user_email='admin@justmailit.in'
+                                import requests
+                                
+                                # Trigger admin scraping endpoint which scrapes jobs without sending emails
+                                # This will scrape jobs and add them to database for future use
+                                print(f"[SCHEDULER] Triggering job scraping for: {job_data['search_role']}")
+                                
+                                # Use the admin scrape endpoint internally
+                                # We'll make a local request to trigger the scraping
+                                response = requests.get(
+                                    'http://localhost:5000/admin/scrape_jobs',
+                                    params={
+                                        'skills': job_data['search_role'],
+                                        'scrolls': 5
+                                    },
+                                    timeout=600  # 10 minute timeout for scraping
                                 )
+                                
+                                if response.status_code == 200:
+                                    print(f"[SCHEDULER] Job scraping completed successfully for #{job_data['id']}")
+                                else:
+                                    print(f"[SCHEDULER] Job scraping returned status {response.status_code}")
                                 
                                 # Calculate next run time
                                 run_time = datetime.now()
@@ -88,6 +104,8 @@ def run_scheduler():
                                 
                             except Exception as e:
                                 print(f"[SCHEDULER] Error running job #{job_data['id']}: {str(e)}")
+                                import traceback
+                                traceback.print_exc()
                         
                         job_thread = threading.Thread(target=run_job, args=(job,), daemon=True)
                         job_thread.start()

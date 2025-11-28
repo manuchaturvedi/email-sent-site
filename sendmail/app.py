@@ -9,6 +9,7 @@ from database import Database  # Import SQLite database
 from utils.helpers import extract_company_from_email, parse_skills
 from utils.decorators import login_required, admin_required, ADMIN_EMAIL
 from services.email_service import send_plain_email, send_admin_alert
+import config
 
 import uuid
 import hashlib
@@ -485,9 +486,35 @@ def log(message: str):
 JOB_POSTS_FILE = 'job_posts.json'
 SENT_EMAILS_FILE = 'sent_emails.json'
 
-# Razorpay Payment Gateway Configuration
-RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_live_RgNB6M60lUvK2l")
-RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "i4GM8FcOw34g438OMecg2z78")
+# ========== CONFIGURATION (Moved to config.py) ==========
+# Keeping original code commented for safety - DELETE AFTER TESTING
+# # Razorpay Payment Gateway Configuration
+# RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_live_RgNB6M60lUvK2l")
+# RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "i4GM8FcOw34g438OMecg2z78")
+# 
+# # Optional persistent Chrome profile directory helps preserve LinkedIn login state.
+# _env_profile = os.getenv("CHROME_PROFILE_DIR")
+# _default_profile = r"D:\Profile"
+# if _env_profile:
+#     CHROME_PROFILE_DIR = _env_profile
+# elif os.path.exists(_default_profile):
+#     CHROME_PROFILE_DIR = _default_profile
+# else:
+#     CHROME_PROFILE_DIR = None
+# 
+# # LinkedIn credentials for programmatic login (fallback)
+# LINKEDIN_EMAIL = "manudrive04@gmail.com"
+# LINKEDIN_PASSWORD = "Jpking@232"
+
+# Use configuration from config module
+UPLOAD_FOLDER = config.UPLOAD_FOLDER
+JOB_POSTS_FILE = config.JOB_POSTS_FILE
+SENT_EMAILS_FILE = config.SENT_EMAILS_FILE
+RAZORPAY_KEY_ID = config.RAZORPAY_KEY_ID
+RAZORPAY_KEY_SECRET = config.RAZORPAY_KEY_SECRET
+CHROME_PROFILE_DIR = config.CHROME_PROFILE_DIR
+LINKEDIN_EMAIL = config.LINKEDIN_EMAIL
+LINKEDIN_PASSWORD = config.LINKEDIN_PASSWORD
 
 # Initialize Razorpay Client
 try:
@@ -497,20 +524,6 @@ try:
 except ImportError:
     print("[WARN] Razorpay SDK not installed. Payment features will be limited.")
     razorpay_client = None
-
-# Optional persistent Chrome profile directory helps preserve LinkedIn login state.
-_env_profile = os.getenv("CHROME_PROFILE_DIR")
-_default_profile = r"D:\Profile"
-if _env_profile:
-    CHROME_PROFILE_DIR = _env_profile
-elif os.path.exists(_default_profile):
-    CHROME_PROFILE_DIR = _default_profile
-else:
-    CHROME_PROFILE_DIR = None
-
-# LinkedIn credentials for programmatic login (fallback)
-LINKEDIN_EMAIL = "manudrive04@gmail.com"
-LINKEDIN_PASSWORD = "Jpking@232"
 
 # Global variables for automation - Per-user session management
 automation_sessions = {}  # {user_email: {'running': bool, 'driver': driver, 'stop_flag': bool, 'thread': thread}}
@@ -915,7 +928,8 @@ def save_sent_email(record, run_id=None, user_email=None):
         except Exception as local_error:
             print(f"[ERROR] Error saving to local storage: {str(local_error)}")
             return False
-app.secret_key = "super-secret-key-change-this"
+# Flask secret key (moved to config.py)
+app.secret_key = config.SECRET_KEY
 
 # Initialize Firebase Admin SDK
 # Initialize Firebase with credentials (cloud-compatible)

@@ -1795,21 +1795,8 @@ async function checkExistingProfile() {
         showStep(3);
       }, 500);
     } else {
-      // Profile incomplete - close modal and redirect to profile page
-      const missingItems = [];
-      if (!hasResume) missingItems.push('Resume');
-      if (!hasSubject) missingItems.push('Email Subject');
-      if (!hasContent) missingItems.push('Email Content');
-      if (!hasRole) missingItems.push('Job Role');
-      
-      // Close the modal
-      const modalEl = document.getElementById('gamifiedQuickStartModal');
-      const modal = bootstrap.Modal.getInstance(modalEl);
-      if (modal) modal.hide();
-      
-      // Notify user and redirect
-      alert(`Please complete your profile first. Missing:\n• ${missingItems.join('\n• ')}`);
-      window.location.href = '/profile';
+      // Profile incomplete - show Step 1 to upload resume
+      showStep(1);
     }
   } catch (error) {
     console.error('Error checking profile:', error);
@@ -1839,15 +1826,10 @@ document.addEventListener('DOMContentLoaded', () => {
           modal.show();
           checkExistingProfile();
         } else {
-          // Profile incomplete - redirect to profile page
-          const missingItems = [];
-          if (!hasResume) missingItems.push('Resume');
-          if (!hasSubject) missingItems.push('Email Subject');
-          if (!hasContent) missingItems.push('Email Content');
-          if (!hasRole) missingItems.push('Job Role');
-          
-          alert(`Please complete your profile first. Missing:\n• ${missingItems.join('\n• ')}`);
-          window.location.href = '/profile';
+          // Profile incomplete - show modal at Step 1
+          const modal = new bootstrap.Modal(modalEl);
+          showStep(1);
+          modal.show();
         }
       } catch (error) {
         console.error('Error checking profile:', error);

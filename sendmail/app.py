@@ -4472,34 +4472,34 @@ def scrape_and_save_jobs(search_role, search_time='past-week', user_email=None, 
         chrome_options = Options()
         
         # Set Chrome/Chromium binary location
-        if os.environ.get('CHROME_BIN'):
-            chrome_options.binary_location = os.environ.get('CHROME_BIN', '/usr/bin/chromium')
-            print(f"[SCRAPER] Using Chromium: {chrome_options.binary_location}")
+        chrome_options.binary_location = os.environ.get('CHROME_BIN', '/usr/bin/chromium')
+        print(f"[SCRAPER] Using Chromium: {chrome_options.binary_location}")
         
-        if os.environ.get('HEADLESS', 'true').lower() != 'false':
-            chrome_options.add_argument("--headless=new")
-        
-        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        # Headless mode
+        chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        chrome_options.add_argument("--disable-software-rasterizer")
+        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--disable-setuid-sandbox")
         chrome_options.add_argument("--window-size=1920,1080")
+        chrome_options.add_argument("--start-maximized")
+        chrome_options.add_argument("--remote-debugging-port=9222")
         
-        # Use profile directory
-        profile_dir = "/tmp/chrome-profile" if os.environ.get('CHROME_BIN') else r"D:\Profile"
+        # Use simple temp profile for scheduler jobs
+        profile_dir = "/tmp/chrome-scheduler-profile"
         os.makedirs(profile_dir, exist_ok=True)
         chrome_options.add_argument(f"--user-data-dir={profile_dir}")
         
-        # Launch Chrome
-        if os.environ.get('CHROMEDRIVER_PATH'):
-            from selenium.webdriver.chrome.service import Service
-            service = Service(os.environ.get('CHROMEDRIVER_PATH'))
-            driver = webdriver.Chrome(service=service, options=chrome_options)
-        else:
-            from webdriver_manager.chrome import ChromeDriverManager
-            from selenium.webdriver.chrome.service import Service
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=chrome_options)
+        # Launch Chrome with explicit ChromeDriver path
+        chromedriver_path = os.environ.get('CHROMEDRIVER_PATH', '/usr/bin/chromedriver')
+        print(f"[SCRAPER] Using ChromeDriver: {chromedriver_path}")
+        
+        from selenium.webdriver.chrome.service import Service
+        service = Service(chromedriver_path)
+        driver = webdriver.Chrome(service=service, options=chrome_options)
         
         print("[SCRAPER] Chrome launched successfully")
         

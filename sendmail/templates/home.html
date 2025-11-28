@@ -1765,20 +1765,20 @@ async function checkExistingProfile() {
     const response = await fetch('/get_profile');
     const profile = await response.json();
     
-    const hasResume = profile.resume_filename && profile.resume_filename.trim() !== '';
-    const hasSubject = profile.email_subject && profile.email_subject.trim() !== '';
-    const hasContent = profile.email_content && profile.email_content.trim() !== '';
-    const hasRole = profile.search_role && profile.search_role.trim() !== '';
+    const hasResume = profile.hasResume || (profile.resumeFilename && profile.resumeFilename.trim() !== '');
+    const hasSubject = profile.emailSubject && profile.emailSubject.trim() !== '';
+    const hasContent = profile.emailContent && profile.emailContent.trim() !== '';
+    const hasRole = profile.searchRole && profile.searchRole.trim() !== '';
     
     // Only show Step 3 if profile is complete
     if (hasResume && hasSubject && hasContent && hasRole) {
       // User has complete profile, pre-fill and go to step 3
       extractedData = {
-        name: profile.display_name || '',
+        name: profile.displayName || '',
         email: '{{ session.user }}',
         phone: '',
         skills: [],
-        position: profile.search_role || '',
+        position: profile.searchRole || '',
         experience: '3-5'
       };
       
@@ -1789,7 +1789,7 @@ async function checkExistingProfile() {
         document.getElementById('userPosition').value = extractedData.position;
         
         // Use existing email subject
-        document.getElementById('finalEmailSubject').value = profile.email_subject;
+        document.getElementById('finalEmailSubject').value = profile.emailSubject;
         sessionStorage.setItem('emailSubject', profile.email_subject);
         
         showStep(3);
@@ -1827,10 +1827,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const response = await fetch('/get_profile');
         const profile = await response.json();
         
-        const hasResume = profile.resume_filename && profile.resume_filename.trim() !== '';
-        const hasSubject = profile.email_subject && profile.email_subject.trim() !== '';
-        const hasContent = profile.email_content && profile.email_content.trim() !== '';
-        const hasRole = profile.search_role && profile.search_role.trim() !== '';
+        const hasResume = profile.hasResume || (profile.resumeFilename && profile.resumeFilename.trim() !== '');
+        const hasSubject = profile.emailSubject && profile.emailSubject.trim() !== '';
+        const hasContent = profile.emailContent && profile.emailContent.trim() !== '';
+        const hasRole = profile.searchRole && profile.searchRole.trim() !== '';
         
         if (hasResume && hasSubject && hasContent && hasRole) {
           // Profile complete - redirect directly to automation page

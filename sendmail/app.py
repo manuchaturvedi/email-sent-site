@@ -1232,6 +1232,72 @@ def contact():
     """Contact page"""
     return render_template("contact.html")
 
+@app.route("/api/contact", methods=['POST'])
+def api_contact():
+    """Handle contact form submissions"""
+    try:
+        # Get form data (supports both JSON and form-data)
+        if request.is_json:
+            data = request.get_json()
+            first_name = data.get('firstName', '')
+            last_name = data.get('lastName', '')
+            email = data.get('email', '')
+            subject = data.get('subject', '')
+            message = data.get('message', '')
+        else:
+            first_name = request.form.get('firstName', '')
+            last_name = request.form.get('lastName', '')
+            email = request.form.get('email', '')
+            subject = request.form.get('subject', '')
+            message = request.form.get('message', '')
+        
+        # Validate required fields
+        if not all([first_name, last_name, email, subject, message]):
+            return jsonify({'success': False, 'message': 'All fields are required'}), 400
+        
+        # Validate email format
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            return jsonify({'success': False, 'message': 'Invalid email address'}), 400
+        
+        # Log the contact request
+        logger.info(f"Contact form submission from {first_name} {last_name} ({email}): {subject}")
+        
+        # Send notification email to admin
+        try:
+            admin_email = "mail@justmailit.in"
+            email_subject = f"[Contact Form] {subject}"
+            email_body = f"""
+New contact form submission:
+
+Name: {first_name} {last_name}
+Email: {email}
+Subject: {subject}
+
+Message:
+{message}
+
+---
+Sent from JustMailIt Contact Form
+            """
+            
+            send_email(admin_email, email_subject, email_body)
+            logger.info(f"Contact form notification sent to {admin_email}")
+        except Exception as e:
+            logger.error(f"Failed to send contact form notification: {str(e)}")
+            # Don't fail the request if email fails
+        
+        return jsonify({
+            'success': True,
+            'message': 'Thank you for contacting us! We\'ll respond within 24 hours.'
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error processing contact form: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred. Please try again or email us directly at mail@justmailit.in'
+        }), 500
+
 @app.route("/documentation")
 def documentation():
     """Documentation page"""

@@ -1759,53 +1759,103 @@ function loadUserStats() {
   if (rEl) rEl.textContent = remaining;
 }
 
-function checkExistingProfile() {
-  // Check if profile already has name, email, phone, position, skills
-  const hasName = '{{ profile.display_name }}' !== '';
-  const hasPosition = '{{ profile.search_role }}' !== '';
-  
-  if (hasName && hasPosition) {
-    // User has existing data, pre-fill and go to step 3
-    extractedData = {
-      name: '{{ profile.display_name or "" }}',
-      email: '{{ session.user }}',
-      phone: '',
-      skills: [],
-      position: '{{ profile.search_role or "" }}',
-      experience: '3-5'
-    };
+async function checkExistingProfile() {
+  // Check if profile is complete before allowing Step 3
+  try {
+    const response = await fetch('/get_profile');
+    const profile = await response.json();
     
-    // Auto-fill and show step 3 for quick launch
-    setTimeout(() => {
-      document.getElementById('userName').value = extractedData.name;
-      document.getElementById('userContactEmail').value = extractedData.email;
-      document.getElementById('userPosition').value = extractedData.position;
+    const hasResume = profile.resume_filename && profile.resume_filename.trim() !== '';
+    const hasSubject = profile.email_subject && profile.email_subject.trim() !== '';
+    const hasContent = profile.email_content && profile.email_content.trim() !== '';
+    const hasRole = profile.search_role && profile.search_role.trim() !== '';
+    
+    // Only show Step 3 if profile is complete
+    if (hasResume && hasSubject && hasContent && hasRole) {
+      // User has complete profile, pre-fill and go to step 3
+      extractedData = {
+        name: profile.display_name || '',
+        email: '{{ session.user }}',
+        phone: '',
+        skills: [],
+        position: profile.search_role || '',
+        experience: '3-5'
+      };
       
-      // Generate subject and go to final step
-      const emailSubject = `Application for ${extractedData.position} Position - ${extractedData.name}`;
-      document.getElementById('finalEmailSubject').value = emailSubject;
-      sessionStorage.setItem('emailSubject', emailSubject);
+      // Auto-fill and show step 3 for quick launch
+      setTimeout(() => {
+        document.getElementById('userName').value = extractedData.name;
+        document.getElementById('userContactEmail').value = extractedData.email;
+        document.getElementById('userPosition').value = extractedData.position;
+        
+        // Use existing email subject
+        document.getElementById('finalEmailSubject').value = profile.email_subject;
+        sessionStorage.setItem('emailSubject', profile.email_subject);
+        
+        showStep(3);
+      }, 500);
+    } else {
+      // Profile incomplete - close modal and redirect to profile page
+      const missingItems = [];
+      if (!hasResume) missingItems.push('Resume');
+      if (!hasSubject) missingItems.push('Email Subject');
+      if (!hasContent) missingItems.push('Email Content');
+      if (!hasRole) missingItems.push('Job Role');
       
-      showStep(3);
-    }, 500);
+      // Close the modal
+      const modalEl = document.getElementById('gamifiedQuickStartModal');
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+      
+      // Notify user and redirect
+      alert(`Please complete your profile first. Missing:\n• ${missingItems.join('\n• ')}`);
+      window.location.href = '/profile';
+    }
+  } catch (error) {
+    console.error('Error checking profile:', error);
+    // On error, just start at Step 1
+    showStep(1);
   }
 }
 
 // Ensure primary CTAs on dashboard open the popup instead of redirecting
 document.addEventListener('DOMContentLoaded', () => {
-  const showPopup = () => {
+  const showPopup = async () => {
     const modalEl = document.getElementById('gamifiedQuickStartModal');
     if (modalEl) {
-      const modal = new bootstrap.Modal(modalEl);
-      // Start at step 1 (upload) unless profile is complete
-      const hasName = '{{ profile.display_name | default("") }}' !== '';
-      const hasPosition = '{{ profile.search_role | default("") }}' !== '';
-      if (hasName && hasPosition) {
-        checkExistingProfile();
-      } else {
+      // First check if profile is complete
+      try {
+        const response = await fetch('/get_profile');
+        const profile = await response.json();
+        
+        const hasResume = profile.resume_filename && profile.resume_filename.trim() !== '';
+        const hasSubject = profile.email_subject && profile.email_subject.trim() !== '';
+        const hasContent = profile.email_content && profile.email_content.trim() !== '';
+        const hasRole = profile.search_role && profile.search_role.trim() !== '';
+        
+        if (hasResume && hasSubject && hasContent && hasRole) {
+          // Profile complete - show modal and let checkExistingProfile handle Step 3
+          const modal = new bootstrap.Modal(modalEl);
+          modal.show();
+          checkExistingProfile();
+        } else {
+          // Profile incomplete - redirect to profile page
+          const missingItems = [];
+          if (!hasResume) missingItems.push('Resume');
+          if (!hasSubject) missingItems.push('Email Subject');
+          if (!hasContent) missingItems.push('Email Content');
+          if (!hasRole) missingItems.push('Job Role');
+          
+          alert(`Please complete your profile first. Missing:\n• ${missingItems.join('\n• ')}`);
+          window.location.href = '/profile';
+        }
+      } catch (error) {
+        console.error('Error checking profile:', error);
+        // On error, show modal at Step 1
+        const modal = new bootstrap.Modal(modalEl);
         showStep(1);
+        modal.show();
       }
-      modal.show();
     }
   };
 

@@ -8,7 +8,9 @@ from database import Database  # Import SQLite database
 # Import utilities from refactored modules
 from utils.helpers import extract_company_from_email, parse_skills
 from utils.decorators import login_required, admin_required, ADMIN_EMAIL
-from services.email_service import send_plain_email, send_admin_alert
+from services.email_service import (send_plain_email, send_admin_alert, 
+                                   send_verification_email, send_password_reset_email,
+                                   send_welcome_email, send_automation_summary_email)
 from services.job_service import (
     is_duplicate_job_post, load_job_posts, save_job_post,
     load_sent_emails, get_user_email_stats, prepare_email_record,
@@ -712,17 +714,7 @@ def api_send_verification():
         # Build verify link
         verify_link = url_for('verify_email', token=token, _external=True)
 
-        subject = "✉️ Verify your JustMailIt account"
-        body = (
-            f"Hi,\n\n"
-            f"Thanks for signing up for JustMailIt. Please verify your email address by clicking the link below:\n\n"
-            f"{verify_link}\n\n"
-            f"This link will expire in 24 hours.\n\n"
-            f"If you didn't create this account, please ignore this email.\n\n"
-            f"Best regards,\nJustMailIt Team"
-        )
-
-        ok = _send_plain_email(user_email, subject, body)
+        ok = send_verification_email(user_email, verify_link)
         if not ok:
             print(f"[ERROR] Failed to send verification email to {user_email}")
             return jsonify({"error": "Failed to send verification email"}), 500
@@ -776,35 +768,8 @@ def verify_email():
         
         # Send welcome email to newly verified user
         try:
-            welcome_subject = "🎉 Welcome to JustMailIt - Your AI Job Search Companion!"
-            welcome_body = f"""Hi {display_name}!
-
-Welcome to JustMailIt! 🚀
-
-Thank you for verifying your email. Your account is now fully activated!
-
-Here's what you can do right now:
-✅ Upload your resume and create your profile
-✅ Generate professional email templates with AI
-✅ Start automated job searches on LinkedIn
-✅ Send unlimited personalized emails to recruiters
-
-Getting Started:
-1. Sign in at: {url_for('landing', _external=True)}
-2. Complete your profile at: {url_for('profile', _external=True)}
-3. Use our AI Email Generator to create perfect outreach emails
-4. Click "Start Email Automation" and let us do the work!
-
-💡 Pro Tip: Make sure your email and phone number are in your email body so recruiters can easily reach you.
-
-Need help? Just reply to this email and we'll assist you.
-
-Best of luck with your job search!
-
-The JustMailIt Team
-🌐 {request.host_url}
-"""
-            _send_plain_email(user_email, welcome_subject, welcome_body)
+            dashboard_url = url_for('landing', _external=True)
+            send_welcome_email(user_email, dashboard_url)
             print(f"[OK] Welcome email sent to verified user: {user_email}")
         except Exception as email_error:
             print(f"[WARN] Failed to send welcome email to {user_email}: {email_error}")
@@ -844,16 +809,8 @@ def forgot_password():
         db.create_reset_token(user_email, token, expires_at)
 
         reset_link = url_for('reset_password_form', token=token, _external=True)
-        subject = "🔐 Reset your JustMailIt password"
-        body = (
-            f"Hi,\n\n"
-            f"We received a request to reset your JustMailIt password. Click the link below to set a new password:\n\n"
-            f"{reset_link}\n\n"
-            f"This link will expire in 1 hour. If you did not request a password reset, you can ignore this email.\n\n"
-            f"Best regards,\nJustMailIt Team"
-        )
-
-        ok = _send_plain_email(user_email, subject, body)
+        
+        ok = send_password_reset_email(user_email, reset_link)
         if not ok:
             print(f"[ERROR] Failed to send reset email to {user_email}")
             return jsonify({"message": "Failed to send reset email"}), 500
@@ -987,34 +944,8 @@ def login():
         # Send welcome email to new users
         if is_new_user:
             try:
-                welcome_subject = "🎉 Welcome to JustMailIt - Your AI Job Search Companion!"
-                welcome_body = f"""Hi {display_name or 'there'}!
-
-Welcome to JustMailIt! 🚀
-
-We're excited to have you on board. JustMailIt is your personal AI-powered job search assistant that automates finding opportunities and reaching out to recruiters.
-
-Here's what you can do right now:
-✅ Upload your resume and create your profile
-✅ Generate professional email templates with AI
-✅ Start automated job searches on LinkedIn
-✅ Send unlimited personalized emails to recruiters
-
-Getting Started:
-1. Complete your profile at: {url_for('profile', _external=True)}
-2. Use our AI Email Generator to create perfect outreach emails
-3. Click "Start Email Automation" and let us do the work!
-
-💡 Pro Tip: Make sure your email and phone number are in your email body so recruiters can easily reach you.
-
-Need help? Just reply to this email and we'll assist you.
-
-Best of luck with your job search!
-
-The JustMailIt Team
-🌐 {request.host_url}
-"""
-                _send_plain_email(user_email, welcome_subject, welcome_body)
+                dashboard_url = url_for('landing', _external=True)
+                send_welcome_email(user_email, dashboard_url)
                 print(f"[OK] Welcome email sent to new user: {user_email}")
             except Exception as email_error:
                 print(f"[WARN] Failed to send welcome email to {user_email}: {email_error}")
@@ -2356,24 +2287,7 @@ def send_emails_from_existing_jobs(subject, email_content, attachment_path, cc_e
         # Send summary email to user
         try:
             if user_email and emails_sent_count > 0:
-                summary_subject = f"✅ Quick Email Batch Complete - {emails_sent_count} Emails Sent"
-                summary_body = f"""
-Hi there!
-
-Your quick email batch has been completed successfully!
-
-📊 SUMMARY:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ Emails Sent: {emails_sent_count}
-📋 Mode: Quick Send (from existing job posts)
-🔍 Search Role: {search_role}
-
-Note: Another automation was already running, so we sent emails from our existing job database instead of scraping LinkedIn. This is faster and doesn't require browser automation!
-
-Best regards,
-JustMailIt Team
-"""
-                _send_plain_email(recipient_email=user_email, subject=summary_subject, body=summary_body)
+                send_automation_summary_email(user_email, emails_sent_count, search_role, mode="quick_send")
         except Exception as email_err:
             log(f"[WARN] Could not send summary email: {str(email_err)}")
         

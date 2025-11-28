@@ -4235,16 +4235,21 @@ def admin_required(f):
     """Decorator to check if user is admin"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        print(f"[DEBUG] admin_required: Checking access for route {f.__name__}")
         if "user" not in session:
+            print("[DEBUG] admin_required: No user in session")
             flash("Please log in first!", "warning")
             return redirect(url_for('landing'))
         
         # session['user'] is a string (email), not a dict
         user_email = session.get('user', '')
+        print(f"[DEBUG] admin_required: User={user_email}, Admin={ADMIN_EMAIL}")
         if user_email != ADMIN_EMAIL:
+            print(f"[DEBUG] admin_required: Access denied - not admin")
             flash("Access denied. Admin only!", "danger")
             return redirect(url_for('dashboard'))
         
+        print(f"[DEBUG] admin_required: Access granted")
         return f(*args, **kwargs)
     return decorated_function
 

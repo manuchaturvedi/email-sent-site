@@ -662,7 +662,7 @@
 
 
   <!-- Why Direct Email Benefits Section -->
-  <div class="row mb-5">
+  <div class="row mb-5" id="benefitsSection">
     <div class="col-lg-11 mx-auto">
       <div class="campaign-card" style="background: linear-gradient(135deg, rgba(168,230,207,0.05), rgba(139,159,255,0.05)); border: 2px solid rgba(168,230,207,0.3);">
         <div class="text-center mb-4">
@@ -725,7 +725,7 @@
   </div>
 
   <!-- Email Template Generator - Prominent Position -->
-  <div class="row mb-4">
+  <div class="row mb-4" id="templateGeneratorSection">
     <div class="col-lg-11 mx-auto">
       <div class="campaign-card" style="background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1)); border: 2px solid #667eea;">
         <div class="text-center">
@@ -932,7 +932,7 @@
 
       <!-- Automation Progress -->
       <div class="mt-5" id="automationProgressSection">
-        <h5 class="d-flex align-items-center mb-4">
+        <h5 class="d-flex align-items-center mb-4" style="color: #1f2937; font-weight: 700;">
           <i class="bi bi-graph-up-arrow text-primary me-2"></i>
           Automation Progress
         </h5>
@@ -1044,32 +1044,42 @@
           overflow-y: auto;
         }
         
-        /* Automation running state */
+        /* Automation running state - hide everything except progress and stop button */
+        .automation-running #benefitsSection,
+        .automation-running #templateGeneratorSection,
         .automation-running #automationFormCard {
-          transform: scale(0.8);
-          opacity: 0.3;
-          pointer-events: none;
-          transition: all 0.5s ease;
-          max-height: 0;
-          overflow: hidden;
+          display: none !important;
         }
         
         .automation-running #automationProgressSection {
-          transform: scale(1.1);
-          transition: all 0.5s ease;
+          margin-top: 2rem;
         }
         
         .automation-running #automationProgressSection h5 {
-          font-size: 1.8rem;
+          font-size: 2rem;
           font-weight: 800;
+          color: #10b981;
         }
         
         .automation-running #automationProgressSection .card {
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+          border: 2px solid #10b981;
         }
         
         .automation-running #automationProgressSection .display-6 {
-          font-size: 3.5rem !important;
+          font-size: 4rem !important;
+          font-weight: 900 !important;
+        }
+        
+        .automation-running #automationProgressSection .card-body {
+          padding: 2rem !important;
+        }
+        
+        /* Keep stop button visible and prominent */
+        .automation-running #stopBtn {
+          font-size: 1.2rem;
+          padding: 1rem 2rem;
+          box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
         }
       </style>
     </div>

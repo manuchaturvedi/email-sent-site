@@ -2444,6 +2444,212 @@ def linkedin_login(driver, email, password):
         return False
 
 
+def send_emails_from_existing_jobs(subject, email_content, attachment_path, cc_email, run_id, user_email, search_role, limit=10):
+    """
+    Send emails to existing job posts from database without LinkedIn scraping.
+    Used when another automation is already running.
+    """
+    import time
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from email.mime.base import MIMEBase
+    from email import encoders
+    
+    global automation_sessions
+    
+    log("=" * 60)
+    log("[QUEUE] Another automation is running")
+    log("[QUEUE] Sending emails from existing job posts in database")
+    log("=" * 60)
+    
+    emails_sent_count = 0
+    
+    try:
+        # Get user's email limit
+        can_send, today_count, limit_msg = check_email_limit(user_email)
+        remaining = 10 - today_count
+        actual_limit = min(limit, remaining)
+        
+        log(f"[LIMIT] Can send up to {actual_limit} emails (limit={limit}, already sent today={today_count})")
+        
+        if actual_limit <= 0:
+            log("[LIMIT] Daily email limit reached")
+            send_event(f"[LIMIT] Daily email limit reached. Please upgrade or try again tomorrow.")
+            return {"status": "limit_reached", "emails_sent": 0}
+        
+        # Get existing job posts from database matching user's search role
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Parse search roles
+        roles = parse_skills(search_role) if search_role else []
+        
+        if roles:
+            # Build SQL query with OR conditions for each role
+            role_conditions = " OR ".join(["LOWER(title) LIKE ? OR LOWER(description) LIKE ?" for _ in roles])
+            role_params = []
+            for role in roles:
+                role_lower = f"%{role.lower()}%"
+                role_params.extend([role_lower, role_lower])
+            
+            query = f"""
+                SELECT DISTINCT email, company, title, description, source_url, location
+                FROM job_posts
+                WHERE email IS NOT NULL 
+                AND email != ''
+                AND ({role_conditions})
+                AND email NOT IN (
+                    SELECT DISTINCT recipient_email 
+                    FROM sent_emails 
+                    WHERE user_email = ? 
+                    AND DATE(sent_at) = DATE('now')
+                )
+                ORDER BY created_at DESC
+                LIMIT ?
+            """
+            
+            cursor.execute(query, role_params + [user_email, actual_limit])
+        else:
+            # No specific role, get any recent jobs
+            query = """
+                SELECT DISTINCT email, company, title, description, source_url, location
+                FROM job_posts
+                WHERE email IS NOT NULL 
+                AND email != ''
+                AND email NOT IN (
+                    SELECT DISTINCT recipient_email 
+                    FROM sent_emails 
+                    WHERE user_email = ? 
+                    AND DATE(sent_at) = DATE('now')
+                )
+                ORDER BY created_at DESC
+                LIMIT ?
+            """
+            cursor.execute(query, [user_email, actual_limit])
+        
+        jobs = cursor.fetchall()
+        conn.close()
+        
+        log(f"[DB] Found {len(jobs)} matching jobs to send emails to")
+        
+        if not jobs:
+            send_event("[INFO] No matching job posts found in database. Please try running a full automation later.")
+            return {"status": "no_jobs", "emails_sent": 0}
+        
+        # Send emails
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = "manudrive06@gmail.com"
+        sender_password = "ozds nrqo gduy mnwd"
+        
+        for job in jobs:
+            try:
+                receiver_email = job['email']
+                company = job['company']
+                job_title = job['title']
+                
+                log(f"[→] Sending to {company} ({receiver_email})...")
+                send_event(f"[→] Sending to {company}...")
+                
+                # Personalize email content
+                personalized_content = email_content.replace("{company}", company).replace("{Company}", company)
+                
+                # Send email
+                msg = MIMEMultipart()
+                msg["From"] = sender_email
+                msg["To"] = receiver_email
+                msg["Subject"] = subject
+                
+                if cc_email:
+                    msg["Cc"] = cc_email
+                
+                msg.attach(MIMEText(personalized_content, "plain"))
+                
+                # Attach resume if provided
+                if attachment_path and os.path.exists(attachment_path):
+                    with open(attachment_path, "rb") as attachment:
+                        part = MIMEBase("application", "octet-stream")
+                        part.set_payload(attachment.read())
+                        encoders.encode_base64(part)
+                        part.add_header("Content-Disposition", f"attachment; filename={os.path.basename(attachment_path)}")
+                        msg.attach(part)
+                
+                # Send via SMTP
+                with smtplib.SMTP(smtp_server, smtp_port) as server:
+                    server.starttls()
+                    server.login(sender_email, sender_password)
+                    recipients = [receiver_email]
+                    if cc_email:
+                        recipients.append(cc_email)
+                    server.sendmail(sender_email, recipients, msg.as_string())
+                
+                emails_sent_count += 1
+                log(f"[✓] Email sent to {company}")
+                send_event(f"[✓] Email sent to {company}")
+                
+                # Save to sent_emails
+                save_sent_email({
+                    "email": receiver_email,
+                    "recipient_email": receiver_email,
+                    "subject": subject,
+                    "cc": cc_email,
+                    "sent_at": datetime.now().isoformat(),
+                    "status": "sent",
+                    "company": company,
+                    "title": job_title,
+                    "source_url": job.get('source_url', '')
+                }, run_id, user_email)
+                
+                time.sleep(2)  # Rate limiting
+                
+            except Exception as e:
+                log(f"[ERROR] Failed to send to {job.get('company', 'Unknown')}: {str(e)}")
+                send_event(f"[ERROR] Failed to send to {job.get('company', 'Unknown')}")
+        
+        log(f"[OK] Sent {emails_sent_count} emails from existing job posts")
+        send_event(f"[OK] Completed! Sent {emails_sent_count} emails from existing job posts.")
+        
+        # Send summary email to user
+        try:
+            if user_email and emails_sent_count > 0:
+                summary_subject = f"✅ Quick Email Batch Complete - {emails_sent_count} Emails Sent"
+                summary_body = f"""
+Hi there!
+
+Your quick email batch has been completed successfully!
+
+📊 SUMMARY:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Emails Sent: {emails_sent_count}
+📋 Mode: Quick Send (from existing job posts)
+🔍 Search Role: {search_role}
+
+Note: Another automation was already running, so we sent emails from our existing job database instead of scraping LinkedIn. This is faster and doesn't require browser automation!
+
+Best regards,
+JustMailIt Team
+"""
+                _send_plain_email(recipient_email=user_email, subject=summary_subject, body=summary_body)
+        except Exception as email_err:
+            log(f"[WARN] Could not send summary email: {str(email_err)}")
+        
+        return {"status": "completed", "emails_sent": emails_sent_count}
+        
+    except Exception as e:
+        log(f"[ERROR] Error in send_emails_from_existing_jobs: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        send_event(f"[ERROR] Failed to send emails: {str(e)}")
+        return {"status": "error", "emails_sent": emails_sent_count, "error": str(e)}
+    finally:
+        # Cleanup session
+        if user_email in automation_sessions:
+            automation_sessions[user_email]['running'] = False
+            automation_sessions[user_email]['driver'] = None
+            print(f"[OK] Quick send session cleaned up for {user_email}")
+
+
 # --- AUTOMATION FUNCTION ---
 def run_automation(subject, email_content, attachment_path, cc_email, run_id=None, user_email=None, search_role=None, search_time=None):
     import time
@@ -3432,6 +3638,13 @@ def send_email():
             "already_running": True
         }), 409  # Conflict status code
     
+    # Check if ANY other user has automation running (LinkedIn scraping conflict)
+    other_automations_running = any(
+        session_data.get('running') and session_data.get('driver') is not None
+        for email, session_data in automation_sessions.items()
+        if email != user_email
+    )
+    
     # Initialize user session
     automation_sessions[user_email] = {
         'running': True,
@@ -3446,6 +3659,7 @@ def send_email():
     can_send, emails_sent, limit_message = check_email_limit(user_email)
     if not can_send:
         print(f"[STOP] Blocking automation - limit reached!")
+        automation_sessions[user_email]['running'] = False
         return jsonify({
             "success": False,
             "error": limit_message,
@@ -3558,18 +3772,30 @@ def send_email():
     # Start automation in background thread
     print("=" * 60)
     print("[THREAD] DEBUG: Starting automation thread...")
+    print(f"[THREAD] DEBUG: Other automations running: {other_automations_running}")
     print(f"[THREAD] DEBUG: Thread args: subject={subject}, content_len={len(email_content)}, resume={resume_path}")
     print(f"[THREAD] DEBUG: Thread args: run_id={run_id}, user={user_email}, role={search_role}, time={search_time_period}")
     print("=" * 60)
     
-    # Fixed argument order to match function signature:
-    # run_automation(subject, email_content, attachment_path, cc_email, run_id, user_email, search_role, search_time)
-    thread = threading.Thread(
-        target=run_automation,
-        args=(subject, email_content, resume_path, user_email, run_id, user_email, search_role, search_time_period),
-        daemon=True
-    )
+    # If another automation is running, use quick send from existing jobs
+    if other_automations_running:
+        print("[QUEUE] Another user's automation is running - using quick send mode")
+        thread = threading.Thread(
+            target=send_emails_from_existing_jobs,
+            args=(subject, email_content, resume_path, user_email, run_id, user_email, search_role, 10),
+            daemon=True
+        )
+    else:
+        # Fixed argument order to match function signature:
+        # run_automation(subject, email_content, attachment_path, cc_email, run_id, user_email, search_role, search_time)
+        thread = threading.Thread(
+            target=run_automation,
+            args=(subject, email_content, resume_path, user_email, run_id, user_email, search_role, search_time_period),
+            daemon=True
+        )
+    
     thread.start()
+    automation_sessions[user_email]['thread'] = thread
     print(f"[OK] DEBUG: Thread started, thread is alive: {thread.is_alive()}")
     print(f"[OK] DEBUG: Thread name: {thread.name}")
 

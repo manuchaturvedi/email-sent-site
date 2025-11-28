@@ -1,31 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Simple Intro Modal: How it works -->
-    <div class="modal fade" id="landingIntroModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border:none; border-radius:16px; overflow:hidden;">
-          <div class="modal-header" style="background:linear-gradient(135deg,#a8e6cf,#8b9fff); color:white;">
-            <h5 class="modal-title"><i class="bi bi-stars me-2"></i>How JustMailIt Works</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body" style="background:white;">
-            <ol class="mb-0 ps-3" style="line-height:1.8; color:#475569;">
-              <li><strong>Upload your resume</strong> (PDF works best).</li>
-              <li><strong>AI reads your skills</strong> from the resume.</li>
-              <li><strong>We find LinkedIn job posts</strong> matching your skills.</li>
-              <li><strong>We send personalized emails</strong> to recruiters with your resume.</li>
-              <li><strong>Check your mailbox</strong> and verify replies.</li>
-            </ol>
-            <div class="mt-3 text-muted small"><i class="bi bi-info-circle me-1"></i>You can review the email subject/body before sending.</div>
-          </div>
-          <div class="modal-footer" style="background:#fafafa;">
-            <button type="button" id="landingIntroGetStartedBtn" class="btn btn-primary"><i class="bi bi-person-plus me-2"></i>Get Started</button>
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -55,9 +30,6 @@
   <meta name="twitter:description" content="Automate your job search with AI. Apply to 100+ jobs automatically. Only ₹19/month.">
   <meta name="twitter:image" content="https://justmailit.in/static/images/justmailit-og-image.png">
   <meta name="twitter:image:alt" content="JustMailIt Job Automation Platform">
-  {% if GOOGLE_SITE_VERIFICATION %}
-  <meta name="google-site-verification" content="{{ GOOGLE_SITE_VERIFICATION }}">
-  {% endif %}
   
   <!-- Mobile App Meta Tags -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -2154,21 +2126,21 @@
       <!-- Left Side - Hero -->
       <div class="modal-left">
         <div class="modal-hero-content">
-          <div class="modal-logo" style="gap:0.75rem;">
-            <img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" alt="JustMailIt" style="height:28px; width:auto;">
+          <div class="modal-logo">
+            <i class="bi bi-envelope-heart"></i>
             <span>JustMailIt</span>
           </div>
-          <h2 class="modal-hero-title">Upload Resume. We Email Recruiters.</h2>
+          <h2 class="modal-hero-title">Simplify Your Job Search</h2>
           <p class="modal-hero-subtitle">
-            1) Upload your resume  •  2) AI reads your skills  •  3) We find LinkedIn posts  •  4) We send personalized emails  •  5) Check your mailbox
+            Automate your job search outreach with intelligent email automation. Save time while maintaining personalized communication with hiring managers.
           </p>
           <div class="modal-feature-box">
             <div class="modal-feature-title">
               <i class="bi bi-robot"></i>
-              AI-Powered Email Sending
+              AI-Powered Email Generation
             </div>
             <p class="modal-feature-text">
-              We generate and send clean, professional emails with your resume to matching recruiters, based on your skills.
+              Creates personalized emails for each opportunity using intelligent analysis of job posts and company information.
             </p>
           </div>
         </div>
@@ -2257,7 +2229,7 @@
   <nav class="navbar navbar-expand-lg landing-nav">
     <div class="container">
       <a class="navbar-brand" href="/" style="display:flex;align-items:center;gap:.75rem;">
-        <img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" alt="JustMailIt Logo" class="nav-logo" loading="lazy" decoding="async" onerror="this.src='{{ url_for('static', filename='images/logo.svg') }}'">
+        <img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" alt="JustMailIt Logo" class="nav-logo" onerror="this.src='{{ url_for('static', filename='images/logo.svg') }}'">
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
         <span class="navbar-toggler-icon"></span>
@@ -2282,13 +2254,14 @@
   <section class="hero-section">
     <div class="container">
       <h1 class="hero-title" style="font-weight:700;line-height:1.25;margin-bottom:0.75rem;color:#1f2937;text-align:center;">
-        Apply To 100+ Jobs Automatically
+        Land Your Dream Job
       </h1>
       <div class="hero-speed-line" style="font-weight:600;letter-spacing:0.5px;text-align:center;margin-bottom:1.25rem;background:linear-gradient(135deg,#c7f9e9 0%,#bcd7ff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">
-        Upload resume → AI finds jobs → Sends emails
+        10x Faster
       </div>
       <p class="hero-subtitle" style="max-width:600px;margin:0 auto 2rem;line-height:1.55;color:#4b5563;font-weight:400;text-align:center;">
-        Save hours daily with intelligent automation. JustMailIt sends tailored emails directly to recruiter inboxes for better replies.
+        Automate your job applications and email outreach.<br>
+        Save hours every day with intelligent automation.
       </p>
       <style>
         @media (max-width:576px){
@@ -2318,9 +2291,6 @@
           <i class="bi bi-play-circle me-2"></i>See How It Works
         </a>
       </div>
-      <div style="text-align:center;color:#64748b;font-size:0.9rem;margin-top:-0.75rem;">
-        No spam. One-click unsubscribe. We never share your email.
-      </div>
       
       <!-- Stats -->
       <div class="stats-section">
@@ -2341,95 +2311,6 @@
             <div class="stat-item animate-fade-in animate-delay-2">
               <div class="stat-number" data-count="4">0</div>
               <div class="stat-label">Times More Responses</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Social Proof / Testimonials -->
-  <section style="padding: 4rem 0; background: white;">
-    <div class="container">
-      <h2 class="section-title" style="margin-bottom:0.5rem;">Loved By Job Seekers</h2>
-      <p class="section-subtitle">Real results with simple automation</p>
-      <div class="row g-4">
-        <div class="col-md-4">
-          <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
-            <div class="card-body">
-              <div class="mb-2" style="color:#f59e0b;">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
-              <p style="color:#475569;">Sent 300+ applications in a week and got 5 callbacks. Setting this up took me 10 minutes.</p>
-              <div class="fw-bold mt-2">Akash, Software Engineer</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
-            <div class="card-body">
-              <div class="mb-2" style="color:#f59e0b;">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
-              <p style="color:#475569;">Personal emails worked way better than portals. I finally stopped copy-pasting messages.</p>
-              <div class="fw-bold mt-2">Meera, Data Analyst</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
-            <div class="card-body">
-              <div class="mb-2" style="color:#f59e0b;">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
-              <p style="color:#475569;">Upload resume, click start. The AI does the boring work. I just review and send.</p>
-              <div class="fw-bold mt-2">Rohit, Frontend Developer</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Compliance & Safety -->
-  <section style="padding: 4rem 0; background: linear-gradient(135deg, rgba(168,230,207,0.06), rgba(139,159,255,0.06));">
-    <div class="container">
-      <h2 class="section-title" style="margin-bottom:0.5rem;">Compliance & Safety</h2>
-      <p class="section-subtitle">Respecting recruiter inboxes and your account health</p>
-      <div class="row g-3">
-        <div class="col-md-6">
-          <div class="benefit-item" style="margin:0;">
-            <div class="benefit-icon"><i class="bi bi-shield-check"></i></div>
-            <div class="benefit-text">
-              <h4>One‑Click Unsubscribe</h4>
-              <p>Every email includes an unsubscribe link. Recipients can opt out anytime.</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="benefit-item" style="margin:0;">
-            <div class="benefit-icon"><i class="bi bi-envelope-paper"></i></div>
-            <div class="benefit-text">
-              <h4>JustMailIt Delivery</h4>
-              <p>Emails are sent using JustMailIt for reliable deliverability and control.</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="benefit-item" style="margin:0;">
-            <div class="benefit-icon"><i class="bi bi-activity"></i></div>
-            <div class="benefit-text">
-              <h4>Healthy Limits</h4>
-              <p>We guide safe daily volumes to protect your account and avoid spam flags.</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="benefit-item" style="margin:0;">
-            <div class="benefit-icon"><i class="bi bi-lock"></i></div>
-            <div class="benefit-text">
-              <h4>Your Data Stays Yours</h4>
-              <p>Your credentials are never shared. You control what gets sent and when.</p>
             </div>
           </div>
         </div>
@@ -2513,7 +2394,7 @@
             </span>
             <h2 style="font-size: 2.75rem; font-weight: 800; color: #2d3748; line-height: 1.2; margin-bottom: 1.5rem;">
               Stop Wasting Time.<br>
-              <span style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Start Getting Results.</span>
+              <span style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Start Getting Results.</span>
             </h2>
             <p style="font-size: 1.15rem; color: #4a5568; line-height: 1.8; margin-bottom: 2rem;">
               While you're manually sending 2-3 emails per day, smart job seekers are using <strong>JustMailIt</strong> to send <strong>unlimited personalized emails</strong> directly to recruiters with just one click.
@@ -2537,7 +2418,7 @@
                 </div>
                 <div>
                   <h4 style="font-size: 1.1rem; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem;">Personal Email = Better Results</h4>
-                  <p style="margin: 0; color: #718096; font-size: 0.95rem;">JustMailIt sends emails directly to recruiter inboxes. <strong>Higher open rates</strong> than job portals!</p>
+                  <p style="margin: 0; color: #718096; font-size: 0.95rem;">JustMailIt sends tailored emails directly to recruiter inboxes. <strong>Higher open rates</strong> than generic job portals!</p>
                 </div>
               </div>
 
@@ -2792,7 +2673,7 @@
             </div>
             <h3 class="feature-title">Send Unlimited Emails</h3>
             <p class="feature-description">
-              We send personalized emails via JustMailIt to recruiters with your resume attached. No daily limits. Get a copy of every email sent.
+              We send personalized emails via JustMailIt to recruiters with your resume attached. No daily limits. You receive a copy of every email sent.
             </p>
           </div>
         </div>
@@ -2837,7 +2718,7 @@
             <div class="step-content">
               <h3>Setup Your Profile Once</h3>
               <p>
-                Add your resume, write email subject & body (or use AI to generate), and finish setup. 
+                Add your resume, write email subject & body (or use AI to generate), and configure your email sender. 
                 Takes 5 minutes. You only do this once.
               </p>
             </div>
@@ -2923,7 +2804,7 @@
               <i class="bi bi-currency-rupee"></i>
             </div>
             <div class="benefit-text">
-              <h4>Affordable Pricing - Just 100/Month</h4>
+              <h4>Affordable Pricing - Just Ã¢â€šÂ¹100/Month</h4>
               <p>Get unlimited emails and all features for less than the price of a coffee.</p>
             </div>
           </div>
@@ -3018,7 +2899,7 @@
           </div>
           <div class="col-md-6 text-center text-md-end">
             <p class="footer-credits">
-              Built with ❤️ by JustMailIt Team
+              Built with ÂÂ¤Ã¢Ã¯Â¸Â by JustMailIt Team
             </p>
           </div>
         </div>
@@ -3039,15 +2920,6 @@
   <!-- Firebase SDKs - async loading -->
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js" async></script>
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js" async></script>
-  {% if GA_MEASUREMENT_ID %}
-  <script async src="https://www.googletagmanager.com/gtag/js?id={{ GA_MEASUREMENT_ID }}"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);} 
-    gtag('js', new Date());
-    gtag('config', '{{ GA_MEASUREMENT_ID }}');
-  </script>
-  {% endif %}
   
   <script>
     // Wait for Firebase to load before initializing
@@ -4106,11 +3978,6 @@
     // Counter Animation
     function animateCounter(element) {
       const target = parseInt(element.getAttribute('data-count'));
-      if (!target || target <= 0) {
-        const item = element.closest('.stat-item');
-        if (item) item.style.display = 'none';
-        return;
-      }
       const suffix = element.textContent.includes('x') ? 'x' : 
                     element.textContent.includes('hrs') ? 'hrs' : '+';
       const duration = 2000;
@@ -4469,50 +4336,6 @@
       initCharts();
     }
     
-  </script>
-  <script>
-    // Auto-show landing intro once per session
-    document.addEventListener('DOMContentLoaded', function() {
-      try {
-        const key = 'landingIntroShown';
-        if (!sessionStorage.getItem(key)) {
-          const modalEl = document.getElementById('landingIntroModal');
-          if (modalEl) {
-            const modal = new bootstrap.Modal(modalEl);
-            modal.show();
-            sessionStorage.setItem(key, '1');
-          }
-        }
-      } catch (e) {
-        // Fallback: show modal
-        const modalEl = document.getElementById('landingIntroModal');
-        if (modalEl) {
-          const modal = new bootstrap.Modal(modalEl);
-          modal.show();
-        }
-      }
-
-      // Bind Get Started to open login/signup
-      const getStartedBtn = document.getElementById('landingIntroGetStartedBtn');
-      if (getStartedBtn) {
-        getStartedBtn.addEventListener('click', function() {
-          // Prefer opening existing login modal if present
-          const loginModal = document.querySelector('.login-modal');
-          if (loginModal) {
-            loginModal.classList.add('show');
-            // Close intro modal if open
-            const introEl = document.getElementById('landingIntroModal');
-            if (introEl) {
-              const bsModal = bootstrap.Modal.getInstance(introEl) || new bootstrap.Modal(introEl);
-              bsModal.hide();
-            }
-            return;
-          }
-          // Fallback: navigate to signup
-          window.location.href = '/signup';
-        });
-      }
-    });
   </script>
 </body>
 </html>

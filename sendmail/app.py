@@ -3210,7 +3210,7 @@ Need help? Reply to this email or visit https://justmailit.in
 """
                         
                         _send_plain_email(
-                            recipient=user_email,
+                            recipient_email=user_email,
                             subject=email_subject,
                             body=email_body
                         )
@@ -3220,6 +3220,18 @@ Need help? Reply to this email or visit https://justmailit.in
                     except Exception as email_error:
                         print(f"[ERROR] Failed to send automation summary email: {str(email_error)}")
                         log(f"[ERROR] Failed to send summary email to user: {str(email_error)}")
+                        
+                        # Send admin alert for email failure
+                        try:
+                            import traceback
+                            _send_admin_alert(
+                                user_email=user_email or "Unknown",
+                                error_type="Failed to Send User Summary Email",
+                                error_message=str(email_error),
+                                additional_info=f"Run ID: {run_id}\nEmails Sent: {emails_sent_count}\nSkipped: {len(skipped_emails)}\nTraceback: {traceback.format_exc()}"
+                            )
+                        except Exception as alert_error:
+                            log(f"[WARN] Could not send admin alert: {str(alert_error)}")
             
             # Also send a success email if all emails were sent (no skips)
             elif user_email and emails_sent_count > 0:
@@ -3260,7 +3272,7 @@ Need help? Reply to this email or visit https://justmailit.in
 """
                     
                     _send_plain_email(
-                        recipient=user_email,
+                        recipient_email=user_email,
                         subject=email_subject,
                         body=email_body
                     )
@@ -3270,6 +3282,18 @@ Need help? Reply to this email or visit https://justmailit.in
                 except Exception as email_error:
                     print(f"[ERROR] Failed to send success summary email: {str(email_error)}")
                     log(f"[ERROR] Failed to send summary email to user: {str(email_error)}")
+                    
+                    # Send admin alert for email failure
+                    try:
+                        import traceback
+                        _send_admin_alert(
+                            user_email=user_email or "Unknown",
+                            error_type="Failed to Send Success Summary Email",
+                            error_message=str(email_error),
+                            additional_info=f"Run ID: {run_id}\nEmails Sent: {emails_sent_count}\nTotal Found: {len(all_emails)}\nTraceback: {traceback.format_exc()}"
+                        )
+                    except Exception as alert_error:
+                        log(f"[WARN] Could not send admin alert: {str(alert_error)}")
 
             # Send completion status back to the frontend (AFTER upgrade prompt)
             if automation_stop_flag:

@@ -769,7 +769,7 @@
       </div>
     </div>
     
-    <div class="campaign-card">
+    <div class="campaign-card" id="automationFormCard">
       <form id="automationForm" enctype="multipart/form-data">
         <!-- Config Alert -->
         <div class="alert alert-info d-flex align-items-center mb-4 border-0" 
@@ -931,7 +931,7 @@
       </form>
 
       <!-- Automation Progress -->
-      <div class="mt-5">
+      <div class="mt-5" id="automationProgressSection">
         <h5 class="d-flex align-items-center mb-4">
           <i class="bi bi-graph-up-arrow text-primary me-2"></i>
           Automation Progress
@@ -1043,6 +1043,34 @@
           max-height: 300px;
           overflow-y: auto;
         }
+        
+        /* Automation running state */
+        .automation-running #automationFormCard {
+          transform: scale(0.8);
+          opacity: 0.3;
+          pointer-events: none;
+          transition: all 0.5s ease;
+          max-height: 0;
+          overflow: hidden;
+        }
+        
+        .automation-running #automationProgressSection {
+          transform: scale(1.1);
+          transition: all 0.5s ease;
+        }
+        
+        .automation-running #automationProgressSection h5 {
+          font-size: 1.8rem;
+          font-weight: 800;
+        }
+        
+        .automation-running #automationProgressSection .card {
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .automation-running #automationProgressSection .display-6 {
+          font-size: 3.5rem !important;
+        }
       </style>
     </div>
   </div>
@@ -1096,6 +1124,9 @@ async function stopAutomation() {
       stopBtn.style.display = 'none';
       stopBtn.disabled = false;
       stopBtn.innerHTML = '<i class="bi bi-stop-circle me-2"></i>Stop Automation';
+      
+      // Remove automation-running class to restore normal view
+      document.body.classList.remove('automation-running');
       
       // Close event source
       if (window.progressEventSource) {
@@ -2340,6 +2371,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const stopBtn = document.getElementById('stopBtn');
     stopBtn.style.display = 'block';
     
+    // Add automation-running class to shrink form and enlarge progress
+    document.body.classList.add('automation-running');
+    
+    // Scroll to progress section
+    setTimeout(() => {
+      document.getElementById('automationProgressSection')?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }, 300);
+    
     // Save initial state
     saveProgressState();
 
@@ -2700,6 +2742,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           // Hide stop button
           const stopBtn = document.getElementById('stopBtn');
           stopBtn.style.display = 'none';
+          
+          // Remove automation-running class to restore normal view
+          document.body.classList.remove('automation-running');
           
           saveProgressState();  // Save final state
           console.log('Automation completed, stream closed');

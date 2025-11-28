@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO Meta Tags -->
+  <title>JustMailIt - AI-Powered Job Application Automation | Apply to 100+ Jobs Automatically</title>
+  <meta name="description" content="Automate your job search with JustMailIt. AI-powered LinkedIn job scraping, automatic email sending to recruiters, and smart job matching. Apply to hundreds of jobs effortlessly. Get hired faster with automation.">
+  <meta name="keywords" content="job automation, linkedin scraper, job application, email automation, job search tool, AI job matching, automated job applications, career automation, apply to jobs automatically, job hunting automation, recruiter email automation">
+  <meta name="author" content="JustMailIt">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://justmailit.in/">
+  
+  <!-- Open Graph Meta Tags (Facebook, LinkedIn) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="JustMailIt">
+  <meta property="og:title" content="JustMailIt - AI-Powered Job Application Automation">
+  <meta property="og:description" content="Automate your job search with AI. Scrape LinkedIn jobs, send automatic emails to recruiters, and land your dream job 10x faster. Only ₹19/month.">
+  <meta property="og:url" content="https://justmailit.in/">
+  <meta property="og:image" content="https://justmailit.in/static/images/justmailit-og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="JustMailIt - Automate Your Job Applications">
+  <meta property="og:locale" content="en_IN">
+  
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="JustMailIt - AI-Powered Job Application Automation">
+  <meta name="twitter:description" content="Automate your job search with AI. Apply to 100+ jobs automatically. Only ₹19/month.">
+  <meta name="twitter:image" content="https://justmailit.in/static/images/justmailit-og-image.png">
+  <meta name="twitter:image:alt" content="JustMailIt Job Automation Platform">
+  
+  <!-- Mobile App Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JustMailIt">
+  
+  <!-- Geographic Tags -->
+  <meta name="geo.region" content="IN">
+  <meta name="geo.placename" content="India">
+  
+  <!-- Structured Data - Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "JustMailIt",
+    "url": "https://justmailit.in",
+    "logo": "https://justmailit.in/static/images/justmailit-og-image.png",
+    "description": "AI-powered job application automation platform for India",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "IN"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Customer Support",
+      "email": "manudrive06@gmail.com"
+    }
+  }
+  </script>
+  
+  <!-- Structured Data - WebApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "JustMailIt",
+    "url": "https://justmailit.in",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "19",
+      "priceCurrency": "INR",
+      "priceValidUntil": "2026-12-31",
+      "availability": "https://schema.org/InStock"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "150",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "description": "Automate your job search with AI-powered LinkedIn scraping and automatic email sending to recruiters",
+    "featureList": [
+      "AI-powered job scraping",
+      "Automatic email sending",
+      "LinkedIn integration",
+      "Smart job matching",
+      "Unlimited applications"
+    ]
+  }
+  </script>
+  
+  <!-- Structured Data - SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "JustMailIt",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web, Windows, MacOS, Linux",
+    "offers": {
+      "@type": "Offer",
+      "price": "19",
+      "priceCurrency": "INR"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "150"
+    }
+  }
+  </script>
+  
+  <!-- Favicon - Multiple Sizes for High Quality Display -->
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/static/favicon-48x48.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon-64x64.png">
+  <link rel="icon" type="image/png" sizes="128x128" href="/static/favicon-128x128.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/favicon-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/static/favicon-512x512.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="manifest" href="/static/site.webmanifest">
+  
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      color: #1e293b;
+      overflow-x: hidden;
+    }
+    
+    /* Clean Navigation */
+    .navbar {
+      background: white !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 1rem 0;
+    }
+    
+    .navbar-brand img {
+      height: 50px;
+    }
+    
+    .btn-get-started {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 0.65rem 1.75rem;
+      border-radius: 50px;
+      font-weight: 600;
+      border: none;
+      transition: all 0.3s;
+    }
+    
+    .btn-get-started:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+      color: white;
+    }
+    
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 100px 0;
+      text-align: center;
+    }
+    
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+    
+    .hero p {
+      font-size: 1.35rem;
+      margin-bottom: 2.5rem;
+      opacity: 0.95;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .btn-hero {
+      background: white;
+      color: #667eea;
+      padding: 1rem 2.5rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border: none;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .btn-hero:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      color: #667eea;
+    }
+    
+    /* Stats */
+    .stats {
+      background: white;
+      padding: 3rem 0;
+      box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.1);
+      position: relative;
+      z-index: 10;
+      margin-top: -40px;
+      border-radius: 20px;
+    }
+    
+    .stat-item {
+      text-align: center;
+      padding: 1.5rem;
+    }
+    
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #667eea;
+      line-height: 1;
+    }
+    
+    .stat-label {
+      font-size: 1rem;
+      color: #64748b;
+      margin-top: 0.5rem;
+    }
+    
+    /* Features */
+    .features {
+      padding: 80px 0;
+      background: #f8fafc;
+    }
+    
+    .section-title {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: #1e293b;
+    }
+    
+    .section-subtitle {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #64748b;
+      margin-bottom: 4rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .feature-card {
+      background: white;
+      border-radius: 20px;
+      padding: 2.5rem;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s;
+      height: 100%;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+      border-color: #667eea;
+    }
+    
+    .feature-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 2rem;
+      color: white;
+    }
+    
+    .feature-card h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #1e293b;
+    }
+    
+    .feature-card p {
+      color: #64748b;
+      line-height: 1.7;
+      margin: 0;
+    }
+    
+    /* How It Works */
+    .how-it-works {
+      padding: 80px 0;
+      background: white;
+    }
+    
+    .step {
+      display: flex;
+      align-items: center;
+      margin-bottom: 3rem;
+      gap: 2rem;
+    }
+    
+    .step-number {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    
+    .step-content h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #1e293b;
+    }
+    
+    .step-content p {
+      color: #64748b;
+      margin: 0;
+      line-height: 1.7;
+    }
+    
+    /* Pricing */
+    .pricing {
+      padding: 80px 0;
+      background: #f8fafc;
+    }
+    
+    .pricing-card {
+      background: white;
+      border-radius: 20px;
+      padding: 3rem 2.5rem;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s;
+      border: 2px solid transparent;
+      height: 100%;
+    }
+    
+    .pricing-card:hover {
+      transform: translateY(-10px);
+      border-color: #667eea;
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+    }
+    
+    .pricing-card.featured {
+      border-color: #667eea;
+      position: relative;
+      transform: scale(1.05);
+    }
+    
+    .badge-popular {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 0.5rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    .plan-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #1e293b;
+    }
+    
+    .plan-price {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #667eea;
+      margin-bottom: 0.5rem;
+    }
+    
+    .plan-price small {
+      font-size: 1rem;
+      color: #64748b;
+      font-weight: 400;
+    }
+    
+    .plan-features {
+      list-style: none;
+      padding: 0;
+      margin: 2rem 0;
+      text-align: left;
+    }
+    
+    .plan-features li {
+      padding: 0.75rem 0;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .plan-features i {
+      color: #10b981;
+      font-size: 1.25rem;
+    }
+    
+    .btn-pricing {
+      width: 100%;
+      padding: 1rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border: none;
+      transition: all 0.3s;
+    }
+    
+    .btn-pricing-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-pricing-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+      color: white;
+    }
+    
+    .btn-pricing-secondary {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+    }
+    
+    .btn-pricing-secondary:hover {
+      background: #f8fafc;
+      transform: translateY(-2px);
+    }
+    
+    /* Testimonials */
+    .testimonials {
+      padding: 80px 0;
+      background: white;
+    }
+    
+    .testimonial-card {
+      background: #f8fafc;
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      height: 100%;
+    }
+    
+    .testimonial-text {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: #475569;
+      margin-bottom: 1.5rem;
+      font-style: italic;
+    }
+    
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .author-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+    
+    .author-info h5 {
+      font-weight: 700;
+      margin: 0;
+      color: #1e293b;
+    }
+    
+    .author-info p {
+      margin: 0;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    
+    /* CTA Section */
+    .cta-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 80px 0;
+      text-align: center;
+    }
+    
+    .cta-section h2 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+    }
+    
+    .cta-section p {
+      font-size: 1.3rem;
+      margin-bottom: 2.5rem;
+      opacity: 0.95;
+    }
+    
+    /* Footer */
+    footer {
+      background: #1e293b;
+      color: white;
+      padding: 3rem 0 1.5rem;
+    }
+    
+    footer a {
+      color: #94a3b8;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    
+    footer a:hover {
+      color: white;
+    }
+    
+    .footer-logo {
+      height: 40px;
+      margin-bottom: 1rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.25rem;
+      }
+      
+      .hero p {
+        font-size: 1.1rem;
+      }
+      
+      .section-title {
+        font-size: 2rem;
+      }
+      
+      .step {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .pricing-card.featured {
+        transform: scale(1);
+        margin-bottom: 2rem;
+      }
+      
+      .cta-section h2 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <img src="/static/images/justmailit-logo.png" alt="JustMailIt Logo">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-center">
+          <li class="nav-item">
+            <a class="nav-link" href="#features">Features</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#how-it-works">How It Works</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#pricing">Pricing</a>
+          </li>
+          <li class="nav-item ms-3">
+            <a href="/login" class="btn btn-get-started">Get Started Free</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>Land Your Dream Job<br>10x Faster</h1>
+      <p>Automate your job search with AI. Scrape LinkedIn jobs and send personalized emails to recruiters automatically.</p>
+      <a href="/login" class="btn btn-hero">
+        <i class="bi bi-rocket-takeoff"></i>
+        Start Free Today
+      </a>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="container">
+    <div class="stats">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="stat-item">
+            <div class="stat-number">10,000+</div>
+            <div class="stat-label">Jobs Scraped Daily</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-item">
+            <div class="stat-number">500+</div>
+            <div class="stat-label">Happy Users</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-item">
+            <div class="stat-number">95%</div>
+            <div class="stat-label">Success Rate</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section id="features" class="features">
+    <div class="container">
+      <h2 class="section-title">Why Choose JustMailIt?</h2>
+      <p class="section-subtitle">Everything you need to automate your job search and land interviews faster</p>
+      
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-linkedin"></i>
+            </div>
+            <h3>LinkedIn Scraping</h3>
+            <p>Automatically scrape job posts from LinkedIn based on your preferences. Never miss a relevant opportunity.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-envelope-at"></i>
+            </div>
+            <h3>Auto Email Sending</h3>
+            <p>Send personalized emails to recruiters automatically. Save hours of manual work every week.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-cpu"></i>
+            </div>
+            <h3>AI-Powered Matching</h3>
+            <p>Smart AI filters jobs based on your skills, experience, and preferences for better results.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <h3>Resume Parsing</h3>
+            <p>Upload your resume once and let AI extract all relevant information for job matching.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-graph-up"></i>
+            </div>
+            <h3>Track Progress</h3>
+            <p>Monitor your applications, email opens, and responses in a beautiful dashboard.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-shield-check"></i>
+            </div>
+            <h3>100% Safe & Secure</h3>
+            <p>Your data is encrypted and secure. We never share your information with third parties.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" class="how-it-works">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-subtitle">Get started in 3 simple steps</p>
+      
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>Sign Up & Upload Resume</h3>
+              <p>Create your free account and upload your resume. Our AI will parse your skills and experience automatically.</p>
+            </div>
+          </div>
+          
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>Set Your Preferences</h3>
+              <p>Tell us what kind of jobs you're looking for - role, location, salary range, and more. We'll find perfect matches.</p>
+            </div>
+          </div>
+          
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>Let AI Do The Work</h3>
+              <p>Sit back and relax while our AI scrapes jobs, matches them to your profile, and sends personalized emails to recruiters.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="pricing">
+    <div class="container">
+      <h2 class="section-title">Simple, Transparent Pricing</h2>
+      <p class="section-subtitle">Choose the plan that works for you</p>
+      
+      <div class="row g-4 justify-content-center">
+        <div class="col-lg-4 col-md-6">
+          <div class="pricing-card">
+            <h3 class="plan-name">Free</h3>
+            <div class="plan-price">
+              ₹0
+              <small>/month</small>
+            </div>
+            <ul class="plan-features">
+              <li><i class="bi bi-check-circle-fill"></i> 10 emails per day</li>
+              <li><i class="bi bi-check-circle-fill"></i> Basic job scraping</li>
+              <li><i class="bi bi-check-circle-fill"></i> Email templates</li>
+              <li><i class="bi bi-check-circle-fill"></i> Basic analytics</li>
+            </ul>
+            <a href="/login" class="btn btn-pricing btn-pricing-secondary">Start Free</a>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="pricing-card featured">
+            <div class="badge-popular">MOST POPULAR</div>
+            <h3 class="plan-name">Pro</h3>
+            <div class="plan-price">
+              ₹19
+              <small>/month</small>
+            </div>
+            <ul class="plan-features">
+              <li><i class="bi bi-check-circle-fill"></i> <strong>Unlimited</strong> emails</li>
+              <li><i class="bi bi-check-circle-fill"></i> Advanced job scraping</li>
+              <li><i class="bi bi-check-circle-fill"></i> AI-powered matching</li>
+              <li><i class="bi bi-check-circle-fill"></i> Custom email templates</li>
+              <li><i class="bi bi-check-circle-fill"></i> Advanced analytics</li>
+              <li><i class="bi bi-check-circle-fill"></i> Priority support</li>
+            </ul>
+            <a href="/pricing" class="btn btn-pricing btn-pricing-primary">Upgrade to Pro</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="testimonials">
+    <div class="container">
+      <h2 class="section-title">What Our Users Say</h2>
+      <p class="section-subtitle">Real success stories from job seekers like you</p>
+      
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="testimonial-card">
+            <div class="testimonial-text">
+              "JustMailIt helped me land my dream job in just 2 weeks! The automation saved me hours every day."
+            </div>
+            <div class="testimonial-author">
+              <div class="author-avatar">PK</div>
+              <div class="author-info">
+                <h5>Priya Kapoor</h5>
+                <p>Software Engineer</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="testimonial-card">
+            <div class="testimonial-text">
+              "I applied to 200+ jobs in a week with JustMailIt. Got 15 interview calls. Incredible tool!"
+            </div>
+            <div class="testimonial-author">
+              <div class="author-avatar">RS</div>
+              <div class="author-info">
+                <h5>Rahul Sharma</h5>
+                <p>Data Analyst</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="testimonial-card">
+            <div class="testimonial-text">
+              "The AI matching is spot-on. Every job it finds is exactly what I'm looking for. Love it!"
+            </div>
+            <div class="testimonial-author">
+              <div class="author-avatar">AD</div>
+              <div class="author-info">
+                <h5>Anjali Desai</h5>
+                <p>Product Manager</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <h2>Ready to Get Hired?</h2>
+      <p>Join thousands of job seekers who found their dream job with JustMailIt</p>
+      <a href="/login" class="btn btn-hero">
+        <i class="bi bi-rocket-takeoff"></i>
+        Start Your Free Trial
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <img src="/static/images/justmailit-logo.png" alt="JustMailIt" class="footer-logo">
+          <p class="mt-3" style="color: #94a3b8;">Automate your job search with AI-powered automation.</p>
+        </div>
+        <div class="col-md-3 mb-3">
+          <h5>Quick Links</h5>
+          <ul class="list-unstyled mt-3">
+            <li class="mb-2"><a href="#features">Features</a></li>
+            <li class="mb-2"><a href="#how-it-works">How It Works</a></li>
+            <li class="mb-2"><a href="#pricing">Pricing</a></li>
+            <li class="mb-2"><a href="/login">Login</a></li>
+          </ul>
+        </div>
+        <div class="col-md-3 mb-3">
+          <h5>Legal</h5>
+          <ul class="list-unstyled mt-3">
+            <li class="mb-2"><a href="/privacy">Privacy Policy</a></li>
+            <li class="mb-2"><a href="/terms">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+      <hr style="border-color: #334155; margin: 2rem 0;">
+      <div class="text-center" style="color: #94a3b8;">
+        <p class="mb-0">© 2025 JustMailIt. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

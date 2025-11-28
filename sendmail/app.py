@@ -2446,6 +2446,7 @@ def linkedin_login(driver, email, password):
 
 # --- AUTOMATION FUNCTION ---
 def run_automation(subject, email_content, attachment_path, cc_email, run_id=None, user_email=None, search_role=None, search_time=None):
+    import time
     global automation_stop_flag, automation_running, automation_driver
     
     # Wrap EVERYTHING in try-catch to catch silent failures
@@ -3152,7 +3153,6 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 </div>""")
                 
                 # Give frontend time to receive and process the upgrade prompt
-                import time
                 time.sleep(0.5)
                 print(f"[PLAN] Upgrade prompt sent for {len(skipped_emails)} skipped emails")
                 

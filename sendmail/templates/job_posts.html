@@ -946,6 +946,30 @@
     transform: translateY(-2px);
 }
 
+/* Delete Button - Admin Only */
+.btn-delete-job {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.btn-delete-job:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.5);
+    transform: translateY(-2px);
+}
+
+.btn-delete-job:active {
+    transform: translateY(0);
+}
+
 /* Date Badge - Naukri Style */
 .date-badge {
     background: #f8f9fa;
@@ -1410,28 +1434,27 @@
 {% endblock %}
 
 {% block content %}
-        <!-- Hero Banner -->
-        <div style="background: url('{{ url_for('static', filename='images/job-posts-banner.svg') }}') center/cover; height: 200px; border-radius: 20px; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-            <div style="text-align: center; color: white;">
-                <h1 style="font-size: 3rem; font-weight: 800; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">Recent Job Posts</h1>
-                <p style="font-size: 1.2rem; margin: 10px 0 0 0; opacity: 0.95; text-shadow: 0 1px 5px rgba(0,0,0,0.2);">Discover opportunities and connect with recruiters</p>
+        <div class="row mb-4 page-header">
+            <div class="col">
+                <h4><i class="bi bi-briefcase-fill me-2"></i>Recent Job Posts</h4>
+                <p class="text-muted">Job posts from which emails were collected</p>
             </div>
         </div>
 
         <!-- Stats Tabs -->
         <div class="stats-tabs">
             <div class="stat-tab active" data-filter="all" id="statAll">
-                <div class="stat-icon"><img src="{{ url_for('static', filename='images/icons/chart.svg') }}" alt="Chart" style="width: 2rem; height: 2rem;"></div>
+                <div class="stat-icon">📊</div>
                 <div class="stat-number" id="countAll">{{ job_posts|length }}</div>
                 <div class="stat-label">Total Posts</div>
             </div>
             <div class="stat-tab" data-filter="sent" id="statSent">
-                <div class="stat-icon"><img src="{{ url_for('static', filename='images/icons/check-circle.svg') }}" alt="Check" style="width: 2rem; height: 2rem;"></div>
+                <div class="stat-icon">✅</div>
                 <div class="stat-number" id="countSent">0</div>
                 <div class="stat-label">Already Sent</div>
             </div>
             <div class="stat-tab" data-filter="remaining" id="statRemaining">
-                <div class="stat-icon"><img src="{{ url_for('static', filename='images/icons/clock.svg') }}" alt="Clock" style="width: 2rem; height: 2rem;"></div>
+                <div class="stat-icon">⏳</div>
                 <div class="stat-number" id="countRemaining">0</div>
                 <div class="stat-label">Remaining</div>
             </div>
@@ -1444,10 +1467,10 @@
                 <div class="filter-card">
                     <div class="row g-3 align-items-center">
                         <div class="col-md-4">
-                            <input id="filterText" class="form-control skill-search-input" type="text" placeholder="Search description, company, or email..." style="background-image: url('{{ url_for('static', filename='images/icons/search.svg') }}'); background-repeat: no-repeat; background-position: 12px center; background-size: 18px; padding-left: 40px;" />
+                            <input id="filterText" class="form-control skill-search-input" type="text" placeholder="🔍 Search description, company, or email..." />
                         </div>
                         <div class="col-md-3">
-                            <input id="filterSkillSearch" class="form-control skill-search-input" type="text" placeholder="Search skills..." style="background-image: url('{{ url_for('static', filename='images/icons/tag.svg') }}'); background-repeat: no-repeat; background-position: 12px center; background-size: 18px; padding-left: 40px;" />
+                            <input id="filterSkillSearch" class="form-control skill-search-input" type="text" placeholder="🏷️ Search skills..." />
                         </div>
                         <div class="col-md-2">
                             <select id="filterStatus" class="form-select skill-search-input">
@@ -1459,8 +1482,8 @@
                         <div class="col-md-3">
                             <div class="form-check" style="padding-top: 8px;">
                                 <input class="form-check-input" type="checkbox" value="" id="filterHasEmail">
-                                <label class="form-check-label" for="filterHasEmail" style="display: flex; align-items: center; gap: 6px;">
-                                    <img src="{{ url_for('static', filename='images/icons/mail.svg') }}" alt="Mail" style="width: 16px; height: 16px;"> Has email only
+                                <label class="form-check-label" for="filterHasEmail">
+                                    📧 Has email only
                                 </label>
                             </div>
                         </div>
@@ -1507,7 +1530,7 @@
                     <!-- Company Logo and Save Button -->
                     <div class="job-card-top">
                         <div class="company-logo">
-                            <img src="{{ url_for('static', filename='images/company-placeholder.svg') }}" alt="Company Logo" style="width: 48px; height: 48px; border-radius: 8px;">
+                            <i class="bi bi-building-fill"></i>
                         </div>
                         <div class="flex-grow-1">
                             <!-- Job Title -->
@@ -1615,6 +1638,14 @@
                                 <i class="bi bi-x-circle"></i> No Contact
                             </button>
                         {% endif %}
+                        
+                        {% if session.get('is_admin') %}
+                        <button class="btn-delete-job" 
+                                data-job-id="{{ post.get('id', '') }}"
+                                title="Delete inappropriate job post">
+                            <i class="bi bi-trash-fill"></i> Delete
+                        </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -1636,7 +1667,7 @@
         <!-- No Jobs Message -->
         {% if not job_posts %}
         <div class="text-center py-5">
-            <img src="{{ url_for('static', filename='images/no-results.svg') }}" alt="No results" style="width: 200px; height: 200px; margin-bottom: 20px;">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: #cbd5e0;"></i>
             <h4 class="mt-3 text-muted">No job posts found</h4>
             <p class="text-muted">Start automation to discover job opportunities</p>
         </div>
@@ -2166,7 +2197,42 @@
     // Send mail button handler
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.send-mail-btn').forEach(btn => {
-            btn.addEventListener('click', async function() {
+            btn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                
+                // First, check if profile is complete
+                try {
+                    const profileResponse = await fetch('/get_profile');
+                    const profile = await profileResponse.json();
+                    
+                    const hasResume = profile.hasResume || false;
+                    const hasSubject = profile.emailSubject && profile.emailSubject.trim() !== '';
+                    const hasContent = profile.emailContent && profile.emailContent.trim() !== '';
+                    const hasRole = profile.searchRole && profile.searchRole.trim() !== '';
+                    
+                    // If profile is incomplete, show alert and redirect
+                    if (!hasResume || !hasSubject || !hasContent || !hasRole) {
+                        const missingItems = [];
+                        if (!hasResume) missingItems.push('• Upload your resume');
+                        if (!hasSubject) missingItems.push('• Add email subject');
+                        if (!hasContent) missingItems.push('• Write email content');
+                        if (!hasRole) missingItems.push('• Specify job role');
+                        
+                        const confirmed = confirm(
+                            'Please complete your profile first:\n\n' +
+                            missingItems.join('\n') +
+                            '\n\nClick OK to go to Profile Settings and complete your details.'
+                        );
+                        
+                        if (confirmed) {
+                            window.location.href = '/profile';
+                        }
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error checking profile:', error);
+                }
+                
                 const email = this.dataset.email;
                 const description = this.dataset.description;
                 const company = this.dataset.company;
@@ -2249,22 +2315,16 @@
         modal.style.cssText = 'display: block; background: rgba(0,0,0,0.5);';
         modal.innerHTML = `
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-warning text-dark">
-                        <h5 class="modal-title">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            Daily Limit Reached
-                        </h5>
-                        <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
-                    </div>
-                    <div class="modal-body text-center py-4">
-                        <div class="mb-3">
-                            <i class="bi bi-envelope-x" style="font-size: 4rem; color: #ffc107;"></i>
-                        </div>
-                        <h6 class="mb-3">${message}</h6>
-                        <p class="text-muted mb-4">
-                            <strong>Free Plan:</strong> 10 emails/day<br>
-                            <strong>Pro Plan:</strong> Unlimited emails
+                <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                    <div class="modal-body text-center p-5">
+                        <div style="font-size: 4rem; margin-bottom: 20px;">⚠️</div>
+                        <h4 class="mb-3" style="color: #dc3545; font-weight: 700;">Daily Limit Reached</h4>
+                        <p style="color: #666; font-size: 1.1rem; line-height: 1.6;">
+                            ${message}
+                        </p>
+                        <p style="margin-top: 20px; font-size: 1rem; color: #888;">
+                            <strong>Upgrade to Pro</strong> for unlimited emails!<br>
+                            Only ₹19/month - Cancel anytime
                         </p>
                         <div class="d-grid gap-2">
                             <a href="/pricing" class="btn btn-primary btn-lg">
@@ -2280,5 +2340,60 @@
         `;
         document.body.appendChild(modal);
     }
+
+    // Delete job button handler (admin only)
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.btn-delete-job').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const jobId = this.dataset.jobId;
+                const card = this.closest('.job-post-item');
+                
+                if (!confirm('Are you sure you want to delete this job post? This action cannot be undone.')) {
+                    return;
+                }
+                
+                // Disable button and show loading
+                const originalText = this.innerHTML;
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Deleting...';
+                
+                try {
+                    const response = await fetch(`/admin/delete_job/${jobId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Remove the card with animation
+                        card.style.transition = 'all 0.3s ease';
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.8)';
+                        
+                        setTimeout(() => {
+                            card.remove();
+                            showNotification('success', 'Job post deleted successfully');
+                            
+                            // Reload page to update counts
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        }, 300);
+                    } else {
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                        showNotification('error', data.message || 'Failed to delete job post');
+                    }
+                } catch (error) {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                    showNotification('error', 'Network error: ' + error.message);
+                }
+            });
+        });
+    });
 </script>
 {% endblock %}

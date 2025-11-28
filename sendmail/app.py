@@ -2451,6 +2451,11 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         # Chrome setup - always use D:\Profile directory
         options = webdriver.ChromeOptions()
         
+        # Set Chrome/Chromium binary location
+        if os.environ.get('CHROME_BIN'):  # Docker/Cloud environment - use Chromium
+            options.binary_location = os.environ.get('CHROME_BIN', '/usr/bin/chromium')
+            log(f"[DOCKER] Using Chromium binary: {options.binary_location}")
+        
         # Only use headless mode if HEADLESS environment variable is not set to "false"
         if os.environ.get('HEADLESS', 'true').lower() != 'false':
             options.add_argument("--headless=new")
@@ -4498,6 +4503,11 @@ def admin_scrape_jobs():
                 
                 # Initialize Chrome driver
                 chrome_options = Options()
+                
+                # Set Chrome/Chromium binary location
+                if os.environ.get('CHROME_BIN'):  # Docker/Cloud environment - use Chromium
+                    chrome_options.binary_location = os.environ.get('CHROME_BIN', '/usr/bin/chromium')
+                    log(f"[DOCKER] Using Chromium binary: {chrome_options.binary_location}")
                 
                 # Only use headless mode if HEADLESS environment variable is not set to "false"
                 if os.environ.get('HEADLESS', 'true').lower() != 'false':

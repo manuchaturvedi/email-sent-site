@@ -7,6 +7,7 @@ from database import Database  # Import SQLite database
 
 # Import utilities from refactored modules
 from utils.helpers import extract_company_from_email, parse_skills
+from utils.decorators import login_required, admin_required, ADMIN_EMAIL
 
 import uuid
 import hashlib
@@ -960,15 +961,16 @@ print("[OK] Using SQLite database for data storage")
 print("[OK] Firebase is used for authentication only")
 
 
-# --- LOGIN CONTROL ---
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if "user" not in session:
-            flash("Please log in first!", "warning")
-            return redirect(url_for("login"))
-        return f(*args, **kwargs)
-    return decorated_function
+# --- LOGIN CONTROL (Moved to utils/decorators.py) ---
+# Keeping original code commented for safety - DELETE AFTER TESTING
+# def login_required(f):
+#     @wraps(f)
+#     def decorated_function(*args, **kwargs):
+#         if "user" not in session:
+#             flash("Please log in first!", "warning")
+#             return redirect(url_for("login"))
+#         return f(*args, **kwargs)
+#     return decorated_function
 
 
 # ========== EMAIL HELPERS FOR TRANSACTIONAL MAILS ==========
@@ -4236,30 +4238,31 @@ def check_payment_status(order_id):
 
 # ========== ADMIN PANEL ROUTES ==========
 
-# Admin email - change this to your admin email
-ADMIN_EMAIL = "manuchaturvedi28mc@gmail.com"
-
-def admin_required(f):
-    """Decorator to check if user is admin"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        print(f"[DEBUG] admin_required: Checking access for route {f.__name__}", flush=True)
-        if "user" not in session:
-            print("[DEBUG] admin_required: No user in session", flush=True)
-            flash("Please log in first!", "warning")
-            return redirect(url_for('landing'))
-        
-        # session['user'] is a string (email), not a dict
-        user_email = session.get('user', '')
-        print(f"[DEBUG] admin_required: User={user_email}, Admin={ADMIN_EMAIL}", flush=True)
-        if user_email != ADMIN_EMAIL:
-            print(f"[DEBUG] admin_required: Access denied - not admin", flush=True)
-            flash("Access denied. Admin only!", "danger")
-            return redirect(url_for('dashboard'))
-        
-        print(f"[DEBUG] admin_required: Access granted", flush=True)
-        return f(*args, **kwargs)
-    return decorated_function
+# Admin decorator moved to utils/decorators.py - ADMIN_EMAIL imported from there
+# Keeping original code commented for safety - DELETE AFTER TESTING
+# ADMIN_EMAIL = "manuchaturvedi28mc@gmail.com"
+# 
+# def admin_required(f):
+#     """Decorator to check if user is admin"""
+#     @wraps(f)
+#     def decorated_function(*args, **kwargs):
+#         print(f"[DEBUG] admin_required: Checking access for route {f.__name__}", flush=True)
+#         if "user" not in session:
+#             print("[DEBUG] admin_required: No user in session", flush=True)
+#             flash("Please log in first!", "warning")
+#             return redirect(url_for('landing'))
+#         
+#         # session['user'] is a string (email), not a dict
+#         user_email = session.get('user', '')
+#         print(f"[DEBUG] admin_required: User={user_email}, Admin={ADMIN_EMAIL}", flush=True)
+#         if user_email != ADMIN_EMAIL:
+#             print(f"[DEBUG] admin_required: Access denied - not admin", flush=True)
+#             flash("Access denied. Admin only!", "danger")
+#             return redirect(url_for('dashboard'))
+#         
+#         print(f"[DEBUG] admin_required: Access granted", flush=True)
+#         return f(*args, **kwargs)
+#     return decorated_function
 
 @app.route('/admin')
 @admin_required

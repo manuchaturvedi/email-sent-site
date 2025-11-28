@@ -74,30 +74,23 @@ def run_scheduler():
                     if now >= next_run_time:
                         print(f"[SCHEDULER] Running scheduled job #{job['id']}: {job['job_name']}", flush=True)
                         
-                        # Run scraping via admin scraping (scrape only, no emails)
+                        # Run scraping directly using run_automation function
                         def run_job(job_data):
                             try:
-                                import requests
+                                print(f"[SCHEDULER] Triggering job scraping for: {job_data['search_role']}", flush=True)
                                 
-                                # Trigger admin scraping endpoint which scrapes jobs without sending emails
-                                # This will scrape jobs and add them to database for future use
-                                print(f"[SCHEDULER] Triggering job scraping for: {job_data['search_role']}")
-                                
-                                # Use the admin scrape endpoint internally
-                                # We'll make a local request to trigger the scraping
-                                response = requests.get(
-                                    'http://localhost:5000/admin/scrape_jobs',
-                                    params={
-                                        'skills': job_data['search_role'],
-                                        'scrolls': 5
-                                    },
-                                    timeout=600  # 10 minute timeout for scraping
+                                # Run automation without sending emails (no resume, no email content)
+                                # This will scrape LinkedIn and save jobs to database
+                                run_automation(
+                                    subject="[Scheduled Scrape]",
+                                    email_content="",  # Empty content means no emails will be sent
+                                    attachment_path=None,
+                                    cc_email="scheduler@justmailit.in",
+                                    run_id=f"sched_{job_data['id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                                    user_email="scheduler@justmailit.in",
+                                    search_role=job_data['search_role'],
+                                    search_time='past-week'
                                 )
-                                
-                                if response.status_code == 200:
-                                    print(f"[SCHEDULER] Job scraping completed successfully for #{job_data['id']}")
-                                else:
-                                    print(f"[SCHEDULER] Job scraping returned status {response.status_code}")
                                 
                                 # Calculate next run time
                                 run_time = datetime.now()
@@ -105,10 +98,10 @@ def run_scheduler():
                                 next_run = cron.get_next(datetime)
                                 
                                 db.update_job_run_info(job_data['id'], run_time, next_run)
-                                print(f"[SCHEDULER] Completed job #{job_data['id']}. Next run: {next_run}")
+                                print(f"[SCHEDULER] Completed job #{job_data['id']}. Next run: {next_run}", flush=True)
                                 
                             except Exception as e:
-                                print(f"[SCHEDULER] Error running job #{job_data['id']}: {str(e)}")
+                                print(f"[SCHEDULER] Error running job #{job_data['id']}: {str(e)}", flush=True)
                                 import traceback
                                 traceback.print_exc()
                         

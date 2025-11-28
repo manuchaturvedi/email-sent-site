@@ -2210,7 +2210,7 @@
                     const hasContent = profile.emailContent && profile.emailContent.trim() !== '';
                     const hasRole = profile.searchRole && profile.searchRole.trim() !== '';
                     
-                    // If profile is incomplete, show alert and redirect
+                    // If profile is incomplete, redirect to home page to fill details via modal
                     if (!hasResume || !hasSubject || !hasContent || !hasRole) {
                         const missingItems = [];
                         if (!hasResume) missingItems.push('• Upload your resume');
@@ -2221,11 +2221,12 @@
                         const confirmed = confirm(
                             'Please complete your profile first:\n\n' +
                             missingItems.join('\n') +
-                            '\n\nClick OK to go to Profile Settings and complete your details.'
+                            '\n\nClick OK to complete your profile details.'
                         );
                         
                         if (confirmed) {
-                            window.location.href = '/profile';
+                            // Redirect to home with parameter to indicate coming from job posts
+                            window.location.href = '/?from=jobs';
                         }
                         return;
                     }

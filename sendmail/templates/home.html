@@ -1807,6 +1807,18 @@ async function checkExistingProfile() {
 
 // Ensure primary CTAs on dashboard open the popup instead of redirecting
 document.addEventListener('DOMContentLoaded', () => {
+  // Update button text based on source
+  const urlParams = new URLSearchParams(window.location.search);
+  const fromJobPosts = urlParams.get('from') === 'jobs';
+  
+  // Find and update the launch button text if coming from job posts
+  if (fromJobPosts) {
+    const launchButtons = document.querySelectorAll('button[onclick="launchAutomation()"]');
+    launchButtons.forEach(btn => {
+      btn.innerHTML = '<i class="bi bi-save me-2"></i>SAVE PROFILE';
+    });
+  }
+  
   const showPopup = async () => {
     const modalEl = document.getElementById('gamifiedQuickStartModal');
     if (modalEl) {
@@ -1821,12 +1833,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasRole = profile.search_role && profile.search_role.trim() !== '';
         
         if (hasResume && hasSubject && hasContent && hasRole) {
-          // Profile complete - show modal and let checkExistingProfile handle Step 3
-          const modal = new bootstrap.Modal(modalEl);
-          modal.show();
-          checkExistingProfile();
+          // Profile complete - redirect directly to automation page
+          window.location.href = '/send';
         } else {
-          // Profile incomplete - show modal at Step 1
+          // Profile incomplete - show modal at Step 1 to fill details
           const modal = new bootstrap.Modal(modalEl);
           showStep(1);
           modal.show();
@@ -2130,8 +2140,15 @@ function goToStep3() {
 
 async function launchAutomation() {
   const launchBtn = event.target;
+  
+  // Check if coming from job posts (via URL parameter or referrer)
+  const urlParams = new URLSearchParams(window.location.search);
+  const fromJobPosts = urlParams.get('from') === 'jobs' || document.referrer.includes('/jobs');
+  
   launchBtn.disabled = true;
-  launchBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Saving & Launching...';
+  launchBtn.innerHTML = fromJobPosts 
+    ? '<i class="bi bi-hourglass-split me-2"></i>Saving Profile...' 
+    : '<i class="bi bi-hourglass-split me-2"></i>Saving & Launching...';
   
   try {
     // Get all the user data (allow editing of subject)
@@ -2185,14 +2202,21 @@ Phone: ${phone}`;
       throw new Error('Failed to save profile');
     }
     
-    // Success - redirect to automation page
-    window.location.href = '/send?autostart=true&fromPopup=true';
+    // If from job posts, redirect back to jobs page. Otherwise launch automation.
+    if (fromJobPosts) {
+      window.location.href = '/jobs';
+    } else {
+      window.location.href = '/send?autostart=true&fromPopup=true';
+    }
     
   } catch (error) {
     console.error('Error launching automation:', error);
     alert('Failed to save your details. Please try again.');
     launchBtn.disabled = false;
-    launchBtn.innerHTML = '<i class="bi bi-rocket-takeoff-fill me-2"></i>LAUNCH JOB AUTOMATION NOW!';
+    const fromJobPosts = new URLSearchParams(window.location.search).get('from') === 'jobs';
+    launchBtn.innerHTML = fromJobPosts
+      ? '<i class="bi bi-save me-2"></i>SAVE PROFILE'
+      : '<i class="bi bi-rocket-takeoff-fill me-2"></i>LAUNCH JOB AUTOMATION NOW!';
   }
 }
 </script>

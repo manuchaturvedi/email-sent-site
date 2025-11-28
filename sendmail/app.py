@@ -4707,6 +4707,35 @@ def admin_delete_job(job_id):
         print(f"[ERROR] Delete job error: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/admin/job_posts')
+@admin_required
+def admin_job_posts():
+    """Admin page to view and delete all job posts"""
+    try:
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get all job posts with user info
+        cursor.execute("""
+            SELECT 
+                jp.id, jp.title, jp.company, jp.location, jp.email,
+                jp.description, jp.posted_date, jp.source_url, jp.created_at,
+                jp.user_email
+            FROM job_posts jp
+            ORDER BY jp.created_at DESC
+            LIMIT 500
+        """)
+        
+        jobs = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        
+        return render_template('admin_job_posts.html', jobs=jobs)
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load admin job posts: {str(e)}")
+        flash(f"Error loading job posts: {str(e)}", "danger")
+        return redirect(url_for('admin_panel'))
+
 @app.route('/admin/scrape_jobs')
 @admin_required
 def admin_scrape_jobs():

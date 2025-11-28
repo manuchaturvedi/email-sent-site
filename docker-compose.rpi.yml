@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.rpi
+    ports:
+      - "80:5000"  # Map container port 5000 to host port 80
+    volumes:
+      - ./chrome-profile:/app/chrome-profile
+      - ./uploads:/app/uploads
+      - ./job_posts.json:/app/job_posts.json
+      - ./sent_emails.json:/app/sent_emails.json
+    restart: always
+    environment:
+      - VIRTUAL_HOST=justmailit.in
+      - LETSENCRYPT_HOST=justmailit.in
+      - LETSENCRYPT_EMAIL=your-email@example.com  # Replace with your email

@@ -935,7 +935,7 @@ Please investigate and resolve the issue.
 Dashboard: https://justmailit.in/admin
 """
         
-        _send_plain_email(admin_email, subject, body)
+        _send_plain_email(recipient_email=admin_email, subject=subject, body=body)
         print(f"[ALERT] Admin notification sent for {error_type}")
     except Exception as e:
         print(f"[ERROR] Failed to send admin alert: {e}")
@@ -2684,7 +2684,12 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                         user_email=user_email or "Unknown",
                         error_type="LinkedIn Login Failed",
                         error_message="Email/password login failed after profile login check",
-                        additional_info=f"Run ID: {run_id}\nSearch Role: {search_role}\nLinkedIn Email: {LINKEDIN_EMAIL}\nCurrent URL: {driver.current_url}"
+                        additional_info={
+                            "Run ID": run_id,
+                            "Search Role": search_role,
+                            "LinkedIn Email": LINKEDIN_EMAIL,
+                            "Current URL": driver.current_url
+                        }
                     )
                 except Exception as alert_error:
                     log(f"[WARN] Could not send admin alert: {str(alert_error)}")
@@ -2698,7 +2703,12 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     user_email=user_email or "Unknown",
                     error_type="LinkedIn Login Failed - All Methods",
                     error_message="Both profile-based and email/password login methods failed",
-                    additional_info=f"Run ID: {run_id}\nSearch Role: {search_role}\nProfile Dir: {profile_dir}\nLinkedIn Email: {LINKEDIN_EMAIL or 'Not Set'}"
+                    additional_info={
+                        "Run ID": run_id,
+                        "Search Role": search_role,
+                        "Profile Dir": profile_dir,
+                        "LinkedIn Email": LINKEDIN_EMAIL or 'Not Set'
+                    }
                 )
             except Exception as alert_error:
                 log(f"[WARN] Could not send admin alert: {str(alert_error)}")
@@ -2718,7 +2728,12 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 user_email=user_email or "Unknown",
                 error_type="Chrome Browser Launch Failed",
                 error_message=str(e),
-                additional_info=f"Run ID: {run_id}\nSearch Role: {search_role}\nSearch Time: {search_time}\nTraceback: {traceback.format_exc()}"
+                additional_info={
+                    "Run ID": run_id,
+                    "Search Role": search_role,
+                    "Search Time": search_time,
+                    "Traceback": traceback.format_exc()
+                }
             )
         except Exception as alert_error:
             log(f"[WARN] Could not send admin alert: {str(alert_error)}")
@@ -2827,7 +2842,12 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                         user_email=user_email or "Unknown",
                         error_type="LinkedIn Scraping Failed - No Posts Found",
                         error_message="Could not find any job posts with any CSS selector",
-                        additional_info=f"Run ID: {run_id}\nSearch URL: {url}\nSearch Role: {search_role}\nSelectors Tried: {', '.join(selectors)}"
+                        additional_info={
+                            "Run ID": run_id,
+                            "Search URL": url,
+                            "Search Role": search_role,
+                            "Selectors Tried": ', '.join(selectors)
+                        }
                     )
                 except Exception as alert_error:
                     log(f"[WARN] Could not send admin alert: {str(alert_error)}")
@@ -3083,7 +3103,14 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                         user_email=user_email or "Unknown",
                         error_type="Email Sending Failed",
                         error_message=str(e),
-                        additional_info=f"Run ID: {run_id}\nRecipient: {receiver_email}\nCompany: {company_name}\nCC: {cc_email}\nSubject: {subject}\nTraceback: {traceback.format_exc()[:500]}"
+                        additional_info={
+                            "Run ID": run_id,
+                            "Recipient": receiver_email,
+                            "Company": company_name,
+                            "CC": cc_email,
+                            "Subject": subject,
+                            "Traceback": traceback.format_exc()[:500]
+                        }
                     )
                 except Exception as alert_error:
                     log(f"[WARN] Could not send admin alert: {str(alert_error)}")
@@ -3121,7 +3148,12 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                             user_email=user_email or "Unknown",
                             error_type="Browser Crash During Cleanup",
                             error_message=str(quit_error),
-                            additional_info=f"Run ID: {run_id}\nSearch Role: {search_role}\nEmails Sent: {emails_sent_count}\nDriver quit() failed during cleanup"
+                            additional_info={
+                                "Run ID": run_id,
+                                "Search Role": search_role,
+                                "Emails Sent": emails_sent_count,
+                                "Note": "Driver quit() failed during cleanup"
+                            }
                         )
                     except Exception as alert_error:
                         log(f"[WARN] Could not send admin alert: {str(alert_error)}")
@@ -3228,7 +3260,12 @@ Need help? Reply to this email or visit https://justmailit.in
                                 user_email=user_email or "Unknown",
                                 error_type="Failed to Send User Summary Email",
                                 error_message=str(email_error),
-                                additional_info=f"Run ID: {run_id}\nEmails Sent: {emails_sent_count}\nSkipped: {len(skipped_emails)}\nTraceback: {traceback.format_exc()}"
+                                additional_info={
+                                    "Run ID": run_id,
+                                    "Emails Sent": emails_sent_count,
+                                    "Skipped": len(skipped_emails),
+                                    "Traceback": traceback.format_exc()
+                                }
                             )
                         except Exception as alert_error:
                             log(f"[WARN] Could not send admin alert: {str(alert_error)}")
@@ -3290,7 +3327,12 @@ Need help? Reply to this email or visit https://justmailit.in
                             user_email=user_email or "Unknown",
                             error_type="Failed to Send Success Summary Email",
                             error_message=str(email_error),
-                            additional_info=f"Run ID: {run_id}\nEmails Sent: {emails_sent_count}\nTotal Found: {len(all_emails)}\nTraceback: {traceback.format_exc()}"
+                            additional_info={
+                                "Run ID": run_id,
+                                "Emails Sent": emails_sent_count,
+                                "Total Found": len(all_emails),
+                                "Traceback": traceback.format_exc()
+                            }
                         )
                     except Exception as alert_error:
                         log(f"[WARN] Could not send admin alert: {str(alert_error)}")

@@ -2143,8 +2143,158 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('automationForm').dispatchEvent(new Event('submit'));
   }
 
+  // Check if user profile is complete before running automation
+  async function checkProfileCompletion() {
+    try {
+      const response = await fetch('/get_profile');
+      const profile = await response.json();
+      
+      const missingFields = [];
+      
+      // Check required fields
+      if (!profile.emailSubject || profile.emailSubject.trim() === '') {
+        missingFields.push({
+          field: 'Email Subject',
+          id: 'emailSubject',
+          message: 'Add a subject line for your emails'
+        });
+      }
+      
+      if (!profile.emailContent || profile.emailContent.trim() === '') {
+        missingFields.push({
+          field: 'Email Content',
+          id: 'emailContent',
+          message: 'Write your email message or use AI to generate one'
+        });
+      }
+      
+      if (!profile.searchRole || profile.searchRole.trim() === '') {
+        missingFields.push({
+          field: 'Job Role',
+          id: 'searchRole',
+          message: 'Specify what job roles you\'re looking for'
+        });
+      }
+      
+      if (!profile.hasResume) {
+        missingFields.push({
+          field: 'Resume',
+          id: 'resumeFile',
+          message: 'Upload your resume to attach to emails'
+        });
+      }
+      
+      return {
+        isComplete: missingFields.length === 0,
+        missingFields: missingFields
+      };
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      return {
+        isComplete: false,
+        missingFields: [{
+          field: 'Profile',
+          id: null,
+          message: 'Could not load profile. Please refresh and try again.'
+        }]
+      };
+    }
+  }
+
+  // Show warning modal for incomplete profile
+  function showProfileIncompleteWarning(missingFields) {
+    const fieldsHTML = missingFields.map(field => `
+      <div class="alert alert-warning" style="border-left: 4px solid #f59e0b; background: rgba(245,158,11,0.1); padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem;">
+        <div class="d-flex align-items-start gap-3">
+          <i class="bi bi-exclamation-triangle-fill" style="color: #f59e0b; font-size: 1.3rem;"></i>
+          <div style="flex: 1;">
+            <h6 style="margin: 0 0 0.25rem 0; color: #2d3748; font-weight: 700;">${field.field}</h6>
+            <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">${field.message}</p>
+          </div>
+          ${field.id ? `
+            <button class="btn btn-sm btn-primary" onclick="highlightField('${field.id}'); document.getElementById('profileIncompleteModal').remove();" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 8px; font-weight: 600; padding: 0.4rem 1rem;">
+              Fix Now
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `).join('');
+
+    const modalHTML = `
+      <div class="modal fade show" id="profileIncompleteModal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.85); z-index: 9999;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content" style="border: none; border-radius: 1rem; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: modalSlideIn 0.3s ease-out;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); color: white; border: none; padding: 1.5rem;">
+              <h5 class="modal-title" style="font-weight: bold; font-size: 1.5rem;">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>Complete Your Profile First
+              </h5>
+              <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('profileIncompleteModal').remove()"></button>
+            </div>
+            <div class="modal-body" style="background: white; padding: 2rem;">
+              <p style="color: #6b7280; font-size: 1rem; margin-bottom: 1.5rem;">
+                Before running automation, please complete the following required fields:
+              </p>
+              
+              ${fieldsHTML}
+              
+              <div class="text-center mt-4" style="padding: 1.5rem; background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1)); border-radius: 0.5rem;">
+                <h6 style="color: #667eea; margin-bottom: 0.5rem;">
+                  💡 Pro Tip
+                </h6>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">Complete your profile to get the best results and personalize your job search automation!</p>
+              </div>
+
+              <div class="d-grid gap-2 mt-3">
+                <a href="/profile" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; font-weight: bold; padding: 1rem; text-decoration: none;">
+                  <i class="bi bi-person-fill-gear me-2"></i>Go to Profile Settings
+                </a>
+                <button type="button" class="btn btn-outline-secondary btn-lg" onclick="document.getElementById('profileIncompleteModal').remove()">
+                  I'll Do It Later
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+  }
+
+  // Highlight and scroll to a specific field
+  function highlightField(fieldId) {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      // Scroll to field
+      field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Add highlight animation
+      field.style.transition = 'all 0.3s ease';
+      field.style.boxShadow = '0 0 0 4px rgba(245,158,11,0.3)';
+      field.style.borderColor = '#f59e0b';
+      
+      // Focus the field
+      setTimeout(() => {
+        field.focus();
+      }, 300);
+      
+      // Remove highlight after 2 seconds
+      setTimeout(() => {
+        field.style.boxShadow = '';
+        field.style.borderColor = '';
+      }, 2000);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
+    
+    // FIRST: Check if profile is complete before proceeding
+    const profileCheck = await checkProfileCompletion();
+    if (!profileCheck.isComplete) {
+      showProfileIncompleteWarning(profileCheck.missingFields);
+      return; // Don't proceed with automation
+    }
     
     // Check if this is a rating check (first submit) or actual run (from Continue button)
     if (!e.target.dataset.ratingChecked) {

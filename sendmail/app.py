@@ -4497,10 +4497,17 @@ def scrape_and_save_jobs(search_role, search_time='past-week', user_email=None, 
         chrome_options.add_argument("--start-maximized")
         chrome_options.add_argument("--remote-debugging-port=9222")
         
-        # Use persistent profile for scheduler to maintain login
-        profile_dir = "/tmp/chrome-scheduler-profile"
+        # Use SAME profile directory as run_automation to share authenticated session
+        if os.environ.get('CHROME_BIN'):  # Docker/Cloud environment
+            profile_dir = "/tmp/chrome-profile"
+            print("[SCRAPER] Using shared Docker Chrome profile directory")
+        else:  # Local Windows environment
+            profile_dir = r"D:\Profile"
+            print("[SCRAPER] Using shared Windows Chrome profile directory")
+        
         os.makedirs(profile_dir, exist_ok=True)
         chrome_options.add_argument(f"--user-data-dir={profile_dir}")
+        print(f"[SCRAPER] Chrome profile directory: {profile_dir}")
         
         # Launch Chrome with explicit ChromeDriver path
         chromedriver_path = os.environ.get('CHROMEDRIVER_PATH', '/usr/bin/chromedriver')

@@ -55,6 +55,9 @@ def run_scheduler():
             jobs = db.get_active_scheduled_jobs()
             now = datetime.now()
             
+            if jobs:
+                print(f"[SCHEDULER] Checking {len(jobs)} active job(s) at {now.strftime('%H:%M:%S')}", flush=True)
+            
             for job in jobs:
                 try:
                     # Calculate next run time if not set
@@ -62,12 +65,14 @@ def run_scheduler():
                         cron = croniter(job['cron_expression'], now)
                         next_run = cron.get_next(datetime)
                         db.update_job_run_info(job['id'], None, next_run)
+                        print(f"[SCHEDULER] Set next run for job #{job['id']} to {next_run}", flush=True)
                         continue
                     
                     # Check if job should run
                     next_run_time = datetime.fromisoformat(job['next_run'])
+                    print(f"[SCHEDULER] Job #{job['id']} next run: {next_run_time.strftime('%H:%M:%S')}, now: {now.strftime('%H:%M:%S')}", flush=True)
                     if now >= next_run_time:
-                        print(f"[SCHEDULER] Running scheduled job #{job['id']}: {job['job_name']}")
+                        print(f"[SCHEDULER] Running scheduled job #{job['id']}: {job['job_name']}", flush=True)
                         
                         # Run scraping via admin scraping (scrape only, no emails)
                         def run_job(job_data):
@@ -4748,8 +4753,8 @@ def admin_job_posts():
         print("[DEBUG] admin_job_posts: Executing query...", flush=True)
         cursor.execute("""
             SELECT 
-                jp.id, jp.title, jp.company, jp.location, jp.email,
-                jp.description, jp.posted_date, jp.source_url, jp.created_at,
+                jp.id, jp.title, jp.company, jp.location, jp.recruiter_email as email,
+                jp.full_text as description, jp.created_at, jp.job_url as source_url,
                 jp.user_email
             FROM job_posts jp
             ORDER BY jp.created_at DESC

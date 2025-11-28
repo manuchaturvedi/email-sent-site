@@ -4394,6 +4394,13 @@ def admin_scrape_jobs():
         
         def scrape_jobs_thread():
             """Background thread for scraping"""
+            import time
+            from selenium import webdriver
+            from selenium.webdriver.chrome.options import Options
+            from selenium.webdriver.common.by import By
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+            
             driver = None
             try:
                 log("[*] Starting admin job scraping...")
@@ -4406,13 +4413,6 @@ def admin_scrape_jobs():
                 log("⚙️ Initializing Chrome driver...")
                 
                 # Initialize Chrome driver
-                from selenium import webdriver
-                from selenium.webdriver.chrome.options import Options
-                from selenium.webdriver.common.by import By
-                from selenium.webdriver.support.ui import WebDriverWait
-                from selenium.webdriver.support import expected_conditions as EC
-                import time
-                
                 chrome_options = Options()
                 
                 # Only use headless mode if HEADLESS environment variable is not set to "false"

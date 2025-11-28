@@ -4712,10 +4712,13 @@ def admin_delete_job(job_id):
 def admin_job_posts():
     """Admin page to view and delete all job posts"""
     try:
+        print("[DEBUG] admin_job_posts: Starting...")
         conn = db.get_connection()
+        print("[DEBUG] admin_job_posts: Database connection established")
         cursor = conn.cursor()
         
         # Get all job posts with user info
+        print("[DEBUG] admin_job_posts: Executing query...")
         cursor.execute("""
             SELECT 
                 jp.id, jp.title, jp.company, jp.location, jp.email,
@@ -4726,13 +4729,18 @@ def admin_job_posts():
             LIMIT 500
         """)
         
+        print("[DEBUG] admin_job_posts: Fetching results...")
         jobs = [dict(row) for row in cursor.fetchall()]
+        print(f"[DEBUG] admin_job_posts: Retrieved {len(jobs)} jobs")
         conn.close()
         
+        print("[DEBUG] admin_job_posts: Rendering template...")
         return render_template('admin_job_posts.html', jobs=jobs)
         
     except Exception as e:
         print(f"[ERROR] Failed to load admin job posts: {str(e)}")
+        import traceback
+        print(f"[ERROR] Traceback: {traceback.format_exc()}")
         flash(f"Error loading job posts: {str(e)}", "danger")
         return redirect(url_for('admin_panel'))
 

@@ -50,7 +50,9 @@ class Database:
             'resume_data': 'BLOB',
             'resume_filename': 'TEXT',
             'linkedin_email': 'TEXT',
-            'linkedin_password': 'TEXT'
+            'linkedin_password': 'TEXT',
+            'user_name': 'TEXT',
+            'user_phone': 'TEXT'
         }
         
         for col_name, col_type in required_columns.items():
@@ -213,15 +215,17 @@ class Database:
     def create_or_update_profile(self, email: str, display_name: str = None, photo_url: str = None, 
                                  email_subject: str = None, email_content: str = None, 
                                  search_role: str = None, search_time_period: str = None,
-                                 resume_data: str = None, resume_filename: str = None):
+                                 resume_data: str = None, resume_filename: str = None,
+                                 user_name: str = None, user_phone: str = None):
         """Create or update user profile"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
         cursor.execute('''
             INSERT INTO user_profiles (email, display_name, photo_url, email_subject, email_content, 
-                                      search_role, search_time_period, resume_data, resume_filename)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                      search_role, search_time_period, resume_data, resume_filename,
+                                      user_name, user_phone)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(email) DO UPDATE SET
                 display_name = COALESCE(excluded.display_name, display_name),
                 photo_url = COALESCE(excluded.photo_url, photo_url),
@@ -231,9 +235,11 @@ class Database:
                 search_time_period = COALESCE(excluded.search_time_period, search_time_period),
                 resume_data = COALESCE(excluded.resume_data, resume_data),
                 resume_filename = COALESCE(excluded.resume_filename, resume_filename),
+                user_name = COALESCE(excluded.user_name, user_name),
+                user_phone = COALESCE(excluded.user_phone, user_phone),
                 updated_at = CURRENT_TIMESTAMP
         ''', (email, display_name, photo_url, email_subject, email_content, 
-              search_role, search_time_period, resume_data, resume_filename))
+              search_role, search_time_period, resume_data, resume_filename, user_name, user_phone))
         
         conn.commit()
         conn.close()

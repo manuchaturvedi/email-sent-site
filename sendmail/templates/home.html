@@ -1851,9 +1851,63 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Bind common buttons if present (but NOT the dashboard CTA buttons)
-  // Dashboard CTA buttons (generateEmailTemplateBtn, runNewAutomationBtn) should just navigate to /send
-  // They are simple <a> links and don't need event listeners
+  // Bind dashboard CTA buttons to check profile and autostart if complete
+  const genBtn = document.getElementById('generateEmailTemplateBtn');
+  const runBtn = document.getElementById('runNewAutomationBtn');
+  
+  if (genBtn) {
+    genBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      // Check if profile is complete, if yes redirect with autostart, if no show popup
+      try {
+        const response = await fetch('/get_profile');
+        const profile = await response.json();
+        
+        const hasResume = profile.hasResume || (profile.resumeFilename && profile.resumeFilename.trim() !== '');
+        const hasSubject = profile.emailSubject && profile.emailSubject.trim() !== '';
+        const hasContent = profile.emailContent && profile.emailContent.trim() !== '';
+        const hasRole = profile.searchRole && profile.searchRole.trim() !== '';
+        
+        if (hasResume && hasSubject && hasContent && hasRole) {
+          // Profile complete - redirect to send page with autostart
+          window.location.href = '/send?autostart=true&fromPopup=true';
+        } else {
+          // Profile incomplete - show modal to fill details
+          showPopup();
+        }
+      } catch (error) {
+        // On error, just navigate to send page
+        window.location.href = '/send#template-generator';
+      }
+    });
+  }
+  
+  if (runBtn) {
+    runBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      // Check if profile is complete, if yes redirect with autostart, if no show popup
+      try {
+        const response = await fetch('/get_profile');
+        const profile = await response.json();
+        
+        const hasResume = profile.hasResume || (profile.resumeFilename && profile.resumeFilename.trim() !== '');
+        const hasSubject = profile.emailSubject && profile.emailSubject.trim() !== '';
+        const hasContent = profile.emailContent && profile.emailContent.trim() !== '';
+        const hasRole = profile.searchRole && profile.searchRole.trim() !== '';
+        
+        if (hasResume && hasSubject && hasContent && hasRole) {
+          // Profile complete - redirect to send page with autostart
+          window.location.href = '/send?autostart=true&fromPopup=true';
+        } else {
+          // Profile incomplete - show modal to fill details
+          showPopup();
+        }
+      } catch (error) {
+        // On error, just navigate to send page
+        window.location.href = '/send';
+      }
+    });
+  }
 });
 
 // Handle Resume Upload with Auto-extraction
@@ -2184,6 +2238,8 @@ Phone: ${phone}`;
     formData.append('emailContent', emailContent);
     formData.append('searchRole', position);
     formData.append('searchTimePeriod', 'past-week');
+    formData.append('userName', name);
+    formData.append('userPhone', phone);
     
     // Add resume if uploaded
     const resumeFile = document.getElementById('resumeUpload')?.files[0];

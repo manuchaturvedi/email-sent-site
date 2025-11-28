@@ -1123,6 +1123,8 @@ def save_profile():
     email_content = request.form.get("emailContent")
     search_role = request.form.get("searchRole", "")
     search_time_period = request.form.get("searchTimePeriod", "past-week")
+    user_name = request.form.get("userName", "")
+    user_phone = request.form.get("userPhone", "")
     
     # Handle resume file - store as BLOB in database
     resume_data = None
@@ -1149,7 +1151,9 @@ def save_profile():
             search_role=search_role,
             search_time_period=search_time_period,
             resume_data=resume_data,  # Store binary BLOB
-            resume_filename=resume_filename
+            resume_filename=resume_filename,
+            user_name=user_name,
+            user_phone=user_phone
         )
         
         print(f"[OK] Profile updated for {user_email}")

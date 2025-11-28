@@ -4497,7 +4497,7 @@ def scrape_and_save_jobs(search_role, search_time='past-week', user_email=None, 
         chrome_options.add_argument("--start-maximized")
         chrome_options.add_argument("--remote-debugging-port=9222")
         
-        # Use simple temp profile for scheduler jobs
+        # Use persistent profile for scheduler to maintain login
         profile_dir = "/tmp/chrome-scheduler-profile"
         os.makedirs(profile_dir, exist_ok=True)
         chrome_options.add_argument(f"--user-data-dir={profile_dir}")
@@ -4512,7 +4512,70 @@ def scrape_and_save_jobs(search_role, search_time='past-week', user_email=None, 
         
         print("[SCRAPER] Chrome launched successfully")
         
-        # Navigate to URL
+        # Login to LinkedIn first (check if already logged in)
+        print("[SCRAPER] Checking LinkedIn login status...")
+        driver.get("https://www.linkedin.com/feed")
+        time.sleep(3)
+        
+        current_url = driver.current_url
+        if "login" in current_url or "authwall" in current_url:
+            print("[SCRAPER] Not logged in, performing login...")
+            
+            # Get LinkedIn credentials from environment
+            linkedin_email = os.environ.get('LINKEDIN_EMAIL', '')
+            linkedin_password = os.environ.get('LINKEDIN_PASSWORD', '')
+            
+            if not linkedin_email or not linkedin_password:
+                print("[ERROR] LinkedIn credentials not configured in environment")
+                print("[ERROR] Set LINKEDIN_EMAIL and LINKEDIN_PASSWORD environment variables")
+                return {'error': 'LinkedIn credentials not configured'}
+            
+            # Navigate to login page
+            driver.get("https://www.linkedin.com/login")
+            time.sleep(3)
+            
+            try:
+                # Wait for login form
+                wait = WebDriverWait(driver, 10)
+                
+                # Enter email
+                email_field = wait.until(EC.presence_of_element_located((By.ID, "username")))
+                email_field.clear()
+                email_field.send_keys(linkedin_email)
+                print("[SCRAPER] Email entered")
+                
+                # Enter password
+                password_field = driver.find_element(By.ID, "password")
+                password_field.clear()
+                password_field.send_keys(linkedin_password)
+                print("[SCRAPER] Password entered")
+                
+                # Click sign in
+                sign_in_button = driver.find_element(By.XPATH, "//button[@type='submit']")
+                sign_in_button.click()
+                print("[SCRAPER] Sign in button clicked")
+                
+                # Wait for login to complete
+                time.sleep(5)
+                
+                # Check if login was successful
+                current_url = driver.current_url
+                if "feed" in current_url or "home" in current_url:
+                    print("[SCRAPER] LinkedIn login successful!")
+                elif "checkpoint" in current_url or "challenge" in current_url:
+                    print("[ERROR] LinkedIn requires 2FA/verification - cannot proceed in headless mode")
+                    return {'error': 'LinkedIn 2FA required - please login manually in browser first'}
+                else:
+                    print(f"[WARN] Login status unclear, URL: {current_url}")
+            
+            except Exception as login_error:
+                print(f"[ERROR] LinkedIn login failed: {str(login_error)}")
+                return {'error': f'LinkedIn login failed: {str(login_error)}'}
+        else:
+            print("[SCRAPER] Already logged in to LinkedIn")
+        
+        # Now navigate to search URL
+        print(f"[SCRAPER] Navigating to search results...")
         driver.get(url)
         time.sleep(5)
         

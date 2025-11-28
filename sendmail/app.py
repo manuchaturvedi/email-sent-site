@@ -4235,21 +4235,21 @@ def admin_required(f):
     """Decorator to check if user is admin"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        print(f"[DEBUG] admin_required: Checking access for route {f.__name__}")
+        print(f"[DEBUG] admin_required: Checking access for route {f.__name__}", flush=True)
         if "user" not in session:
-            print("[DEBUG] admin_required: No user in session")
+            print("[DEBUG] admin_required: No user in session", flush=True)
             flash("Please log in first!", "warning")
             return redirect(url_for('landing'))
         
         # session['user'] is a string (email), not a dict
         user_email = session.get('user', '')
-        print(f"[DEBUG] admin_required: User={user_email}, Admin={ADMIN_EMAIL}")
+        print(f"[DEBUG] admin_required: User={user_email}, Admin={ADMIN_EMAIL}", flush=True)
         if user_email != ADMIN_EMAIL:
-            print(f"[DEBUG] admin_required: Access denied - not admin")
+            print(f"[DEBUG] admin_required: Access denied - not admin", flush=True)
             flash("Access denied. Admin only!", "danger")
             return redirect(url_for('dashboard'))
         
-        print(f"[DEBUG] admin_required: Access granted")
+        print(f"[DEBUG] admin_required: Access granted", flush=True)
         return f(*args, **kwargs)
     return decorated_function
 
@@ -4735,13 +4735,13 @@ def admin_delete_job(job_id):
 def admin_job_posts():
     """Admin page to view and delete all job posts"""
     try:
-        print("[DEBUG] admin_job_posts: Starting...")
+        print("[DEBUG] admin_job_posts: Starting...", flush=True)
         conn = db.get_connection()
-        print("[DEBUG] admin_job_posts: Database connection established")
+        print("[DEBUG] admin_job_posts: Database connection established", flush=True)
         cursor = conn.cursor()
         
         # Get all job posts with user info
-        print("[DEBUG] admin_job_posts: Executing query...")
+        print("[DEBUG] admin_job_posts: Executing query...", flush=True)
         cursor.execute("""
             SELECT 
                 jp.id, jp.title, jp.company, jp.location, jp.email,
@@ -4752,18 +4752,18 @@ def admin_job_posts():
             LIMIT 500
         """)
         
-        print("[DEBUG] admin_job_posts: Fetching results...")
+        print("[DEBUG] admin_job_posts: Fetching results...", flush=True)
         jobs = [dict(row) for row in cursor.fetchall()]
-        print(f"[DEBUG] admin_job_posts: Retrieved {len(jobs)} jobs")
+        print(f"[DEBUG] admin_job_posts: Retrieved {len(jobs)} jobs", flush=True)
         conn.close()
         
-        print("[DEBUG] admin_job_posts: Rendering template...")
+        print("[DEBUG] admin_job_posts: Rendering template...", flush=True)
         return render_template('admin_job_posts.html', jobs=jobs)
         
     except Exception as e:
-        print(f"[ERROR] Failed to load admin job posts: {str(e)}")
+        print(f"[ERROR] Failed to load admin job posts: {str(e)}", flush=True)
         import traceback
-        print(f"[ERROR] Traceback: {traceback.format_exc()}")
+        print(f"[ERROR] Traceback: {traceback.format_exc()}", flush=True)
         flash(f"Error loading job posts: {str(e)}", "danger")
         return redirect(url_for('admin_panel'))
 

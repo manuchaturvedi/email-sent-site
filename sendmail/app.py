@@ -8,6 +8,7 @@ from database import Database  # Import SQLite database
 # Import utilities from refactored modules
 from utils.helpers import extract_company_from_email, parse_skills
 from utils.decorators import login_required, admin_required, ADMIN_EMAIL
+from services.email_service import send_plain_email, send_admin_alert
 
 import uuid
 import hashlib
@@ -973,72 +974,77 @@ print("[OK] Firebase is used for authentication only")
 #     return decorated_function
 
 
-# ========== EMAIL HELPERS FOR TRANSACTIONAL MAILS ==========
-def _send_plain_email(recipient_email: str, subject: str, body: str) -> bool:
-    """Send a simple plain-text email using existing SMTP setup."""
-    try:
-        smtp_server = "smtp.gmail.com"
-        smtp_port = 587
-        sender_email = "mail@justmailit.in"
-        smtp_user = "manudrive06@gmail.com"
-        sender_password = "ozds nrqo gduy mnwd"
+# ========== EMAIL HELPERS FOR TRANSACTIONAL MAILS (Moved to services/email_service.py) ==========
+# Keeping original code commented for safety - DELETE AFTER TESTING
+# def _send_plain_email(recipient_email: str, subject: str, body: str) -> bool:
+#     """Send a simple plain-text email using existing SMTP setup."""
+#     try:
+#         smtp_server = "smtp.gmail.com"
+#         smtp_port = 587
+#         sender_email = "mail@justmailit.in"
+#         smtp_user = "manudrive06@gmail.com"
+#         sender_password = "ozds nrqo gduy mnwd"
+# 
+#         msg = MIMEMultipart()
+#         msg["From"] = f"JustMailIt <{sender_email}>"
+#         msg["To"] = recipient_email
+#         msg["Subject"] = subject
+#         msg["Reply-To"] = sender_email
+#         msg.attach(MIMEText(body, "plain", "utf-8"))
+# 
+#         server = smtplib.SMTP(smtp_server, smtp_port)
+#         server.starttls()
+#         server.login(smtp_user, sender_password)
+#         server.sendmail(sender_email, recipient_email, msg.as_string())
+#         server.quit()
+#         print(f"[OK] Email sent to {recipient_email}: {subject}")
+#         return True
+#     except Exception as e:
+#         print(f"[ERROR] Failed to send email to {recipient_email}: {e}")
+#         return False
+# 
+# 
+# def _send_admin_alert(user_email: str, error_type: str, error_message: str, additional_info: dict = None):
+#     """Send alert email to admin when automation fails."""
+#     try:
+#         admin_email = "manudrive06@gmail.com"  # Admin email
+#         
+#         subject = f"🚨 JustMailIt Automation Failed - {error_type}"
+#         
+#         body = f"""
+# AUTOMATION FAILURE ALERT
+# ========================
+# 
+# User: {user_email}
+# Error Type: {error_type}
+# Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+# 
+# Error Details:
+# {error_message}
+# 
+# """
+#         
+#         if additional_info:
+#             body += "\nAdditional Information:\n"
+#             for key, value in additional_info.items():
+#                 body += f"  {key}: {value}\n"
+#         
+#         body += f"""
+# ---
+# This is an automated alert from JustMailIt monitoring system.
+# Please investigate and resolve the issue.
+# 
+# Dashboard: https://justmailit.in/admin
+# """
+#         
+#         _send_plain_email(recipient_email=admin_email, subject=subject, body=body)
+#         print(f"[ALERT] Admin notification sent for {error_type}")
+#     except Exception as e:
+#         print(f"[ERROR] Failed to send admin alert: {e}")
 
-        msg = MIMEMultipart()
-        msg["From"] = f"JustMailIt <{sender_email}>"
-        msg["To"] = recipient_email
-        msg["Subject"] = subject
-        msg["Reply-To"] = sender_email
-        msg.attach(MIMEText(body, "plain", "utf-8"))
-
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()
-        server.login(smtp_user, sender_password)
-        server.sendmail(sender_email, recipient_email, msg.as_string())
-        server.quit()
-        print(f"[OK] Email sent to {recipient_email}: {subject}")
-        return True
-    except Exception as e:
-        print(f"[ERROR] Failed to send email to {recipient_email}: {e}")
-        return False
-
-
-def _send_admin_alert(user_email: str, error_type: str, error_message: str, additional_info: dict = None):
-    """Send alert email to admin when automation fails."""
-    try:
-        admin_email = "manudrive06@gmail.com"  # Admin email
-        
-        subject = f"🚨 JustMailIt Automation Failed - {error_type}"
-        
-        body = f"""
-AUTOMATION FAILURE ALERT
-========================
-
-User: {user_email}
-Error Type: {error_type}
-Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-Error Details:
-{error_message}
-
-"""
-        
-        if additional_info:
-            body += "\nAdditional Information:\n"
-            for key, value in additional_info.items():
-                body += f"  {key}: {value}\n"
-        
-        body += f"""
----
-This is an automated alert from JustMailIt monitoring system.
-Please investigate and resolve the issue.
-
-Dashboard: https://justmailit.in/admin
-"""
-        
-        _send_plain_email(recipient_email=admin_email, subject=subject, body=body)
-        print(f"[ALERT] Admin notification sent for {error_type}")
-    except Exception as e:
-        print(f"[ERROR] Failed to send admin alert: {e}")
+# Backward compatibility: keep old function names as aliases
+_send_plain_email = send_plain_email
+_send_admin_alert = send_admin_alert
 
 
 # ========== EMAIL VERIFICATION ROUTES ==========

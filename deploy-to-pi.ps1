@@ -13,9 +13,9 @@ $PI_HOST = "192.168.31.36"
 $LOCAL_BASE = "C:\Users\windows 10\Desktop\AI_support"
 $REMOTE_BASE = "~/justmailit"
 
-Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║   JustMailIt Deployment Tool v1.0    ║" -ForegroundColor Cyan
-Write-Host "╚════════════════════════════════════════╝`n" -ForegroundColor Cyan
+Write-Host "`n========================================" -ForegroundColor Cyan
+Write-Host "   JustMailIt Deployment Tool v1.0    " -ForegroundColor Cyan
+Write-Host "========================================`n" -ForegroundColor Cyan
 
 # Function to test Pi connection
 function Test-PiConnection {
@@ -142,6 +142,8 @@ try {
     exit 1
 }
 
-Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║         Deployment Complete!          ║" -ForegroundColor Cyan
-Write-Host "╚════════════════════════════════════════╝`n" -ForegroundColor Cyan
+Write-Host "`n" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "       Deployment Complete!            " -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "`n" -ForegroundColor Cyan

@@ -188,6 +188,23 @@ class Database:
             )
         ''')
         
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS scheduled_jobs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                job_name TEXT NOT NULL,
+                search_role TEXT NOT NULL,
+                position TEXT,
+                cron_expression TEXT NOT NULL,
+                is_active BOOLEAN DEFAULT 1,
+                last_run TIMESTAMP,
+                next_run TIMESTAMP,
+                run_count INTEGER DEFAULT 0,
+                created_by TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
         conn.commit()
         conn.close()
         print("✅ SQLite database initialized successfully")
@@ -628,6 +645,119 @@ class Database:
             SET used = 1, used_at = CURRENT_TIMESTAMP
             WHERE token = ?
         ''', (token,))
+        
+        conn.commit()
+        conn.close()
+        return True
+
+    # Scheduled Jobs Methods
+    def create_scheduled_job(self, job_name: str, search_role: str, position: str, 
+                            cron_expression: str, created_by: str):
+        """Create a new scheduled job"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            INSERT INTO scheduled_jobs (job_name, search_role, position, cron_expression, created_by)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (job_name, search_role, position, cron_expression, created_by))
+        
+        job_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return job_id
+    
+    def get_all_scheduled_jobs(self):
+        """Get all scheduled jobs"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT * FROM scheduled_jobs ORDER BY created_at DESC
+        ''')
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [dict(row) for row in rows]
+    
+    def get_active_scheduled_jobs(self):
+        """Get all active scheduled jobs"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT * FROM scheduled_jobs 
+            WHERE is_active = 1 
+            ORDER BY next_run ASC
+        ''')
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [dict(row) for row in rows]
+    
+    def update_scheduled_job(self, job_id: int, job_name: str = None, search_role: str = None, 
+                            position: str = None, cron_expression: str = None, is_active: bool = None):
+        """Update a scheduled job"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        updates = []
+        params = []
+        
+        if job_name is not None:
+            updates.append("job_name = ?")
+            params.append(job_name)
+        if search_role is not None:
+            updates.append("search_role = ?")
+            params.append(search_role)
+        if position is not None:
+            updates.append("position = ?")
+            params.append(position)
+        if cron_expression is not None:
+            updates.append("cron_expression = ?")
+            params.append(cron_expression)
+        if is_active is not None:
+            updates.append("is_active = ?")
+            params.append(1 if is_active else 0)
+        
+        if updates:
+            updates.append("updated_at = CURRENT_TIMESTAMP")
+            params.append(job_id)
+            
+            cursor.execute(f'''
+                UPDATE scheduled_jobs 
+                SET {", ".join(updates)}
+                WHERE id = ?
+            ''', params)
+            
+            conn.commit()
+        
+        conn.close()
+        return True
+    
+    def update_job_run_info(self, job_id: int, last_run: datetime, next_run: datetime):
+        """Update job run information"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE scheduled_jobs 
+            SET last_run = ?, next_run = ?, run_count = run_count + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (last_run, next_run, job_id))
+        
+        conn.commit()
+        conn.close()
+        return True
+    
+    def delete_scheduled_job(self, job_id: int):
+        """Delete a scheduled job"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM scheduled_jobs WHERE id = ?', (job_id,))
         
         conn.commit()
         conn.close()

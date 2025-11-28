@@ -37,6 +37,81 @@ app = Flask(__name__)
 # Initialize SQLite database
 db = Database()
 
+# Cron Scheduler for scheduled jobs
+scheduler_running = False
+scheduler_thread = None
+
+def run_scheduler():
+    """Background thread that checks and runs scheduled jobs"""
+    global scheduler_running
+    from croniter import croniter
+    
+    print("[SCHEDULER] Starting job scheduler...")
+    scheduler_running = True
+    
+    while scheduler_running:
+        try:
+            # Get all active scheduled jobs
+            jobs = db.get_active_scheduled_jobs()
+            now = datetime.now()
+            
+            for job in jobs:
+                try:
+                    # Calculate next run time if not set
+                    if not job.get('next_run'):
+                        cron = croniter(job['cron_expression'], now)
+                        next_run = cron.get_next(datetime)
+                        db.update_job_run_info(job['id'], None, next_run)
+                        continue
+                    
+                    # Check if job should run
+                    next_run_time = datetime.fromisoformat(job['next_run'])
+                    if now >= next_run_time:
+                        print(f"[SCHEDULER] Running scheduled job #{job['id']}: {job['job_name']}")
+                        
+                        # Run scraping in a separate thread
+                        def run_job(job_data):
+                            try:
+                                scrape_jobs_thread(
+                                    search_role=job_data['search_role'],
+                                    search_time='past-week',
+                                    user_email='admin@justmailit.in'
+                                )
+                                
+                                # Calculate next run time
+                                run_time = datetime.now()
+                                cron = croniter(job_data['cron_expression'], run_time)
+                                next_run = cron.get_next(datetime)
+                                
+                                db.update_job_run_info(job_data['id'], run_time, next_run)
+                                print(f"[SCHEDULER] Completed job #{job_data['id']}. Next run: {next_run}")
+                                
+                            except Exception as e:
+                                print(f"[SCHEDULER] Error running job #{job_data['id']}: {str(e)}")
+                        
+                        job_thread = threading.Thread(target=run_job, args=(job,), daemon=True)
+                        job_thread.start()
+                        
+                except Exception as job_error:
+                    print(f"[SCHEDULER] Error processing job #{job.get('id', 'unknown')}: {str(job_error)}")
+            
+            # Sleep for 60 seconds before checking again
+            time.sleep(60)
+            
+        except Exception as e:
+            print(f"[SCHEDULER] Scheduler error: {str(e)}")
+            time.sleep(60)
+    
+    print("[SCHEDULER] Scheduler stopped")
+
+# Start scheduler in background thread
+def start_scheduler():
+    global scheduler_thread
+    if not scheduler_thread or not scheduler_thread.is_alive():
+        scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
+        scheduler_thread.start()
+        print("[SCHEDULER] Scheduler thread started")
+
 # Server-Sent Events clients (each client gets a Queue)
 clients = []
 clients_lock = threading.Lock()
@@ -5050,11 +5125,158 @@ def admin_scrape_jobs():
     return Response(stream_with_context(generate()), mimetype='text/event-stream')
 
 
+# ========== ADMIN SCHEDULED JOBS ROUTES ==========
+
+@app.route('/admin/scheduled_jobs')
+@admin_required
+def admin_scheduled_jobs():
+    """Admin page to manage scheduled jobs"""
+    try:
+        jobs = db.get_all_scheduled_jobs()
+        return render_template('admin_scheduled_jobs.html', jobs=jobs)
+    except Exception as e:
+        print(f"[ERROR] Failed to load scheduled jobs: {str(e)}")
+        flash(f"Error loading scheduled jobs: {str(e)}", "danger")
+        return redirect(url_for('admin_panel'))
+
+@app.route('/admin/scheduled_jobs/create', methods=['POST'])
+@admin_required
+def create_scheduled_job():
+    """Create a new scheduled job"""
+    try:
+        job_name = request.form.get('job_name', '').strip()
+        search_role = request.form.get('search_role', '').strip()
+        position = request.form.get('position', '').strip()
+        cron_expression = request.form.get('cron_expression', '').strip()
+        
+        if not all([job_name, search_role, cron_expression]):
+            return jsonify({'success': False, 'message': 'Job name, search role, and cron expression are required'}), 400
+        
+        # Validate cron expression format (basic validation)
+        cron_parts = cron_expression.split()
+        if len(cron_parts) != 5:
+            return jsonify({'success': False, 'message': 'Invalid cron expression. Format: minute hour day month weekday'}), 400
+        
+        admin_email = session.get('user')
+        job_id = db.create_scheduled_job(job_name, search_role, position, cron_expression, admin_email)
+        
+        print(f"[OK] Created scheduled job #{job_id}: {job_name}")
+        return jsonify({'success': True, 'message': f'Scheduled job created successfully', 'job_id': job_id})
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to create scheduled job: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/scheduled_jobs/<int:job_id>/toggle', methods=['POST'])
+@admin_required
+def toggle_scheduled_job(job_id):
+    """Toggle scheduled job active status"""
+    try:
+        is_active = request.json.get('is_active', True)
+        db.update_scheduled_job(job_id, is_active=is_active)
+        
+        status = 'activated' if is_active else 'deactivated'
+        print(f"[OK] Scheduled job #{job_id} {status}")
+        return jsonify({'success': True, 'message': f'Job {status} successfully'})
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to toggle scheduled job: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/scheduled_jobs/<int:job_id>/update', methods=['POST'])
+@admin_required
+def update_scheduled_job_route(job_id):
+    """Update a scheduled job"""
+    try:
+        job_name = request.form.get('job_name')
+        search_role = request.form.get('search_role')
+        position = request.form.get('position')
+        cron_expression = request.form.get('cron_expression')
+        
+        # Validate cron expression if provided
+        if cron_expression:
+            cron_parts = cron_expression.split()
+            if len(cron_parts) != 5:
+                return jsonify({'success': False, 'message': 'Invalid cron expression'}), 400
+        
+        db.update_scheduled_job(job_id, job_name=job_name, search_role=search_role, 
+                               position=position, cron_expression=cron_expression)
+        
+        print(f"[OK] Updated scheduled job #{job_id}")
+        return jsonify({'success': True, 'message': 'Job updated successfully'})
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to update scheduled job: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/scheduled_jobs/<int:job_id>/delete', methods=['DELETE'])
+@admin_required
+def delete_scheduled_job(job_id):
+    """Delete a scheduled job"""
+    try:
+        db.delete_scheduled_job(job_id)
+        print(f"[OK] Deleted scheduled job #{job_id}")
+        return jsonify({'success': True, 'message': 'Job deleted successfully'})
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to delete scheduled job: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/scheduled_jobs/<int:job_id>/run_now', methods=['POST'])
+@admin_required
+def run_scheduled_job_now(job_id):
+    """Manually trigger a scheduled job to run immediately"""
+    try:
+        jobs = db.get_all_scheduled_jobs()
+        job = next((j for j in jobs if j['id'] == job_id), None)
+        
+        if not job:
+            return jsonify({'success': False, 'message': 'Job not found'}), 404
+        
+        # Run job in background thread
+        def run_job():
+            try:
+                from app import scrape_jobs_thread
+                print(f"[CRON] Manually running scheduled job #{job_id}: {job['job_name']}")
+                
+                # Run scraping for this job's search criteria
+                scrape_jobs_thread(
+                    search_role=job['search_role'],
+                    search_time='past-week',
+                    user_email='admin@justmailit.in'
+                )
+                
+                # Update last run time
+                from datetime import datetime, timedelta
+                from croniter import croniter
+                now = datetime.now()
+                cron = croniter(job['cron_expression'], now)
+                next_run = cron.get_next(datetime)
+                
+                db.update_job_run_info(job_id, now, next_run)
+                print(f"[OK] Scheduled job #{job_id} completed")
+                
+            except Exception as e:
+                print(f"[ERROR] Failed to run scheduled job #{job_id}: {str(e)}")
+        
+        thread = threading.Thread(target=run_job, daemon=True)
+        thread.start()
+        
+        return jsonify({'success': True, 'message': 'Job started in background'})
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to run scheduled job: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 if __name__ == "__main__":
     import sys
     # Force unbuffered output
     sys.stdout.flush()
     sys.stderr.flush()
+    
+    # Start the cron scheduler
+    start_scheduler()
     
     # Get port from environment variable (Render provides this)
     port = int(os.environ.get("PORT", 5000))

@@ -4713,7 +4713,7 @@ def admin_delete_job(job_id):
         cursor = conn.cursor()
         
         # Check if job exists
-        cursor.execute("SELECT id, description FROM job_posts WHERE id = ?", (job_id,))
+        cursor.execute("SELECT id, title FROM job_posts WHERE id = ?", (job_id,))
         job = cursor.fetchone()
         
         if not job:
@@ -4722,8 +4722,9 @@ def admin_delete_job(job_id):
         # Delete the job post
         cursor.execute("DELETE FROM job_posts WHERE id = ?", (job_id,))
         conn.commit()
+        conn.close()
         
-        print(f"[ADMIN] Deleted job post ID {job_id}")
+        print(f"[ADMIN] Deleted job post ID {job_id}: {job['title'] if job else 'Unknown'}")
         return jsonify({
             'success': True,
             'message': 'Job post deleted successfully'

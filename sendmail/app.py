@@ -86,22 +86,17 @@ def run_scheduler():
                     if now >= next_run_time:
                         print(f"[SCHEDULER] Running scheduled job #{job['id']}: {job['job_name']}", flush=True)
                         
-                        # Run scraping directly using run_automation function
+                        # Run scraping ONLY - save jobs to database without sending emails
                         def run_job(job_data):
                             try:
                                 print(f"[SCHEDULER] Triggering job scraping for: {job_data['search_role']}", flush=True)
                                 
-                                # Run automation without sending emails (no resume, no email content)
-                                # This will scrape LinkedIn and save jobs to database
-                                run_automation(
-                                    subject="[Scheduled Scrape]",
-                                    email_content="",  # Empty content means no emails will be sent
-                                    attachment_path=None,
-                                    cc_email="scheduler@justmailit.in",
-                                    run_id=f"sched_{job_data['id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                                    user_email="scheduler@justmailit.in",
+                                # Call scraping function that only saves to DB (no email sending)
+                                scrape_and_save_jobs(
                                     search_role=job_data['search_role'],
-                                    search_time='past-week'
+                                    search_time='past-week',
+                                    user_email='scheduler@justmailit.in',
+                                    scrolls=10
                                 )
                                 
                                 # Calculate next run time
@@ -4428,6 +4423,146 @@ def admin_job_posts():
         print(f"[ERROR] Traceback: {traceback.format_exc()}", flush=True)
         flash(f"Error loading job posts: {str(e)}", "danger")
         return redirect(url_for('admin_panel'))
+
+# ========== JOB SCRAPING FUNCTION (for scheduler and admin) ==========
+def scrape_and_save_jobs(search_role, search_time='past-week', user_email=None, scrolls=10):
+    """
+    Scrape LinkedIn jobs and save to database WITHOUT sending emails.
+    This function is used by scheduler and admin scraping.
+    """
+    import time
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from urllib.parse import urlencode
+    
+    driver = None
+    jobs_found = 0
+    jobs_saved = 0
+    
+    try:
+        print(f"[SCRAPER] Starting job scraping for: {search_role}")
+        
+        # Build LinkedIn search URL
+        skills = parse_skills(search_role)
+        search_keywords = ' OR '.join(f'{role.strip()} hiring' for role in skills)
+        base_url = "https://www.linkedin.com/search/results/content/?"
+        params = {
+            'datePosted': f'"{search_time}"',
+            'keywords': search_keywords
+        }
+        url = base_url + urlencode(params)
+        print(f"[SCRAPER] Search URL: {url}")
+        
+        # Initialize Chrome driver
+        chrome_options = Options()
+        
+        # Set Chrome/Chromium binary location
+        if os.environ.get('CHROME_BIN'):
+            chrome_options.binary_location = os.environ.get('CHROME_BIN', '/usr/bin/chromium')
+            print(f"[SCRAPER] Using Chromium: {chrome_options.binary_location}")
+        
+        if os.environ.get('HEADLESS', 'true').lower() != 'false':
+            chrome_options.add_argument("--headless=new")
+        
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--window-size=1920,1080")
+        
+        # Use profile directory
+        profile_dir = "/tmp/chrome-profile" if os.environ.get('CHROME_BIN') else r"D:\Profile"
+        os.makedirs(profile_dir, exist_ok=True)
+        chrome_options.add_argument(f"--user-data-dir={profile_dir}")
+        
+        # Launch Chrome
+        if os.environ.get('CHROMEDRIVER_PATH'):
+            from selenium.webdriver.chrome.service import Service
+            service = Service(os.environ.get('CHROMEDRIVER_PATH'))
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+        else:
+            from webdriver_manager.chrome import ChromeDriverManager
+            from selenium.webdriver.chrome.service import Service
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+        
+        print("[SCRAPER] Chrome launched successfully")
+        
+        # Navigate to URL
+        driver.get(url)
+        time.sleep(5)
+        
+        # Scroll to load more posts
+        for i in range(scrolls):
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(2)
+            print(f"[SCRAPER] Scroll {i+1}/{scrolls}")
+        
+        # Extract job posts
+        posts = driver.find_elements(By.CSS_SELECTOR, ".feed-shared-update-v2")
+        print(f"[SCRAPER] Found {len(posts)} posts")
+        
+        for post in posts:
+            try:
+                # Extract job information
+                text_content = post.text
+                
+                # Look for email addresses
+                import re
+                emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text_content)
+                
+                if emails:
+                    jobs_found += 1
+                    recruiter_email = emails[0]
+                    
+                    # Extract company and title
+                    company = extract_company_from_email(recruiter_email)
+                    
+                    # Try to find job title in text
+                    title_match = re.search(r'(hiring|looking for|seeking)\s+([^\.]+)', text_content, re.IGNORECASE)
+                    title = title_match.group(2).strip() if title_match else f"{search_role} Position"
+                    
+                    # Create job post object
+                    job_post = {
+                        'title': title[:100],
+                        'company': company,
+                        'location': 'Remote',
+                        'job_url': url,
+                        'recruiter_email': recruiter_email,
+                        'email': recruiter_email,
+                        'skills': skills,
+                        'full_text': text_content[:500],
+                        'posted_date': datetime.now().strftime("%Y-%m-%d")
+                    }
+                    
+                    # Save to database (for ALL users, not just scheduler)
+                    if save_job_post(job_post, user_email='all_users'):
+                        jobs_saved += 1
+                        print(f"[SCRAPER] Saved: {company} - {title}")
+            
+            except Exception as post_error:
+                print(f"[SCRAPER] Error processing post: {str(post_error)}")
+                continue
+        
+        print(f"[SCRAPER] Completed: {jobs_found} jobs found, {jobs_saved} saved to database")
+        return {'jobs_found': jobs_found, 'jobs_saved': jobs_saved}
+        
+    except Exception as e:
+        print(f"[SCRAPER] Error during scraping: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {'error': str(e)}
+        
+    finally:
+        if driver:
+            try:
+                driver.quit()
+                print("[SCRAPER] Chrome closed")
+            except:
+                pass
 
 @app.route('/admin/scrape_jobs')
 @admin_required

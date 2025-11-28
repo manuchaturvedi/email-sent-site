@@ -412,7 +412,10 @@ else:
 LINKEDIN_EMAIL = "manudrive04@gmail.com"
 LINKEDIN_PASSWORD = "Jpking@232"
 
-# Global variables for 2FA handling
+# Global variables for automation - Per-user session management
+automation_sessions = {}  # {user_email: {'running': bool, 'driver': driver, 'stop_flag': bool, 'thread': thread}}
+
+# Legacy global variables (kept for backward compatibility)
 automation_driver = None
 verification_code_submitted = None
 verification_code_value = None
@@ -897,6 +900,45 @@ def _send_plain_email(recipient_email: str, subject: str, body: str) -> bool:
     except Exception as e:
         print(f"[ERROR] Failed to send email to {recipient_email}: {e}")
         return False
+
+
+def _send_admin_alert(user_email: str, error_type: str, error_message: str, additional_info: dict = None):
+    """Send alert email to admin when automation fails."""
+    try:
+        admin_email = "manudrive06@gmail.com"  # Admin email
+        
+        subject = f"🚨 JustMailIt Automation Failed - {error_type}"
+        
+        body = f"""
+AUTOMATION FAILURE ALERT
+========================
+
+User: {user_email}
+Error Type: {error_type}
+Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+Error Details:
+{error_message}
+
+"""
+        
+        if additional_info:
+            body += "\nAdditional Information:\n"
+            for key, value in additional_info.items():
+                body += f"  {key}: {value}\n"
+        
+        body += f"""
+---
+This is an automated alert from JustMailIt monitoring system.
+Please investigate and resolve the issue.
+
+Dashboard: https://justmailit.in/admin
+"""
+        
+        _send_plain_email(admin_email, subject, body)
+        print(f"[ALERT] Admin notification sent for {error_type}")
+    except Exception as e:
+        print(f"[ERROR] Failed to send admin alert: {e}")
 
 
 # ========== EMAIL VERIFICATION ROUTES ==========
@@ -2433,6 +2475,8 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
     # Initialize resources referenced in finally/cleanup
     driver = None
     all_emails = set()
+    skipped_emails = []  # Initialize early to avoid NameError in finally block
+    emails_sent_count = 0  # Initialize email counter
 
     try:
         print("[OK] DEBUG: Entered main try block")
@@ -2630,9 +2674,31 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 log("[OK] Email/password login successful - session saved to profile")
             else:
                 log("[ERROR] Email/password login failed")
+                
+                # Send admin alert for login failure
+                try:
+                    _send_admin_alert(
+                        user_email=user_email or "Unknown",
+                        error_type="LinkedIn Login Failed",
+                        error_message="Email/password login failed after profile login check",
+                        additional_info=f"Run ID: {run_id}\nSearch Role: {search_role}\nLinkedIn Email: {LINKEDIN_EMAIL}\nCurrent URL: {driver.current_url}"
+                    )
+                except Exception as alert_error:
+                    log(f"[WARN] Could not send admin alert: {str(alert_error)}")
 
         if not login_successful:
             log("[ERROR] No login method succeeded - automation may fail")
+            
+            # Send admin alert for complete login failure
+            try:
+                _send_admin_alert(
+                    user_email=user_email or "Unknown",
+                    error_type="LinkedIn Login Failed - All Methods",
+                    error_message="Both profile-based and email/password login methods failed",
+                    additional_info=f"Run ID: {run_id}\nSearch Role: {search_role}\nProfile Dir: {profile_dir}\nLinkedIn Email: {LINKEDIN_EMAIL or 'Not Set'}"
+                )
+            except Exception as alert_error:
+                log(f"[WARN] Could not send admin alert: {str(alert_error)}")
         else:
             log("[OK] Proceeding with job search...")
         
@@ -2641,6 +2707,19 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         error_msg = f"[ERROR] Failed to launch Chrome: {str(e)}"
         log(error_msg)
         print(error_msg)
+        
+        # Send admin alert for Chrome launch failure
+        try:
+            import traceback
+            _send_admin_alert(
+                user_email=user_email or "Unknown",
+                error_type="Chrome Browser Launch Failed",
+                error_message=str(e),
+                additional_info=f"Run ID: {run_id}\nSearch Role: {search_role}\nSearch Time: {search_time}\nTraceback: {traceback.format_exc()}"
+            )
+        except Exception as alert_error:
+            log(f"[WARN] Could not send admin alert: {str(alert_error)}")
+        
         raise
 
     try:
@@ -2738,6 +2817,18 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
             
             if not job_posts:
                 log("[ERROR] No job posts found with any selector")
+                
+                # Send admin alert for scraping failure
+                try:
+                    _send_admin_alert(
+                        user_email=user_email or "Unknown",
+                        error_type="LinkedIn Scraping Failed - No Posts Found",
+                        error_message="Could not find any job posts with any CSS selector",
+                        additional_info=f"Run ID: {run_id}\nSearch URL: {url}\nSearch Role: {search_role}\nSelectors Tried: {', '.join(selectors)}"
+                    )
+                except Exception as alert_error:
+                    log(f"[WARN] Could not send admin alert: {str(alert_error)}")
+                
                 return
                 
             for post in job_posts:
@@ -2980,6 +3071,20 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 }, run_id, user_email)
             except Exception as e:
                 log(f"[ERROR] Failed to send email to {receiver_email}: {e}")
+                
+                # Send admin alert for email failure
+                try:
+                    import traceback
+                    company_name = extract_company_from_email(receiver_email)
+                    _send_admin_alert(
+                        user_email=user_email or "Unknown",
+                        error_type="Email Sending Failed",
+                        error_message=str(e),
+                        additional_info=f"Run ID: {run_id}\nRecipient: {receiver_email}\nCompany: {company_name}\nCC: {cc_email}\nSubject: {subject}\nTraceback: {traceback.format_exc()[:500]}"
+                    )
+                except Exception as alert_error:
+                    log(f"[WARN] Could not send admin alert: {str(alert_error)}")
+                
                 # Persist failure
                 try:
                     save_sent_email({
@@ -3006,31 +3111,33 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     print("[OK] Driver quit successfully")
                 except Exception as quit_error:
                     print(f"[WARN] Driver quit failed: {str(quit_error)}")
+                    
+                    # Send admin alert for browser crash during cleanup
+                    try:
+                        _send_admin_alert(
+                            user_email=user_email or "Unknown",
+                            error_type="Browser Crash During Cleanup",
+                            error_message=str(quit_error),
+                            additional_info=f"Run ID: {run_id}\nSearch Role: {search_role}\nEmails Sent: {emails_sent_count}\nDriver quit() failed during cleanup"
+                        )
+                    except Exception as alert_error:
+                        log(f"[WARN] Could not send admin alert: {str(alert_error)}")
             
             # Always cleanup Chrome processes (even if driver.quit() fails)
             cleanup_chrome_processes()
             print("[DONE] Browser and Chrome instances closed.")
-
-            # Send completion status back to the frontend
-            if automation_stop_flag:
-                send_event(f"[STOP] Automation stopped by user. Sent {emails_sent_count} emails before stopping.")
-                print("[STOP!] Automation stopped by user")
-                # Mark automation as not running in finally block
-            else:
-                send_event(f"[OK] Automation completed successfully! Sent {emails_sent_count} emails.")
-                print("[OK] Automation completed successfully!")
-                # Mark automation as not running in finally block
             
             print(f"[COUNT] Summary:")
             print(f"   - Emails found: {len(all_emails)}")
             print(f"   - Emails sent: {emails_sent_count}")
             
-            # Show upgrade prompt if emails were skipped
+            # Show upgrade prompt FIRST if emails were skipped (before completion message)
             if len(skipped_emails) > 0:
                 skipped_companies = [extract_company_from_email(email) for email in skipped_emails[:5]]
                 companies_list = '<br>'.join([f"• {company}" for company in skipped_companies])
                 more_text = f"<br>• ...and {len(skipped_emails) - 5} more companies" if len(skipped_emails) > 5 else ""
                 
+                print(f"[PLAN] Sending upgrade prompt for {len(skipped_emails)} skipped emails")
                 send_event(f"""<div class='upgrade-prompt-modal'>
                     <h3>🌟 You're Missing Great Opportunities!</h3>
                     <p><strong>{len(skipped_emails)} emails couldn't be sent</strong> due to your Free plan limit (10 emails/day).</p>
@@ -3041,7 +3148,136 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     <p class='upgrade-cta'>💎 Upgrade to Pro for unlimited emails and never miss an opportunity!</p>
                     <a href='/pricing' class='btn-upgrade-big'>Upgrade to Pro Now</a>
                 </div>""")
-                print(f"[PLAN] Skipped {len(skipped_emails)} emails due to free plan limit")
+                
+                # Give frontend time to receive and process the upgrade prompt
+                import time
+                time.sleep(0.5)
+                print(f"[PLAN] Upgrade prompt sent for {len(skipped_emails)} skipped emails")
+                
+                # Send email notification to user about skipped emails
+                if user_email:
+                    try:
+                        print(f"[EMAIL] Sending automation summary email to {user_email}")
+                        
+                        # Create detailed email body
+                        skipped_list_html = '\n'.join([
+                            f"<li style='padding: 8px; border-bottom: 1px solid #eee;'><strong>{extract_company_from_email(email)}</strong> ({email})</li>"
+                            for email in skipped_emails[:10]
+                        ])
+                        
+                        if len(skipped_emails) > 10:
+                            skipped_list_html += f"<li style='padding: 8px; color: #666;'><em>...and {len(skipped_emails) - 10} more companies</em></li>"
+                        
+                        email_subject = f"⚠️ You Missed {len(skipped_emails)} Job Opportunities - Upgrade to Pro"
+                        email_body = f"""
+Hi there!
+
+Your automation just completed, but unfortunately you hit your Free plan limit.
+
+📊 AUTOMATION SUMMARY:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Emails Successfully Sent: {emails_sent_count}/10
+❌ Emails Skipped (Limit Reached): {len(skipped_emails)}
+📧 Total Opportunities Found: {len(all_emails) + len(skipped_emails)}
+
+
+🏢 COMPANIES YOU MISSED:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{chr(10).join([f"• {extract_company_from_email(email)} ({email})" for email in skipped_emails[:10]])}
+{f'...and {len(skipped_emails) - 10} more companies' if len(skipped_emails) > 10 else ''}
+
+
+💎 UPGRADE TO PRO AND NEVER MISS AN OPPORTUNITY!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+With Pro, you get:
+✓ UNLIMITED daily emails (no more 10/day limit)
+✓ Priority email delivery
+✓ Advanced analytics and tracking
+✓ Custom email templates
+✓ Priority support
+
+👉 Upgrade Now: https://justmailit.in/pricing
+
+Don't let the Free plan limit hold back your career growth!
+
+Best regards,
+JustMailIt Team
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Need help? Reply to this email or visit https://justmailit.in
+"""
+                        
+                        _send_plain_email(
+                            recipient=user_email,
+                            subject=email_subject,
+                            body=email_body
+                        )
+                        
+                        print(f"[OK] Automation summary email sent to {user_email}")
+                        
+                    except Exception as email_error:
+                        print(f"[ERROR] Failed to send automation summary email: {str(email_error)}")
+                        log(f"[ERROR] Failed to send summary email to user: {str(email_error)}")
+            
+            # Also send a success email if all emails were sent (no skips)
+            elif user_email and emails_sent_count > 0:
+                try:
+                    print(f"[EMAIL] Sending success summary email to {user_email}")
+                    
+                    email_subject = f"✅ Automation Complete - {emails_sent_count} Emails Sent Successfully!"
+                    email_body = f"""
+Hi there!
+
+Great news! Your automation completed successfully.
+
+📊 AUTOMATION SUMMARY:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Emails Successfully Sent: {emails_sent_count}
+📧 Total Opportunities Found: {len(all_emails)}
+🎯 Success Rate: 100%
+
+
+🚀 NEXT STEPS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Check your sent emails in the dashboard
+• Track responses and follow-ups
+• Run automation again tomorrow for new opportunities
+
+
+💡 TIP: Upgrade to Pro for unlimited emails and never worry about daily limits!
+👉 https://justmailit.in/pricing
+
+
+Keep up the great work!
+
+Best regards,
+JustMailIt Team
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Need help? Reply to this email or visit https://justmailit.in
+"""
+                    
+                    _send_plain_email(
+                        recipient=user_email,
+                        subject=email_subject,
+                        body=email_body
+                    )
+                    
+                    print(f"[OK] Success summary email sent to {user_email}")
+                    
+                except Exception as email_error:
+                    print(f"[ERROR] Failed to send success summary email: {str(email_error)}")
+                    log(f"[ERROR] Failed to send summary email to user: {str(email_error)}")
+
+            # Send completion status back to the frontend (AFTER upgrade prompt)
+            if automation_stop_flag:
+                send_event(f"[STOP] Automation stopped by user. Sent {emails_sent_count} emails before stopping.")
+                print("[STOP!] Automation stopped by user")
+                # Mark automation as not running in finally block
+            else:
+                send_event(f"[OK] Automation completed successfully! Sent {emails_sent_count} emails.")
+                print("[OK] Automation completed successfully!")
+                # Mark automation as not running in finally block
             
             # Return status if this was called from a route
             return {
@@ -3063,24 +3299,29 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
 @app.route("/stop_automation", methods=["POST"])
 @login_required
 def stop_automation():
-    """Stop the running automation"""
-    global automation_stop_flag, automation_driver
+    """Stop the running automation for this user"""
+    global automation_sessions
     
     user_email = session.get("user")
     print(f"[STOP!] Stop automation requested by: {user_email}")
     
-    automation_stop_flag = True
+    # Check if user has an active session
+    if user_email not in automation_sessions:
+        return jsonify({"success": False, "message": "No automation running"}), 404
+    
+    # Set stop flag for this user
+    automation_sessions[user_email]['stop_flag'] = True
     log("[STOP!] Stop requested - automation will terminate soon...")
     
-    # Try to close the browser immediately
-    if automation_driver:
+    # Try to close the browser immediately for this user
+    if automation_sessions[user_email].get('driver'):
         try:
-            automation_driver.quit()
-            print("[OK] Browser closed")
+            automation_sessions[user_email]['driver'].quit()
+            print("[OK] Browser closed for user")
         except Exception as e:
             print(f"[WARN] Error closing browser: {e}")
     
-    return jsonify({"success": True, "message": "Automation stop requested"})
+    return jsonify({"success": True, "message": "Automation stop requested", "status": "stopped"}), 200
 
 @app.route("/check_automation_status", methods=["GET"])
 @login_required
@@ -3106,17 +3347,32 @@ def check_automation_status():
 @app.route("/run_automation", methods=["POST"])
 @login_required
 def send_email():
-    global automation_stop_flag, automation_running
+    global automation_sessions
     
     print("[REQ] Received automation request")
     
-    # Reset stop flag
-    automation_stop_flag = False
-    automation_running = True
-    
-    # Get the logged-in user's email for CC
+    # Get the logged-in user's email
     user_email = session.get("user")
     print(f"[@] User email: {user_email}")
+    
+    # Check if this user already has an automation running
+    if user_email in automation_sessions and automation_sessions[user_email].get('running'):
+        print(f"[WARN] User {user_email} already has automation running")
+        return jsonify({
+            "success": False,
+            "error": "You already have an automation running. Please wait for it to complete or stop it first.",
+            "already_running": True
+        }), 409  # Conflict status code
+    
+    # Initialize user session
+    automation_sessions[user_email] = {
+        'running': True,
+        'stop_flag': False,
+        'driver': None,
+        'thread': None
+    }
+    
+    print(f"[OK] Started new automation session for {user_email}")
     
     # CHECK EMAIL LIMIT BEFORE STARTING AUTOMATION
     can_send, emails_sent, limit_message = check_email_limit(user_email)

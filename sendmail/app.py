@@ -3505,7 +3505,8 @@ def send_email():
     print(f"[OK] DEBUG: Thread started, thread is alive: {thread.is_alive()}")
     print(f"[OK] DEBUG: Thread name: {thread.name}")
 
-    flash("[*] Automation started in background. Check console logs for updates.", "success")
+    # Don't use flash() for automation since we have real-time SSE updates
+    # flash("[*] Automation started in background. Check console logs for updates.", "success")
     return redirect(url_for("send_page"))
 
 

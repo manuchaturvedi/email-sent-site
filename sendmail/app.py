@@ -1210,7 +1210,8 @@ def login():
     display_name = data.get("displayName", "")
     
     try:
-        decoded_token = auth.verify_id_token(id_token)
+        # Add clock skew tolerance to handle timestamp differences
+        decoded_token = auth.verify_id_token(id_token, check_revoked=False, clock_skew_seconds=60)
         user_email = decoded_token["email"]
         session["user"] = user_email
         
@@ -1290,7 +1291,8 @@ def session_login():
     data = request.get_json()
     id_token = data.get("idToken")
     try:
-        decoded_token = auth.verify_id_token(id_token)
+        # Add clock skew tolerance to handle timestamp differences
+        decoded_token = auth.verify_id_token(id_token, check_revoked=False, clock_skew_seconds=60)
         user_email = decoded_token["email"]
         session["user"] = user_email
         print(f"[OK] {user_email} logged in successfully!")

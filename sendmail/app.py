@@ -23,7 +23,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import platform
 from dotenv import load_dotenv
@@ -229,21 +229,49 @@ def extract_resume_info(resume_path):
         email = email_match.group(0) if email_match else ""
         phone = phone_match.group(0) if phone_match else ""
         
-        # Extract skills (look for common skill keywords)
+        # Extract skills (look for common skill keywords with better matching)
         skills = []
-        skill_keywords = ['python', 'java', 'javascript', 'react', 'node', 'aws', 'docker', 
-                         'kubernetes', 'sql', 'mongodb', 'machine learning', 'ai', 'devops',
-                         'angular', 'vue', 'django', 'flask', 'spring', 'microservices',
-                         'typescript', 'golang', 'rust', 'c++', 'ruby', 'php', 'swift',
-                         'kotlin', 'terraform', 'jenkins', 'git', 'linux', 'azure', 'gcp']
+        skill_keywords = {
+            'python': 'Python', 'java': 'Java', 'javascript': 'JavaScript', 'react': 'React', 
+            'node.js': 'Node.js', 'nodejs': 'Node.js', 'node': 'Node.js', 'aws': 'AWS', 'docker': 'Docker',
+            'kubernetes': 'Kubernetes', 'sql': 'SQL', 'mysql': 'MySQL', 'postgresql': 'PostgreSQL',
+            'mongodb': 'MongoDB', 'machine learning': 'Machine Learning', 'ai': 'AI', 'devops': 'DevOps',
+            'angular': 'Angular', 'vue': 'Vue.js', 'django': 'Django', 'flask': 'Flask', 
+            'spring': 'Spring', 'microservices': 'Microservices', 'typescript': 'TypeScript',
+            'golang': 'Go', 'rust': 'Rust', 'c++': 'C++', 'ruby': 'Ruby', 'php': 'PHP', 
+            'swift': 'Swift', 'kotlin': 'Kotlin', 'terraform': 'Terraform', 'jenkins': 'Jenkins',
+            'git': 'Git', 'linux': 'Linux', 'azure': 'Azure', 'gcp': 'GCP', 'html': 'HTML',
+            'css': 'CSS', 'sass': 'Sass', 'redux': 'Redux', 'express': 'Express', 'fastapi': 'FastAPI',
+            'graphql': 'GraphQL', 'redis': 'Redis', 'elasticsearch': 'Elasticsearch',
+            'tableau': 'Tableau', 'power bi': 'Power BI', 'excel': 'Excel', 'pandas': 'Pandas',
+            'numpy': 'NumPy', 'tensorflow': 'TensorFlow', 'pytorch': 'PyTorch', 'scikit-learn': 'Scikit-learn'
+        }
         
         text_lower = text.lower()
-        for keyword in skill_keywords:
-            if keyword in text_lower:
-                skills.append(keyword.title())
+        found_skills = set()
+        for keyword, display_name in skill_keywords.items():
+            # Use word boundaries for better matching
+            if re.search(r'\b' + re.escape(keyword) + r'\b', text_lower):
+                found_skills.add(display_name)
         
-        # Remove duplicates and limit to top 8 skills
-        skills = list(dict.fromkeys(skills))[:8]
+        skills = list(found_skills)[:10]  # Top 10 skills
+        
+        # Extract position/title (look for common job title patterns)
+        position = ''
+        job_titles = [
+            'software developer', 'software engineer', 'full stack developer', 'frontend developer',
+            'backend developer', 'web developer', 'mobile developer', 'devops engineer',
+            'data scientist', 'data analyst', 'data engineer', 'machine learning engineer',
+            'ai engineer', 'cloud engineer', 'solutions architect', 'system administrator',
+            'qa engineer', 'test engineer', 'product manager', 'project manager',
+            'business analyst', 'ui/ux designer', 'graphic designer', 'technical lead',
+            'senior developer', 'junior developer', 'intern', 'fresher'
+        ]
+        
+        for title in job_titles:
+            if re.search(r'\b' + re.escape(title) + r'\b', text_lower):
+                position = title.title()
+                break
         
         # Extract experience (look for years of experience)
         experience = "experienced professional"
@@ -252,10 +280,11 @@ def extract_resume_info(resume_path):
             years = exp_match.group(1)
             experience = f"{years}+ years experienced"
         
-        print(f"[OK] Extracted - Name: {name}, Skills: {len(skills)}, Email: {email}, Phone: {phone}")
+        print(f"[OK] Extracted - Name: {name}, Position: {position}, Skills: {len(skills)}, Email: {email}, Phone: {phone}")
         
         return {
             'name': name,
+            'position': position,
             'skills': skills,
             'experience': experience,
             'email': email,
@@ -841,6 +870,292 @@ def login_required(f):
     return decorated_function
 
 
+# ========== EMAIL HELPERS FOR TRANSACTIONAL MAILS ==========
+def _send_plain_email(recipient_email: str, subject: str, body: str) -> bool:
+    """Send a simple plain-text email using existing SMTP setup."""
+    try:
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = "mail@justmailit.in"
+        smtp_user = "manudrive06@gmail.com"
+        sender_password = "ozds nrqo gduy mnwd"
+
+        msg = MIMEMultipart()
+        msg["From"] = f"JustMailIt <{sender_email}>"
+        msg["To"] = recipient_email
+        msg["Subject"] = subject
+        msg["Reply-To"] = sender_email
+        msg.attach(MIMEText(body, "plain", "utf-8"))
+
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_user, sender_password)
+        server.sendmail(sender_email, recipient_email, msg.as_string())
+        server.quit()
+        print(f"[OK] Email sent to {recipient_email}: {subject}")
+        return True
+    except Exception as e:
+        print(f"[ERROR] Failed to send email to {recipient_email}: {e}")
+        return False
+
+
+# ========== EMAIL VERIFICATION ROUTES ==========
+@app.route('/api/send-verification', methods=['POST'])
+def api_send_verification():
+    """Generate a verification token and email the user a verify link."""
+    try:
+        # Handle both JSON and form data
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+        
+        if not data:
+            print("[ERROR] No data received in /api/send-verification")
+            return jsonify({"error": "No data provided"}), 400
+            
+        user_email = data.get('email', '').strip()
+        print(f"[INFO] Verification email request for: {user_email}")
+        
+        if not user_email or '@' not in user_email:
+            return jsonify({"error": "Invalid email"}), 400
+
+        # Create token valid for 24h
+        token = str(uuid.uuid4())
+        from datetime import timedelta
+        expires_at = datetime.now() + timedelta(hours=24)
+        db.delete_old_verification_tokens(user_email)
+        db.create_verification_token(user_email, token, expires_at)
+
+        # Build verify link
+        verify_link = url_for('verify_email', token=token, _external=True)
+
+        subject = "✉️ Verify your JustMailIt account"
+        body = (
+            f"Hi,\n\n"
+            f"Thanks for signing up for JustMailIt. Please verify your email address by clicking the link below:\n\n"
+            f"{verify_link}\n\n"
+            f"This link will expire in 24 hours.\n\n"
+            f"If you didn't create this account, please ignore this email.\n\n"
+            f"Best regards,\nJustMailIt Team"
+        )
+
+        ok = _send_plain_email(user_email, subject, body)
+        if not ok:
+            print(f"[ERROR] Failed to send verification email to {user_email}")
+            return jsonify({"error": "Failed to send verification email"}), 500
+
+        print(f"[OK] Verification email sent successfully to {user_email}")
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        print(f"[ERROR] /api/send-verification exception: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "Server error", "details": str(e)}), 500
+
+
+@app.route('/verify', methods=['GET'])
+def verify_email():
+    """Handle email verification link clicks."""
+    try:
+        token = request.args.get('token', '').strip()
+        if not token:
+            return render_template('message.html', icon='❌', title='Invalid Link', message='Verification token missing.', action_url='/', action_text='Go Home'), 400
+
+        rec = db.get_verification_by_token(token)
+        if not rec:
+            return render_template('message.html', icon='❌', title='Invalid Link', message='This verification link is invalid or already used.', action_url='/', action_text='Go Home'), 400
+
+        user_email = rec['user_email']
+        # Expiry check
+        try:
+            exp_str = rec['expires_at']
+            exp_dt = datetime.fromisoformat(exp_str) if isinstance(exp_str, str) else exp_str
+        except Exception:
+            # Fallback: treat as expired if parse fails
+            exp_dt = datetime.now() - timedelta(seconds=1)
+
+        if exp_dt < datetime.now():
+            return render_template('message.html', icon='⏰', title='Link Expired', message='Your verification link has expired. Please request a new one from the sign-in page.', action_url='/', action_text='Go Home'), 400
+
+        # Mark verified in our DB
+        db.mark_email_verified(user_email)
+
+        # Update Firebase user flag if initialized
+        try:
+            if firebase_initialized:
+                u = auth.get_user_by_email(user_email)
+                auth.update_user(u.uid, email_verified=True)
+                # Get display name for welcome email
+                display_name = u.display_name or user_email.split('@')[0]
+        except Exception as fe:
+            print(f"[WARN] Firebase emailVerified update failed for {user_email}: {fe}")
+            display_name = user_email.split('@')[0]
+        
+        # Send welcome email to newly verified user
+        try:
+            welcome_subject = "🎉 Welcome to JustMailIt - Your AI Job Search Companion!"
+            welcome_body = f"""Hi {display_name}!
+
+Welcome to JustMailIt! 🚀
+
+Thank you for verifying your email. Your account is now fully activated!
+
+Here's what you can do right now:
+✅ Upload your resume and create your profile
+✅ Generate professional email templates with AI
+✅ Start automated job searches on LinkedIn
+✅ Send unlimited personalized emails to recruiters
+
+Getting Started:
+1. Sign in at: {url_for('landing', _external=True)}
+2. Complete your profile at: {url_for('profile', _external=True)}
+3. Use our AI Email Generator to create perfect outreach emails
+4. Click "Start Email Automation" and let us do the work!
+
+💡 Pro Tip: Make sure your email and phone number are in your email body so recruiters can easily reach you.
+
+Need help? Just reply to this email and we'll assist you.
+
+Best of luck with your job search!
+
+The JustMailIt Team
+🌐 {request.host_url}
+"""
+            _send_plain_email(user_email, welcome_subject, welcome_body)
+            print(f"[OK] Welcome email sent to verified user: {user_email}")
+        except Exception as email_error:
+            print(f"[WARN] Failed to send welcome email to {user_email}: {email_error}")
+            # Don't fail verification if welcome email fails
+
+        return render_template('message.html', icon='✅', title='Email Verified', message='Your email has been successfully verified. You can now sign in to JustMailIt.', action_url='/', action_text='Sign In')
+    except Exception as e:
+        print(f"[ERROR] /verify: {e}")
+        return render_template('message.html', icon='❌', title='Error', message='An unexpected error occurred.', action_url='/', action_text='Go Home'), 500
+
+
+# ========== PASSWORD RESET ROUTES ==========
+@app.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    """Generate reset token and email reset link to user."""
+    try:
+        # Handle both JSON and form data
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+        
+        if not data:
+            print("[ERROR] No data received in /forgot-password")
+            return jsonify({"message": "No data provided"}), 400
+            
+        user_email = data.get('email', '').strip()
+        print(f"[INFO] Password reset request for: {user_email}")
+        
+        if not user_email or '@' not in user_email:
+            return jsonify({"message": "Invalid email"}), 400
+
+        # Create token valid for 1h
+        token = str(uuid.uuid4())
+        from datetime import timedelta
+        expires_at = datetime.now() + timedelta(hours=1)
+        db.create_reset_token(user_email, token, expires_at)
+
+        reset_link = url_for('reset_password_form', token=token, _external=True)
+        subject = "🔐 Reset your JustMailIt password"
+        body = (
+            f"Hi,\n\n"
+            f"We received a request to reset your JustMailIt password. Click the link below to set a new password:\n\n"
+            f"{reset_link}\n\n"
+            f"This link will expire in 1 hour. If you did not request a password reset, you can ignore this email.\n\n"
+            f"Best regards,\nJustMailIt Team"
+        )
+
+        ok = _send_plain_email(user_email, subject, body)
+        if not ok:
+            print(f"[ERROR] Failed to send reset email to {user_email}")
+            return jsonify({"message": "Failed to send reset email"}), 500
+
+        print(f"[OK] Password reset email sent successfully to {user_email}")
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        print(f"[ERROR] /forgot-password exception: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"message": "Server error", "details": str(e)}), 500
+
+
+@app.route('/reset-password', methods=['GET'])
+def reset_password_form():
+    """Render the reset form if token is valid and not expired."""
+    try:
+        token = request.args.get('token', '').strip()
+        if not token:
+            return render_template('message.html', icon='❌', title='Invalid Link', message='Password reset token missing.', action_url='/', action_text='Go Home'), 400
+
+        rec = db.get_reset_by_token(token)
+        if not rec:
+            return render_template('message.html', icon='❌', title='Invalid Link', message='This password reset link is invalid or already used.', action_url='/', action_text='Go Home'), 400
+
+        # Expiry check
+        try:
+            exp_str = rec['expires_at']
+            exp_dt = datetime.fromisoformat(exp_str) if isinstance(exp_str, str) else exp_str
+        except Exception:
+            exp_dt = datetime.now() - timedelta(seconds=1)
+
+        if exp_dt < datetime.now():
+            return render_template('message.html', icon='⏰', title='Link Expired', message='Your password reset link has expired. Please request a new one from the login page.', action_url='/', action_text='Go Home'), 400
+
+        return render_template('reset_password.html', token=token)
+    except Exception as e:
+        print(f"[ERROR] GET /reset-password: {e}")
+        return render_template('message.html', icon='❌', title='Error', message='An unexpected error occurred.', action_url='/', action_text='Go Home'), 500
+
+
+@app.route('/reset-password', methods=['POST'])
+def reset_password_submit():
+    """Accept JSON {token,password} and update Firebase password if token valid."""
+    try:
+        data = request.get_json(force=True)
+        token = data.get('token', '').strip()
+        new_password = data.get('password', '').strip()
+        if not token or not new_password or len(new_password) < 6:
+            return jsonify({"message": "Invalid token or password too short"}), 400
+
+        rec = db.get_reset_by_token(token)
+        if not rec:
+            return jsonify({"message": "Invalid or used token"}), 400
+
+        # Expiry check
+        try:
+            exp_str = rec['expires_at']
+            exp_dt = datetime.fromisoformat(exp_str) if isinstance(exp_str, str) else exp_str
+        except Exception:
+            exp_dt = datetime.now() - timedelta(seconds=1)
+
+        if exp_dt < datetime.now():
+            return jsonify({"message": "Token expired"}), 400
+
+        user_email = rec['user_email']
+        if firebase_initialized:
+            try:
+                u = auth.get_user_by_email(user_email)
+                auth.update_user(u.uid, password=new_password)
+            except Exception as fe:
+                print(f"[ERROR] Firebase password update failed for {user_email}: {fe}")
+                return jsonify({"message": "Failed to update password"}), 500
+        else:
+            # If Firebase not initialized, indicate unsupported
+            return jsonify({"message": "Password update unavailable"}), 500
+
+        db.mark_reset_token_used(token)
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"[ERROR] POST /reset-password: {e}")
+        return jsonify({"message": "Server error"}), 500
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     # Handle GET request - show landing page with login modal
@@ -860,6 +1175,16 @@ def login():
         # Log user in immediately
         print(f"[OK] {user_email} logged in successfully!")
         
+        # Check if this is a new user (doesn't exist in our database yet)
+        is_new_user = False
+        try:
+            existing_profile = db.get_profile(user_email)
+            if not existing_profile:
+                is_new_user = True
+                print(f"[INFO] New user detected: {user_email}")
+        except Exception:
+            pass
+        
         # Create or update user profile in SQLite
         try:
             db.create_or_update_profile(
@@ -875,6 +1200,42 @@ def login():
                 print(f"[WARN] Firestore quota exceeded - login successful but profile not synced")
             else:
                 print(f"[WARN] Profile sync error (non-critical): {profile_error}")
+        
+        # Send welcome email to new users
+        if is_new_user:
+            try:
+                welcome_subject = "🎉 Welcome to JustMailIt - Your AI Job Search Companion!"
+                welcome_body = f"""Hi {display_name or 'there'}!
+
+Welcome to JustMailIt! 🚀
+
+We're excited to have you on board. JustMailIt is your personal AI-powered job search assistant that automates finding opportunities and reaching out to recruiters.
+
+Here's what you can do right now:
+✅ Upload your resume and create your profile
+✅ Generate professional email templates with AI
+✅ Start automated job searches on LinkedIn
+✅ Send unlimited personalized emails to recruiters
+
+Getting Started:
+1. Complete your profile at: {url_for('profile', _external=True)}
+2. Use our AI Email Generator to create perfect outreach emails
+3. Click "Start Email Automation" and let us do the work!
+
+💡 Pro Tip: Make sure your email and phone number are in your email body so recruiters can easily reach you.
+
+Need help? Just reply to this email and we'll assist you.
+
+Best of luck with your job search!
+
+The JustMailIt Team
+🌐 {request.host_url}
+"""
+                _send_plain_email(user_email, welcome_subject, welcome_body)
+                print(f"[OK] Welcome email sent to new user: {user_email}")
+            except Exception as email_error:
+                print(f"[WARN] Failed to send welcome email to {user_email}: {email_error}")
+                # Don't fail login if welcome email fails
         
         return jsonify({"status": "success"}), 200
     except Exception as e:
@@ -1191,6 +1552,50 @@ def cookies():
 def gdpr():
     """GDPR Compliance page"""
     return render_template("gdpr.html")
+
+@app.route("/sitemap.xml")
+def sitemap():
+    """Generate dynamic XML sitemap for SEO"""
+    from datetime import datetime
+    from flask import make_response
+    
+    # Get current date in W3C format
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    # Define all public pages with their metadata
+    pages = [
+        {'loc': '/', 'priority': '1.0', 'changefreq': 'daily'},
+        {'loc': '/pricing', 'priority': '0.9', 'changefreq': 'weekly'},
+        {'loc': '/login', 'priority': '0.8', 'changefreq': 'monthly'},
+        {'loc': '/signup', 'priority': '0.8', 'changefreq': 'monthly'},
+        {'loc': '/about', 'priority': '0.7', 'changefreq': 'monthly'},
+        {'loc': '/blog', 'priority': '0.7', 'changefreq': 'weekly'},
+        {'loc': '/contact', 'priority': '0.6', 'changefreq': 'monthly'},
+        {'loc': '/documentation', 'priority': '0.6', 'changefreq': 'weekly'},
+        {'loc': '/help', 'priority': '0.6', 'changefreq': 'monthly'},
+        {'loc': '/privacy', 'priority': '0.5', 'changefreq': 'yearly'},
+        {'loc': '/terms', 'priority': '0.5', 'changefreq': 'yearly'},
+        {'loc': '/careers', 'priority': '0.5', 'changefreq': 'monthly'},
+    ]
+    
+    # Build XML sitemap
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    
+    for page in pages:
+        xml += '  <url>\n'
+        xml += f'    <loc>https://justmailit.in{page["loc"]}</loc>\n'
+        xml += f'    <lastmod>{today}</lastmod>\n'
+        xml += f'    <changefreq>{page["changefreq"]}</changefreq>\n'
+        xml += f'    <priority>{page["priority"]}</priority>\n'
+        xml += '  </url>\n'
+    
+    xml += '</urlset>'
+    
+    # Return XML response with proper content type
+    response = make_response(xml)
+    response.headers['Content-Type'] = 'application/xml'
+    return response
 
 @app.route("/dashboard")
 @login_required
@@ -1740,6 +2145,10 @@ def generate_email_template():
             'subjects': templates['subjects'],
             'body': templates['body'],
             'name': templates['name'],
+            'email': resume_info.get('email', ''),
+            'phone': resume_info.get('phone', ''),
+            'skills': resume_info.get('skills', []),
+            'position': resume_info.get('position', '') or role,  # Use extracted position or fallback to role
             'has_contact': templates['has_contact']
         })
     
@@ -3641,6 +4050,35 @@ def admin_send_promotional_email():
         
     except Exception as e:
         print(f"[ERROR] Promotional email error: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/delete_job/<int:job_id>', methods=['DELETE'])
+@admin_required
+def admin_delete_job(job_id):
+    """Admin endpoint to delete inappropriate job posts"""
+    try:
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Check if job exists
+        cursor.execute("SELECT id, description FROM job_posts WHERE id = ?", (job_id,))
+        job = cursor.fetchone()
+        
+        if not job:
+            return jsonify({'success': False, 'message': 'Job post not found'}), 404
+        
+        # Delete the job post
+        cursor.execute("DELETE FROM job_posts WHERE id = ?", (job_id,))
+        conn.commit()
+        
+        print(f"[ADMIN] Deleted job post ID {job_id}")
+        return jsonify({
+            'success': True,
+            'message': 'Job post deleted successfully'
+        })
+        
+    except Exception as e:
+        print(f"[ERROR] Delete job error: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/admin/scrape_jobs')

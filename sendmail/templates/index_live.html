@@ -715,7 +715,7 @@
                 <strong style="color: #667eea;">Personal Email = Better Results</strong>
               </p>
               <p class="mb-0 small text-muted">
-                Send from your Gmail directly to recruiter's inbox. <strong>Higher open rates</strong> than Naukri or job portals! Your email won't get lost in a crowded applicant pool. Direct communication shows initiative and gets better response rates!
+                JustMailIt sends tailored emails directly to recruiter inboxes. <strong>Higher open rates</strong> than generic job portals! Direct communication shows initiative and gets better response rates.
               </p>
             </div>
           </div>
@@ -748,6 +748,27 @@
 
   <!-- Main Form Section -->
   <div class="col-lg-11 mx-auto">
+    
+    <!-- Auto-start Notification Banner -->
+    <div id="autostartBanner" class="alert alert-success mb-4 d-none" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15)); border: 2px solid #10b981; border-radius: 16px;">
+      <div class="d-flex align-items-center">
+        <div class="me-3" style="font-size: 2.5rem;">🚀</div>
+        <div class="flex-grow-1">
+          <h5 class="mb-2" style="color: #065f46; font-weight: 800;">
+            <i class="bi bi-check-circle-fill me-2"></i>Profile Saved Successfully!
+          </h5>
+          <p class="mb-0 text-muted">
+            Your details have been saved. Starting automation in <span id="autostartCountdown">3</span> seconds...
+          </p>
+        </div>
+        <div>
+          <button type="button" class="btn btn-sm btn-outline-success" onclick="skipAutostart()">
+            <i class="bi bi-hand-stop me-1"></i>Wait, Let Me Review
+          </button>
+        </div>
+      </div>
+    </div>
+    
     <div class="campaign-card">
       <form id="automationForm" enctype="multipart/form-data">
         <!-- Config Alert -->
@@ -756,7 +777,7 @@
           <i class="bi bi-info-circle-fill fs-4 me-3 text-primary"></i>
           <div>
             <h6 class="mb-1 fw-bold">Email Configuration</h6>
-            <p class="mb-0 text-muted">Emails will be sent from manudrive06@gmail.com with your email in CC</p>
+            <p class="mb-0 text-muted">Emails are delivered by JustMailIt; you'll receive a copy for your records.</p>
           </div>
         </div>
 
@@ -1133,15 +1154,65 @@ async function resetStuckAutomation() {
 
 
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const automationForm = document.getElementById('automationForm');
   const runBtn = document.getElementById('runBtn');
   const progressBox = document.getElementById('progressBox');
   const progressBar = document.getElementById('progressBar');
   const emailListContent = document.getElementById('emailListContent');
   
-  // Load user profile data
-  loadUserProfile();
+  // Load user profile data before any autostart logic
+  await loadUserProfile();
+  
+  // Auto-start automation if coming from popup
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('autostart') === 'true' && urlParams.get('fromPopup') === 'true') {
+    // Ensure we use the saved resume uploaded via popup
+    const savedResumeSection = document.getElementById('savedResumeSection');
+    const haveSavedResume = savedResumeSection && !savedResumeSection.classList.contains('d-none');
+    const useSavedResumeCheckbox = document.getElementById('useSavedResume');
+    if (haveSavedResume && useSavedResumeCheckbox) {
+      useSavedResumeCheckbox.checked = true;
+      toggleSavedResume(true);
+    }
+    const savedResumeLabel = document.getElementById('savedResumeLabel') || document.querySelector('label[for="useSavedResume"]');
+    if (savedResumeLabel && haveSavedResume) {
+      savedResumeLabel.innerHTML = '<strong>Use saved resume from profile</strong> (recommended)';
+    }
+
+    // Show auto-start banner
+    const banner = document.getElementById('autostartBanner');
+    const countdownEl = document.getElementById('autostartCountdown');
+    if (banner) {
+      banner.classList.remove('d-none');
+      banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    // Countdown timer
+    let countdown = 3;
+    const countdownInterval = setInterval(() => {
+      countdown--;
+      if (countdownEl) countdownEl.textContent = countdown;
+      if (countdown <= 0) {
+        clearInterval(countdownInterval);
+      }
+    }, 1000);
+    
+    // Auto-submit after countdown
+    window.autostartTimeout = setTimeout(() => {
+      console.log('Auto-starting automation from popup...');
+      if (automationForm && banner) {
+        banner.classList.add('d-none');
+        // Scroll to progress section
+        setTimeout(() => {
+          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }, 500);
+        // Trigger form submission
+        const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+        automationForm.dispatchEvent(submitEvent);
+      }
+    }, 3000);
+  }
   
   // Handle resume file input change
   const resumeFileInput = document.getElementById('resumeFile');
@@ -1724,6 +1795,70 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(modal);
   }
 
+  // Show completion summary modal at the end
+  function showCompletionSummary() {
+    const found = window.stats?.emailsFound || 0;
+    const sent = window.stats?.emailsSent || 0;
+    const failed = window.stats?.emailsFailed || 0;
+    const skipped = window.stats?.emailsSkipped || Math.max(0, found - sent - failed);
+
+    const modal = document.createElement('div');
+    modal.id = 'completionSummaryModal';
+    modal.className = 'modal fade show';
+    modal.style.cssText = 'display:block; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);';
+    modal.innerHTML = `
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+          <div class="modal-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+            <h5 class="modal-title"><i class="bi bi-check-circle-fill me-2"></i>Automation Finished</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('completionSummaryModal').remove()"></button>
+          </div>
+          <div class="modal-body" style="background: #ffffff;">
+            <div class="row g-3 mb-2">
+              <div class="col-6">
+                <div class="p-3 text-center" style="background:#f0f9ff; border:1px solid #dbeafe; border-radius:12px;">
+                  <div class="small text-muted">Found</div>
+                  <div class="fs-3 fw-bold text-primary">${found}</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 text-center" style="background:#ecfdf5; border:1px solid #d1fae5; border-radius:12px;">
+                  <div class="small text-muted">Sent</div>
+                  <div class="fs-3 fw-bold text-success">${sent}</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 text-center" style="background:#fef3c7; border:1px solid #fde68a; border-radius:12px;">
+                  <div class="small text-muted">Missed</div>
+                  <div class="fs-3 fw-bold" style="color:#d97706;">${skipped}</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 text-center" style="background:#fee2e2; border:1px solid #fecaca; border-radius:12px;">
+                  <div class="small text-muted">Failed</div>
+                  <div class="fs-3 fw-bold text-danger">${failed}</div>
+                </div>
+              </div>
+            </div>
+            ${skipped > 0 ? `
+              <div class="alert alert-warning" style="border-left:4px solid #f59e0b;">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Some emails were missed, often due to free-plan limits. Consider upgrading for unlimited sends.
+              </div>
+            ` : ''}
+          </div>
+          <div class="modal-footer" style="background:#fafafa;">
+            <button class="btn btn-outline-secondary" onclick="document.getElementById('completionSummaryModal').remove()">Close</button>
+            ${skipped > 0 ? `<a class="btn btn-primary" href="/pricing"><i class="bi bi-rocket-takeoff me-2"></i>Upgrade</a>` : ''}
+            <button class="btn btn-success" onclick="document.getElementById('completionSummaryModal').remove(); document.getElementById('automationForm').reset();">
+              <i class="bi bi-arrow-repeat me-2"></i>New Run
+            </button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+
   // Analyze email quality and provide rating
   function analyzeEmailQuality(subject, body) {
     const analysis = {
@@ -2169,7 +2304,14 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (msg.startsWith('EMAIL_PENDING:')) {
       // Track pending email address
       const email = msg.replace('EMAIL_PENDING:', '').trim();
-      if (email) window.stats.emailList.add(email);
+      if (email) {
+        const beforeSize = window.stats.emailList.size;
+        window.stats.emailList.add(email);
+        // If this is a new email, increment emailsFound
+        if (window.stats.emailList.size > beforeSize) {
+          window.stats.emailsFound++;
+        }
+      }
     }
     else if (msg.startsWith('EMAIL_SENT:')) {
       // Mark email as sent
@@ -2177,27 +2319,34 @@ document.addEventListener('DOMContentLoaded', () => {
       if (email) {
         window.stats.emailList.delete(email);
         window.stats.emailList.add(`✅ ${email}`);
+        // Ensure sent counter increments for explicit EMAIL_SENT events
+        window.stats.emailsSent++;
       }
     }
-    else if (msg.includes('📧 Sending email to')) {
+    else if (msg.includes('📧 Sending email to') || msg.includes('[EMAIL] Sending email to')) {
       progressStatus.textContent = 'Sending...';
       progressStatus.className = 'badge bg-info';
     }
-    else if (msg.includes('✅ Email sent to') && msg.includes('successfully!')) {
+    else if ((msg.includes('✅ Email sent to') && msg.includes('successfully!')) || (msg.includes('[OK] Email sent to') && msg.includes('successfully'))) {
       progressStatus.textContent = 'Processing...';
       progressStatus.className = 'badge bg-primary';
       window.stats.emailsSent++;
     }
-    else if (msg.includes('❌ Failed to send email to')) {
+    else if (msg.includes('❌ Failed to send email to') || msg.includes('[ERROR] Failed to send email to')) {
       window.stats.emailsFailed++;
-      const email = msg.split('❌ Failed to send email to ')[1].split(':')[0].trim();
+      let email = '';
+      if (msg.includes('❌ Failed to send email to')) {
+        email = msg.split('❌ Failed to send email to ')[1].split(':')[0].trim();
+      } else if (msg.includes('[ERROR] Failed to send email to')) {
+        email = msg.split('[ERROR] Failed to send email to ')[1].split(':')[0].trim();
+      }
       if (email) window.stats.emailList.add(`❌ ${email}`);
       if (window.stats.emailsFailed > 0) {
         progressStatus.textContent = 'Some Failures';
         progressStatus.className = 'badge bg-warning';
       }
     }
-    else if (msg.includes('🎉 Automation completed') || msg.includes('✅ Automation completed')) {
+    else if (msg.includes('🎉 Automation completed') || msg.includes('✅ Automation completed') || msg.includes('[OK] Automation completed')) {
       progressStatus.textContent = 'Completed';
       progressStatus.className = 'badge bg-success';
       
@@ -2238,6 +2387,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Save final state
       saveProgressState();
+
+      // Show completion summary modal
+      showCompletionSummary();
 
       // Create completion toast
       const toastContainer = document.createElement('div');
@@ -2732,6 +2884,23 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.body.appendChild(alert);
     setTimeout(() => alert.remove(), 5000);
+  }
+
+  // Skip auto-start function
+  function skipAutostart() {
+    if (window.autostartTimeout) {
+      clearTimeout(window.autostartTimeout);
+      console.log('Auto-start cancelled by user');
+    }
+    const banner = document.getElementById('autostartBanner');
+    if (banner) {
+      banner.classList.add('d-none');
+    }
+    // Scroll to form
+    const form = document.getElementById('automationForm');
+    if (form) {
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 </script>
 {% endblock %}

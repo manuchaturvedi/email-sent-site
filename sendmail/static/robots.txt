@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+Allow: /pricing
+Allow: /login
+Allow: /signup
+Allow: /static/
+
+Disallow: /send
+Disallow: /admin/
+Disallow: /logout
+Disallow: /delete_account
+Disallow: /get_profile
+Disallow: /save_profile
+Disallow: /run_automation
+Disallow: /stop_automation
+Disallow: /check_automation_status
+Disallow: /automation_events
+Disallow: /send_job_email
+Disallow: /jobs
+
+Sitemap: https://justmailit.in/sitemap.xml

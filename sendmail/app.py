@@ -4401,16 +4401,28 @@ def admin_job_posts():
         print("[DEBUG] admin_job_posts: Executing query...", flush=True)
         cursor.execute("""
             SELECT 
-                jp.id, jp.title, jp.company, jp.location, jp.recruiter_email as email,
-                jp.full_text as description, jp.created_at, jp.job_url as source_url,
-                jp.user_email
-            FROM job_posts jp
-            ORDER BY jp.created_at DESC
+                id, title, company, location, recruiter_email,
+                full_text as description, created_at, job_url as source_url,
+                user_email
+            FROM job_posts
+            ORDER BY created_at DESC
             LIMIT 500
         """)
         
-        print("[DEBUG] admin_job_posts: Fetching results...", flush=True)
-        jobs = [dict(row) for row in cursor.fetchall()]
+        # Map recruiter_email to email for template compatibility
+        print("[DEBUG] admin_job_posts: Fetching and mapping results...", flush=True)
+        jobs = []
+        for row in cursor.fetchall():
+            job = dict(row)
+            job['email'] = job.get('recruiter_email', '')  # Map for template
+            jobs.append(job)
+        # Map recruiter_email to email for template compatibility
+        print("[DEBUG] admin_job_posts: Fetching and mapping results...", flush=True)
+        jobs = []
+        for row in cursor.fetchall():
+            job = dict(row)
+            job['email'] = job.get('recruiter_email', '')  # Map for template
+            jobs.append(job)
         print(f"[DEBUG] admin_job_posts: Retrieved {len(jobs)} jobs", flush=True)
         conn.close()
         

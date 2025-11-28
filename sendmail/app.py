@@ -4566,18 +4566,32 @@ def admin_scrape_jobs():
                 # Scroll and collect posts
                 log(f"[SCROLL] Starting to scroll ({scrolls} times)...")
                 last_height = driver.execute_script("return document.body.scrollHeight")
+                no_change_count = 0
                 
                 for i in range(scrolls):
+                    # Scroll up a bit first to trigger lazy loading
+                    current_scroll = driver.execute_script("return window.pageYOffset")
+                    driver.execute_script(f"window.scrollTo(0, {current_scroll - 100});")
+                    time.sleep(0.5)
+                    
+                    # Now scroll to bottom
                     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                    time.sleep(3)
+                    time.sleep(4)  # Increased wait time for content to load
                     
                     new_height = driver.execute_script("return document.body.scrollHeight")
-                    log(f"[SCROLL] Scrolling... ({i+1}/{scrolls})")
+                    log(f"[SCROLL] Scrolling... ({i+1}/{scrolls}) - Height: {new_height}")
                     
                     if new_height == last_height:
-                        log("[OK] Reached end of feed")
-                        break
-                    last_height = new_height
+                        no_change_count += 1
+                        log(f"[SCROLL] No new content loaded (attempt {no_change_count}/3)")
+                        if no_change_count >= 3:
+                            log("[OK] Reached end of feed after 3 attempts")
+                            break
+                        # Try waiting longer and scroll again
+                        time.sleep(2)
+                    else:
+                        no_change_count = 0  # Reset counter when new content loads
+                        last_height = new_height
                 
                 log("[WAIT] Waiting for posts to load...")
                 wait = WebDriverWait(driver, 20)

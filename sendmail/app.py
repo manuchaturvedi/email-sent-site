@@ -2136,10 +2136,18 @@ def send_emails_from_existing_jobs(subject, email_content, attachment_path, cc_e
     
     global automation_sessions
     
-    log("=" * 60)
-    log("[QUEUE] Another automation is running")
-    log("[QUEUE] Sending emails from existing job posts in database")
-    log("=" * 60)
+    log("=" * 80)
+    log("🔄 QUICK SEND MODE ACTIVATED")
+    log("=" * 80)
+    log(f"[INFO] User: {user_email}")
+    log(f"[INFO] Reason: Another user is currently scraping LinkedIn")
+    log(f"[INFO] Solution: Sending emails from existing job database")
+    log(f"[INFO] Search Role: {search_role}")
+    log(f"[INFO] This is FASTER and prevents Chrome/browser conflicts!")
+    log("=" * 80)
+    
+    send_event("🔄 <strong>Quick Send Mode</strong> - Another user is scraping, using existing jobs")
+    send_event(f"📋 Searching database for <strong>{search_role}</strong> positions...")
     
     emails_sent_count = 0
     
@@ -3311,6 +3319,12 @@ def send_email():
         if email != user_email
     )
     
+    if other_automations_running:
+        print(f"[🔄 QUEUE] Another user's automation is active - {user_email} will use QUICK SEND mode")
+        print(f"[INFO] Active sessions: {list(automation_sessions.keys())}")
+    else:
+        print(f"[🚀 NEW] {user_email} will SCRAPE LinkedIn and send emails (no conflicts)")
+    
     # Initialize user session
     automation_sessions[user_email] = {
         'running': True,
@@ -3445,13 +3459,24 @@ def send_email():
     
     # If another automation is running, use quick send from existing jobs
     if other_automations_running:
-        print("[QUEUE] Another user's automation is running - using quick send mode")
+        print("=" * 80)
+        print("[🔄 QUICK SEND MODE] Another user is scraping LinkedIn")
+        print(f"[INFO] User: {user_email}")
+        print(f"[INFO] Mode: Send from existing database (no scraping)")
+        print(f"[INFO] This prevents Chrome/LinkedIn conflicts between users")
+        print("=" * 80)
         thread = threading.Thread(
             target=send_emails_from_existing_jobs,
             args=(subject, email_content, resume_path, user_email, run_id, user_email, search_role, 10),
             daemon=True
         )
     else:
+        print("=" * 80)
+        print("[🚀 FULL AUTOMATION MODE] No conflicts - full scraping enabled")
+        print(f"[INFO] User: {user_email}")
+        print(f"[INFO] Mode: Scrape LinkedIn + Send emails")
+        print(f"[INFO] Search: {search_role} ({search_time_period})")
+        print("=" * 80)
         # Fixed argument order to match function signature:
         # run_automation(subject, email_content, attachment_path, cc_email, run_id, user_email, search_role, search_time)
         thread = threading.Thread(

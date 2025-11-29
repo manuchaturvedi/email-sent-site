@@ -2790,44 +2790,82 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Show template helper modal
   function showTemplateHelper() {
     const modalHTML = `
-      <div class="modal fade show" id="templateHelperModal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.6);">
+      <div class="modal fade show" id="templateHelperModal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.75);">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-          <div class="modal-content" style="border-radius: 1rem; overflow: hidden;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-              <h5 class="modal-title">
-                <i class="bi bi-magic me-2"></i>AI Email Template Generator
-              </h5>
-              <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('templateHelperModal').remove()"></button>
-            </div>
-            <div class="modal-body" style="padding: 2rem;">
-              <div class="alert alert-info" style="background: rgba(102,126,234,0.1); border-left: 4px solid #667eea;">
-                <h6 class="mb-2"><i class="bi bi-lightbulb me-2"></i><strong>How it works:</strong></h6>
-                <ol class="mb-0 ps-3">
-                  <li>Upload your resume (or we'll use your saved one)</li>
-                  <li>AI analyzes your skills, experience, name, email & phone</li>
-                  <li>Generates 3 professional subject lines to choose from</li>
-                  <li>Creates a complete email body with your contact info</li>
-                  <li>You review, customize, and use it!</li>
-                </ol>
-              </div>
-
-              <div class="alert alert-warning" style="background: rgba(255,193,7,0.1); border-left: 4px solid #ffc107;">
-                <strong><i class="bi bi-exclamation-triangle me-2"></i>Important:</strong>
-                Make sure your resume includes your email and phone number. Recruiters need to contact you!
-              </div>
-
-              <div id="templateGeneratorContent">
-                <div class="text-center py-3">
-                  <div class="mb-3">
-                    <label class="form-label fw-bold">Upload Your Resume (PDF)</label>
-                    <input type="file" class="form-control" id="templateResumeFile" accept=".pdf" onchange="uploadedResumeFile = this.files[0]; document.getElementById('generateBtn').disabled = !this.files.length; console.log('File selected:', uploadedResumeFile?.name);" />
-                    <div class="form-text">Select a PDF resume to generate personalized email</div>
+          <div class="modal-content" style="border: none; border-radius: 32px; overflow: hidden; box-shadow: 0 25px 80px rgba(139, 159, 255, 0.3); background: linear-gradient(180deg, #c8d5f7 0%, #e8ecff 35%, #ffffff 100%);">
+            
+            <!-- Header -->
+            <div class="modal-header" style="background: transparent; border: none; padding: 1.5rem 2rem 0.5rem;">
+              <div style="width: 100%;">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2">
+                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                      <span style="color: white; font-weight: 800; font-size: 0.9rem;">AI</span>
+                    </div>
+                    <span style="font-weight: 700; color: #2d3748; font-size: 0.95rem;">AI Powered</span>
                   </div>
-                  <button id="generateBtn" class="btn btn-primary btn-lg" onclick="generateTemplate()" disabled>
-                    <i class="bi bi-stars me-2"></i>Generate Professional Email
-                  </button>
-                  <div class="text-muted mt-2" style="font-size: 0.9rem;">
-                    <i class="bi bi-info-circle me-1"></i>Button will enable once you select a resume
+                </div>
+              </div>
+              <button type="button" class="btn-close" aria-label="Close" onclick="document.getElementById('templateHelperModal').remove()" style="position: absolute; right: 1.25rem; top: 1.25rem; opacity: 0.5;"></button>
+            </div>
+            
+            <div class="modal-body" style="padding: 1rem 2rem 3rem;">
+              <!-- Main Title -->
+              <div class="text-center mb-4">
+                <h2 style="font-weight: 800; color: #1a202c; font-size: 2rem; margin-bottom: 0.75rem; letter-spacing: -0.5px;">AI Email Template Generator</h2>
+                <p style="color: #718096; font-size: 0.95rem; line-height: 1.6; max-width: 500px; margin: 0 auto;">Upload your resume and let AI create professional email templates for you</p>
+              </div>
+
+              <!-- Central White Card -->
+              <div style="background: white; border-radius: 24px; padding: 2.5rem 2rem; box-shadow: 0 10px 40px rgba(139, 159, 255, 0.15); margin: 0 auto; max-width: 550px;">
+                
+                <!-- How it Works Section -->
+                <div style="background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; border: 2px solid #c7d2fe;">
+                  <h6 style="margin-bottom: 1rem; font-weight: 700; color: #4c51bf; font-size: 1rem;">
+                    <i class="bi bi-lightbulb me-2"></i>How it works
+                  </h6>
+                  <ol style="margin: 0; padding-left: 1.25rem; color: #2d3748; font-size: 0.9rem; line-height: 1.8;">
+                    <li>Upload your resume (or we'll use your saved one)</li>
+                    <li>AI analyzes your skills, experience, name, email & phone</li>
+                    <li>Generates 3 professional subject lines to choose from</li>
+                    <li>Creates a complete email body with your contact info</li>
+                    <li>You review, customize, and use it!</li>
+                  </ol>
+                </div>
+
+                <!-- Important Notice -->
+                <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 1.25rem; margin-bottom: 2rem; border: 2px solid #fbbf24;">
+                  <p style="margin: 0; color: #92400e; font-weight: 600; font-size: 0.9rem;">
+                    <i class="bi bi-exclamation-triangle me-2" style="color: #f59e0b;"></i>
+                    <strong>Important:</strong> Make sure your resume includes your email and phone number. Recruiters need to contact you!
+                  </p>
+                </div>
+
+                <div id="templateGeneratorContent">
+                  <div class="text-center">
+                    <!-- Upload Icon -->
+                    <div style="width: 90px; height: 90px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #e0e7ff 0%, #d6e4ff 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);">
+                      <i class="bi bi-file-earmark-pdf" style="font-size: 2.5rem; color: #667eea;"></i>
+                    </div>
+                    
+                    <div class="mb-3">
+                      <label for="templateResumeFile" class="btn w-100" style="padding: 1rem 2rem; border-radius: 14px; font-weight: 700; background: white; color: #667eea; border: 2px solid #667eea; font-size: 1.05rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);"
+                             onmouseover="this.style.background='linear-gradient(135deg, #667eea 0%, #8b9fff 100%)'; this.style.color='white'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.35)';"
+                             onmouseout="this.style.background='white'; this.style.color='#667eea'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.2)';">
+                        <i class="bi bi-upload me-2"></i>Select Resume (PDF)
+                      </label>
+                      <input type="file" class="form-control" id="templateResumeFile" accept=".pdf" style="display: none;" onchange="uploadedResumeFile = this.files[0]; document.getElementById('generateBtn').disabled = !this.files.length; document.getElementById('fileName').textContent = this.files[0]?.name || ''; document.getElementById('fileName').style.display = this.files[0] ? 'block' : 'none'; console.log('File selected:', uploadedResumeFile?.name);" />
+                      <small id="fileName" style="display: none; color: #059669; font-weight: 600; margin-top: 0.5rem; display: block;"></small>
+                    </div>
+                    
+                    <button id="generateBtn" class="btn w-100" onclick="generateTemplate()" disabled style="padding: 1rem 2rem; border-radius: 14px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); color: white; border: none; font-size: 1.05rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35); opacity: 0.5;"
+                            onmouseover="if (!this.disabled) { this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 28px rgba(102, 126, 234, 0.45)'; }"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.35)';">
+                      <i class="bi bi-stars me-2"></i>Generate Professional Email
+                    </button>
+                    <p style="color: #a0aec0; font-size: 0.85rem; text-align: center; margin: 1rem 0 0 0; font-weight: 500;">
+                      <i class="bi bi-info-circle me-1"></i>Button will enable once you select a resume
+                    </p>
                   </div>
                 </div>
               </div>
@@ -2835,6 +2873,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       </div>
+      <style>
+      #generateBtn:not(:disabled) {
+        opacity: 1 !important;
+      }
+      </style>
     `;
     document.body.insertAdjacentHTML('beforeend', modalHTML);
   }

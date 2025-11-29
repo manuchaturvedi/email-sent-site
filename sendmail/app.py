@@ -4315,6 +4315,72 @@ def admin_downgrade_user():
         print(f"[ERROR] Admin downgrade error: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/admin/sync-firebase-users', methods=['POST'])
+@admin_required
+def admin_sync_firebase_users():
+    """Admin endpoint to sync all Firebase users to database"""
+    try:
+        print("[ADMIN] Starting Firebase user sync...", flush=True)
+        
+        # Get all Firebase users
+        page = auth.list_users()
+        users_synced = 0
+        users_skipped = 0
+        users_total = 0
+        errors = []
+        
+        while page:
+            for user in page.users:
+                users_total += 1
+                email = user.email
+                display_name = user.display_name or ""
+                photo_url = user.photo_url or ""
+                
+                # Check if user already exists in DB
+                existing = db.get_profile(email)
+                if existing:
+                    users_skipped += 1
+                    print(f"[ADMIN SYNC] User exists: {email}", flush=True)
+                else:
+                    # Create new profile
+                    try:
+                        db.create_or_update_profile(
+                            email=email,
+                            display_name=display_name,
+                            photo_url=photo_url
+                        )
+                        users_synced += 1
+                        print(f"[ADMIN SYNC] ✅ Synced: {email} ({display_name})", flush=True)
+                        
+                        # Verify
+                        verify = db.get_profile(email)
+                        if not verify:
+                            errors.append(f"Verification failed for: {email}")
+                            print(f"[ADMIN SYNC] ❌ Verification failed: {email}", flush=True)
+                    except Exception as e:
+                        errors.append(f"Error adding {email}: {str(e)}")
+                        print(f"[ADMIN SYNC] ❌ Error: {email} - {e}", flush=True)
+            
+            # Get next batch
+            page = page.get_next_page()
+        
+        result = {
+            'success': True,
+            'total_firebase_users': users_total,
+            'newly_synced': users_synced,
+            'already_existed': users_skipped,
+            'errors': errors
+        }
+        
+        print(f"[ADMIN SYNC] Complete: {users_synced} synced, {users_skipped} existed, {len(errors)} errors", flush=True)
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"[ERROR] Firebase sync error: {str(e)}", flush=True)
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/admin/api/user_count')
 @admin_required
 def admin_get_user_count():

@@ -2082,88 +2082,110 @@ document.addEventListener('DOMContentLoaded', async () => {
             ${rating.suggestions.map(s => `<li style="margin-bottom: 0.35rem;">${s}</li>`).join('')}
           </ul>
         </div>` : '';      const modalHTML = `
-        <div class="modal fade show" id="emailRatingModal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);">
-          <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: min(600px, 95vw); margin: 0.5rem auto;">
-            <div class="modal-content" style="border-radius: 20px; overflow: hidden; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-height: 95vh;">
-              <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.25rem; border: none; position: sticky; top: 0; z-index: 10;">
-                <div style="flex: 1;">
-                  <h5 class="modal-title mb-0" style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="bi bi-stars" style="font-size: 1.3rem;"></i>
-                    <span>Email Quality Score</span>
-                  </h5>
-                  <p style="margin: 0.25rem 0 0 0; opacity: 0.85; font-size: 0.8rem;">AI Analysis</p>
+        <div class="modal fade show" id="emailRatingModal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.75);">
+          <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: min(600px, 95vw);">
+            <div class="modal-content" style="border: none; border-radius: 32px; overflow: hidden; box-shadow: 0 25px 80px rgba(139, 159, 255, 0.3); background: linear-gradient(180deg, #c8d5f7 0%, #e8ecff 35%, #ffffff 100%); max-height: 95vh;">
+              
+              <!-- Header -->
+              <div class="modal-header" style="background: transparent; border: none; padding: 1.5rem 2rem 0.5rem;">
+                <div style="width: 100%;">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                      <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <span style="color: white; font-weight: 800; font-size: 0.9rem;">AI</span>
+                      </div>
+                      <span style="font-weight: 700; color: #2d3748; font-size: 0.95rem;">AI Analysis</span>
+                    </div>
+                  </div>
                 </div>
-                <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('emailRatingModal').remove()" style="opacity: 0.9;"></button>
+                <button type="button" class="btn-close" aria-label="Close" onclick="document.getElementById('emailRatingModal').remove()" style="position: absolute; right: 1.25rem; top: 1.25rem; opacity: 0.5;"></button>
               </div>
-              <div class="modal-body" style="padding: 1.25rem; background: #f8f9fa;">
-                <!-- Score Display -->
-                <div class="text-center mb-3" style="background: ${bgGradient}; border-radius: 16px; padding: 1.5rem 1rem; position: relative; overflow: hidden;">
-                  <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, ${gradientStart}, ${gradientEnd});"></div>
-                  
-                  <div style="font-size: 3rem; margin-bottom: 0.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
-                    ${ratingEmoji}
-                  </div>
-                  <h3 class="mb-2" style="color: ${ratingColor}; font-weight: 800; font-size: 1.5rem; letter-spacing: -0.3px;">
-                    ${ratingText}
-                  </h3>
-                  
-                  <!-- Circular Progress -->
-                  <div style="position: relative; width: 110px; height: 110px; margin: 1rem auto;">
-                    <svg width="110" height="110" style="transform: rotate(-90deg);">
-                      <circle cx="55" cy="55" r="48" fill="none" stroke="#e5e7eb" stroke-width="10"/>
-                      <circle cx="55" cy="55" r="48" fill="none" stroke="url(#gradient${percentage})" stroke-width="10" 
-                              stroke-dasharray="${2 * Math.PI * 48}" 
-                              stroke-dashoffset="${2 * Math.PI * 48 * (1 - percentage / 100)}"
-                              stroke-linecap="round"
-                              style="transition: stroke-dashoffset 1s ease-in-out;"/>
-                      <defs>
-                        <linearGradient id="gradient${percentage}">
-                          <stop offset="0%" stop-color="${gradientStart}"/>
-                          <stop offset="100%" stop-color="${gradientEnd}"/>
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                      <div style="font-size: 2rem; font-weight: 800; color: ${ratingColor};">${percentage}</div>
-                      <div style="font-size: 0.7rem; color: #6b7280; font-weight: 600;">SCORE</div>
-                    </div>
-                  </div>
-                  
-                  <div style="display: inline-block; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); padding: 0.4rem 1rem; border-radius: 50px; margin-top: 0.5rem;">
-                    <span style="color: #6b7280; font-weight: 600; font-size: 0.8rem;">${rating.score} / ${rating.maxScore} pts</span>
-                  </div>
+              
+              <div class="modal-body" style="padding: 1rem 2rem 3rem;">
+                <!-- Main Title -->
+                <div class="text-center mb-4">
+                  <h2 style="font-weight: 800; color: #1a202c; font-size: 2rem; margin-bottom: 0.75rem; letter-spacing: -0.5px;">Email Quality Score</h2>
+                  <p style="color: #718096; font-size: 0.95rem; line-height: 1.6; max-width: 500px; margin: 0 auto;">AI-powered analysis of your email content</p>
                 </div>
 
-                ${strengthsList}
-                ${issuesList}
-                ${suggestionsList}
-
-                ${percentage < 60 ? `
-                  <div style="background: linear-gradient(135deg, rgba(102,126,234,0.08) 0%, rgba(118,75,162,0.08) 100%); border-radius: 12px; padding: 1rem; border: 2px solid rgba(102,126,234,0.15); margin-top: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                      <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i class="bi bi-stars" style="color: white; font-size: 1.2rem;"></i>
-                      </div>
-                      <div style="flex: 1;">
-                        <h6 style="margin: 0 0 0.15rem 0; color: #667eea; font-weight: 700; font-size: 0.9rem;">Need Help?</h6>
-                        <p style="margin: 0; color: #6b7280; font-size: 0.8rem; line-height: 1.4;">Use AI to generate a perfect email!</p>
+                <!-- Central White Card -->
+                <div style="background: white; border-radius: 24px; padding: 2.5rem 2rem; box-shadow: 0 10px 40px rgba(139, 159, 255, 0.15); margin: 0 auto; max-width: 550px;">
+                  
+                  <!-- Score Display -->
+                  <div class="text-center mb-4" style="background: ${bgGradient}; border-radius: 16px; padding: 1.5rem 1rem; position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, ${gradientStart}, ${gradientEnd});"></div>
+                    
+                    <div style="font-size: 3rem; margin-bottom: 0.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
+                      ${ratingEmoji}
+                    </div>
+                    <h3 class="mb-2" style="color: ${ratingColor}; font-weight: 800; font-size: 1.5rem; letter-spacing: -0.3px;">
+                      ${ratingText}
+                    </h3>
+                    
+                    <!-- Circular Progress -->
+                    <div style="position: relative; width: 110px; height: 110px; margin: 1rem auto;">
+                      <svg width="110" height="110" style="transform: rotate(-90deg);">
+                        <circle cx="55" cy="55" r="48" fill="none" stroke="#e5e7eb" stroke-width="10"/>
+                        <circle cx="55" cy="55" r="48" fill="none" stroke="url(#gradient${percentage})" stroke-width="10" 
+                                stroke-dasharray="${2 * Math.PI * 48}" 
+                                stroke-dashoffset="${2 * Math.PI * 48 * (1 - percentage / 100)}"
+                                stroke-linecap="round"
+                                style="transition: stroke-dashoffset 1s ease-in-out;"/>
+                        <defs>
+                          <linearGradient id="gradient${percentage}">
+                            <stop offset="0%" stop-color="${gradientStart}"/>
+                            <stop offset="100%" stop-color="${gradientEnd}"/>
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 800; color: ${ratingColor};">${percentage}</div>
+                        <div style="font-size: 0.7rem; color: #6b7280; font-weight: 600;">SCORE</div>
                       </div>
                     </div>
+                    
+                    <div style="display: inline-block; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); padding: 0.4rem 1rem; border-radius: 50px; margin-top: 0.5rem;">
+                      <span style="color: #6b7280; font-weight: 600; font-size: 0.8rem;">${rating.score} / ${rating.maxScore} pts</span>
+                    </div>
                   </div>
-                ` : ''}
 
-                <div class="d-grid gap-2 mt-3">
+                  ${strengthsList}
+                  ${issuesList}
+                  ${suggestionsList}
+
                   ${percentage < 60 ? `
-                    <button class="btn btn-lg" onclick="document.getElementById('emailRatingModal').remove(); showTemplateHelper();" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-weight: 700; padding: 0.875rem; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102,126,234,0.25);">
-                      <i class="bi bi-stars me-2"></i>Improve with AI
-                    </button>
+                    <div style="background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%); border-radius: 16px; padding: 1.25rem; margin-top: 1rem; border: 2px solid #c7d2fe;">
+                      <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                          <i class="bi bi-stars" style="color: white; font-size: 1.2rem;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                          <h6 style="margin: 0 0 0.15rem 0; color: #4c51bf; font-weight: 700; font-size: 0.9rem;">Need Help?</h6>
+                          <p style="margin: 0; color: #2d3748; font-size: 0.8rem; line-height: 1.4;">Use AI to generate a perfect email!</p>
+                        </div>
+                      </div>
+                    </div>
                   ` : ''}
-                  <button class="btn btn-success btn-lg" onclick="continueWithAutomation();" style="border-radius: 12px; font-weight: 700; padding: 0.875rem; box-shadow: 0 4px 12px rgba(16,185,129,0.25);">
-                    <i class="bi bi-send-fill me-2"></i>Continue Anyway
-                  </button>
-                  <button class="btn btn-outline-secondary btn-lg" onclick="document.getElementById('emailRatingModal').remove();" style="border-radius: 12px; font-weight: 600; padding: 0.875rem; border-width: 2px;">
-                    <i class="bi bi-pencil-fill me-2"></i>Edit Email
-                  </button>
+
+                  <div class="d-grid gap-2 mt-4">
+                    ${percentage < 60 ? `
+                      <button class="btn" onclick="document.getElementById('emailRatingModal').remove(); showTemplateHelper();" style="padding: 1rem 2rem; border-radius: 14px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); color: white; border: none; font-size: 1.05rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35);"
+                              onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 28px rgba(102, 126, 234, 0.45)';"
+                              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.35)';">
+                        <i class="bi bi-stars me-2"></i>Improve with AI
+                      </button>
+                    ` : ''}
+                    <button class="btn btn-success" onclick="continueWithAutomation();" style="padding: 1rem 2rem; border-radius: 14px; font-weight: 700; font-size: 1.05rem; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 28px rgba(16, 185, 129, 0.45)';"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(16, 185, 129, 0.35)';">
+                      <i class="bi bi-send-fill me-2"></i>Continue Anyway
+                    </button>
+                    <button class="btn" onclick="document.getElementById('emailRatingModal').remove();" style="padding: 1rem 2rem; border-radius: 14px; font-weight: 600; background: white; color: #64748b; border: 2px solid #e2e8f0; font-size: 1.05rem; transition: all 0.3s ease;"
+                            onmouseover="this.style.borderColor='#cbd5e1'; this.style.color='#475569';"
+                            onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#64748b';">
+                      <i class="bi bi-pencil-fill me-2"></i>Edit Email
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2961,8 +2983,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         let subjectOptions = data.subjects.map((subj, idx) => 
           `<div class="card mb-2" style="border: 2px solid ${idx === 0 ? '#667eea' : '#dee2e6'}; border-radius: 10px; cursor: pointer; transition: all 0.3s; box-shadow: ${idx === 0 ? '0 4px 12px rgba(102,126,234,0.15)' : 'none'};" onclick="document.getElementById('subject${idx}').checked = true; document.querySelectorAll('.card').forEach(c => { c.style.border = '2px solid #dee2e6'; c.style.boxShadow = 'none'; }); this.style.border = '2px solid #667eea'; this.style.boxShadow = '0 4px 12px rgba(102,126,234,0.15)';">
             <div class="card-body py-2 px-3">
-              <div class="form-check mb-0 d-flex align-items-start" style="padding: 0 !important; background: transparent !important; gap: 0.5rem;">
-                <input class="form-check-input flex-shrink-0" type="radio" name="subjectOption" id="subject${idx}" value="${subj}" ${idx === 0 ? 'checked' : ''} style="width: 16px; height: 16px; margin-top: 0.25rem; border: 2px solid #cbd5e1; cursor: pointer;">
+              <div class="form-check mb-0 d-flex align-items-start" style="padding: 0 !important; background: transparent !important; gap: 0.5rem;width: 15rem ;height:15rem ;margin-left:0rem">
+                <input class="form-check-input flex-shrink-0" type="radio" name="subjectOption" id="subject${idx}" value="${subj}" ${idx === 0 ? 'checked' : ''} style="width: 12px; height: 12px; margin-top: 0.25rem; border: 2px solid #cbd5e1; cursor: pointer;">
                 <label class="form-check-label flex-grow-1" for="subject${idx}" style="cursor: pointer; font-size: 0.875rem !important; color: #334155 !important; font-weight: 500; line-height: 1.6; margin: 0; padding: 0;">
                   ${subj}
                 </label>

@@ -2959,11 +2959,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       if (data.status === 'success') {
         let subjectOptions = data.subjects.map((subj, idx) => 
-          `<div class="card mb-2" style="border: 2px solid ${idx === 0 ? '#667eea' : '#dee2e6'}; border-radius: 12px; cursor: pointer; transition: all 0.3s; box-shadow: ${idx === 0 ? '0 4px 12px rgba(102,126,234,0.15)' : 'none'};" onclick="document.getElementById('subject${idx}').checked = true; document.querySelectorAll('.card').forEach(c => { c.style.border = '2px solid #dee2e6'; c.style.boxShadow = 'none'; }); this.style.border = '2px solid #667eea'; this.style.boxShadow = '0 4px 12px rgba(102,126,234,0.15)';">
-            <div class="card-body py-3 px-4">
+          `<div class="card mb-2" style="border: 2px solid ${idx === 0 ? '#667eea' : '#dee2e6'}; border-radius: 10px; cursor: pointer; transition: all 0.3s; box-shadow: ${idx === 0 ? '0 4px 12px rgba(102,126,234,0.15)' : 'none'};" onclick="document.getElementById('subject${idx}').checked = true; document.querySelectorAll('.card').forEach(c => { c.style.border = '2px solid #dee2e6'; c.style.boxShadow = 'none'; }); this.style.border = '2px solid #667eea'; this.style.boxShadow = '0 4px 12px rgba(102,126,234,0.15)';">
+            <div class="card-body py-2 px-3">
               <div class="form-check mb-0" style="padding: 0 !important; background: transparent !important;">
-                <input class="form-check-input" type="radio" name="subjectOption" id="subject${idx}" value="${subj}" ${idx === 0 ? 'checked' : ''}>
-                <label class="form-check-label fw-semibold" for="subject${idx}" style="cursor: pointer; font-size: 0.95rem !important; color: #334155 !important;">
+                <input class="form-check-input" type="radio" name="subjectOption" id="subject${idx}" value="${subj}" ${idx === 0 ? 'checked' : ''} style="width: 14px; height: 14px; margin-top: 0.15rem;">
+                <label class="form-check-label" for="subject${idx}" style="cursor: pointer; font-size: 0.85rem !important; color: #334155 !important; font-weight: 500; line-height: 1.5; margin-left: 0.25rem;">
                   ${subj}
                 </label>
               </div>

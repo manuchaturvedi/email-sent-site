@@ -48,8 +48,12 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Initialize SQLite database
-db = Database()
+# Initialize SQLite database with absolute path
+# Ensures admin panel and main functions use the same database
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'justmailit.db')
+DB_PATH = os.path.abspath(DB_PATH)  # Normalize path: /app/justmailit.db
+print(f"[DATABASE] Using database at: {DB_PATH}")
+db = Database(db_path=DB_PATH)
 
 # Cron Scheduler for scheduled jobs
 scheduler_running = False

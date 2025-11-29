@@ -4093,6 +4093,49 @@ def admin_api_stats():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/admin/debug/db-check')
+@admin_required
+def admin_debug_db():
+    """Debug endpoint to check database contents"""
+    try:
+        import os
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT COUNT(*) FROM user_profiles")
+        users = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM sent_emails")
+        emails = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM job_posts")
+        jobs = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT email, display_name, created_at FROM user_profiles ORDER BY created_at DESC LIMIT 5")
+        recent = [dict(row) for row in cursor.fetchall()]
+        
+        cursor.execute("SELECT user_email, recipient_email, subject, sent_at FROM sent_emails ORDER BY sent_at DESC LIMIT 5")
+        recent_emails = [dict(row) for row in cursor.fetchall()]
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'db_path': db.db_path,
+            'db_exists': os.path.exists(db.db_path),
+            'db_size': os.path.getsize(db.db_path) if os.path.exists(db.db_path) else 0,
+            'counts': {
+                'users': users,
+                'emails': emails,
+                'jobs': jobs
+            },
+            'recent_users': recent,
+            'recent_emails': recent_emails
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({'success': False, 'error': str(e), 'traceback': traceback.format_exc()})
+
 @app.route('/admin/user/<email>')
 @admin_required
 def admin_user_detail(email):

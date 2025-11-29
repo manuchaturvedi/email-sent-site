@@ -3934,12 +3934,14 @@ def check_payment_status(order_id):
 def admin_panel():
     """Admin panel dashboard"""
     try:
+        print(f"[ADMIN] Loading admin panel - DB path: {db.db_path}", flush=True)
         conn = db.get_connection()
         cursor = conn.cursor()
         
         # Get total users
         cursor.execute("SELECT COUNT(*) FROM user_profiles")
         total_users = cursor.fetchone()[0]
+        print(f"[ADMIN] Total users: {total_users}", flush=True)
         
         # Get new users today
         cursor.execute("""
@@ -3951,6 +3953,7 @@ def admin_panel():
         # Get total emails sent
         cursor.execute("SELECT COUNT(*) FROM sent_emails")
         total_emails = cursor.fetchone()[0]
+        print(f"[ADMIN] Total emails: {total_emails}", flush=True)
         
         # Get emails sent today
         cursor.execute("""
@@ -4022,6 +4025,7 @@ def admin_panel():
             LIMIT 50
         """)
         recent_emails = [dict(row) for row in cursor.fetchall()]
+        print(f"[ADMIN] Recent emails count: {len(recent_emails)}", flush=True)
         
         # Get daily email stats (last 7 days)
         cursor.execute("""

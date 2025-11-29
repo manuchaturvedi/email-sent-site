@@ -1397,9 +1397,6 @@
                 </div>
                 <span style="font-weight: 700; color: #2d3748; font-size: 0.95rem;">AI Powered</span>
               </div>
-              <button type="button" onclick="skipToManual()" style="background: transparent; border: none; color: #667eea; font-weight: 600; font-size: 0.9rem; cursor: pointer; padding: 0.5rem 1rem; border-radius: 8px; transition: background 0.2s ease;"
-                      onmouseover="this.style.background='rgba(102, 126, 234, 0.1)';"
-                      onmouseout="this.style.background='transparent';">Manual Entry →</button>
             </div>
           </div>
           <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" style="position: absolute; right: 1.25rem; top: 1.25rem; opacity: 0.5;"></button>
@@ -1442,6 +1439,19 @@
             <!-- AI Info Text -->
             <p style="color: #a0aec0; font-size: 0.85rem; text-align: center; margin: 0; font-weight: 500;">AI will auto-extract your info</p>
 
+            <!-- Existing Resume Checkbox (Hidden by default, shown if resume exists in DB) -->
+            <div id="existingResumeOption" style="display: none; margin-top: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 12px; border: 2px solid #bbf7d0;">
+              <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin: 0;">
+                <input type="checkbox" id="useExistingResume" checked style="width: 20px; height: 20px; cursor: pointer;">
+                <span style="color: #059669; font-weight: 600; font-size: 0.9rem;">
+                  ✓ Use existing resume (<span id="existingResumeName"></span>)
+                </span>
+              </label>
+              <small style="color: #047857; display: block; margin-top: 0.5rem; margin-left: 2rem; font-size: 0.85rem;">
+                Uncheck and upload new resume to replace
+              </small>
+            </div>
+
             <!-- Upload Progress (Hidden by default) -->
             <div id="uploadProgress" style="display: none; margin-top: 1.5rem;">
               <div class="progress" style="height: 10px; border-radius: 10px; background: #e2e8f0; overflow: hidden;">
@@ -1454,6 +1464,15 @@
                 🔍 Analyzing... <span id="uploadPercent">0%</span>
               </p>
             </div>
+          </div>
+
+          <!-- Manual Entry Button at Bottom -->
+          <div style="padding: 0 2rem 2rem;">
+            <button type="button" onclick="skipToManual()" class="btn w-100" style="padding: 0.9rem; border-radius: 12px; font-weight: 600; background: white; color: #667eea; border: 2px solid #667eea; font-size: 0.95rem; transition: all 0.3s ease;"
+                    onmouseover="this.style.background='#f7fafc'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.2)';"
+                    onmouseout="this.style.background='white'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+              <i class="bi bi-pencil me-2"></i>Skip & Enter Details Manually
+            </button>
           </div>
         </div>
       </div>
@@ -1469,7 +1488,6 @@
                 </div>
                 <span style="font-weight: 700; color: #2d3748; font-size: 0.95rem;">Step 2/3</span>
               </div>
-              <div class="badge" style="background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); color: white; font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: 10px; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);" id="profileScoreBadge">💪 85%</div>
             </div>
           </div>
           <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" style="position: absolute; right: 1.25rem; top: 1.25rem; opacity: 0.5;"></button>
@@ -1662,6 +1680,22 @@
             💡 AI will find recruiters on LinkedIn and send customized emails with your resume
           </div>
 
+          <!-- Auto-start Countdown Overlay (Hidden by default) -->
+          <div id="autoStartOverlay" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.98); border-radius: 24px; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem;">
+            <div style="text-align: center;">
+              <div style="width: 100px; height: 100px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);">
+                <i class="bi bi-check-circle-fill" style="font-size: 3rem; color: #059669;"></i>
+              </div>
+              <h3 style="font-weight: 800; color: #1a202c; font-size: 1.75rem; margin-bottom: 0.75rem;">All Details Complete!</h3>
+              <p style="color: #718096; font-size: 1.1rem; margin-bottom: 2rem;">Starting automation in <span id="countdownTimer" style="font-weight: 800; color: #667eea; font-size: 1.5rem;">5</span> seconds...</p>
+              <button type="button" onclick="cancelAutoStart()" class="btn" style="padding: 0.9rem 2rem; border-radius: 12px; font-weight: 700; font-size: 1rem; background: white; color: #667eea; border: 2px solid #667eea; transition: all 0.3s ease;"
+                      onmouseover="this.style.background='#f7fafc';"
+                      onmouseout="this.style.background='white';">
+                Wait, let me review
+              </button>
+            </div>
+          </div>
+
           <!-- Action Buttons -->
           <div class="d-flex gap-2">
             <button type="button" class="btn" onclick="showStep(2)" 
@@ -1670,7 +1704,7 @@
                     onmouseout="this.style.background='white'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
               ← Back
             </button>
-            <button type="button" onclick="launchAutomation()" class="btn flex-grow-1"
+            <button type="button" id="launchButton" onclick="launchAutomation()" class="btn flex-grow-1"
                     style="padding: 0.9rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 1rem; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); color: white; border: none; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35); transition: all 0.3s ease;"
                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 28px rgba(102, 126, 234, 0.45)';"
                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.35)';">
@@ -1827,29 +1861,50 @@ async function checkExistingProfile() {
     const hasContent = profile.emailContent && profile.emailContent.trim() !== '';
     const hasRole = profile.searchRole && profile.searchRole.trim() !== '';
     
+    // Show existing resume option if resume exists in DB
+    if (hasResume && profile.resumeFilename) {
+      const existingResumeOption = document.getElementById('existingResumeOption');
+      const existingResumeName = document.getElementById('existingResumeName');
+      if (existingResumeOption && existingResumeName) {
+        existingResumeName.textContent = profile.resumeFilename;
+        existingResumeOption.style.display = 'block';
+      }
+    }
+    
     // Only show Step 3 if profile is complete
     if (hasResume && hasSubject && hasContent && hasRole) {
       // User has complete profile, pre-fill and go to step 3
       extractedData = {
         name: profile.displayName || '',
         email: '{{ session.user }}',
-        phone: '',
+        phone: profile.userPhone || '',
         skills: [],
         position: profile.searchRole || '',
         experience: '3-5'
       };
       
-      // Auto-fill and show step 3 for quick launch
+      // Auto-fill and show step 3 for quick launch with auto-start countdown
       setTimeout(() => {
         document.getElementById('userName').value = extractedData.name;
         document.getElementById('userContactEmail').value = extractedData.email;
+        document.getElementById('userPhone').value = extractedData.phone;
         document.getElementById('userPosition').value = extractedData.position;
         
         // Use existing email subject
         document.getElementById('finalEmailSubject').value = profile.emailSubject;
-        sessionStorage.setItem('emailSubject', profile.email_subject);
+        sessionStorage.setItem('emailSubject', profile.emailSubject);
+        sessionStorage.setItem('userName', extractedData.name);
+        sessionStorage.setItem('userEmail', extractedData.email);
+        sessionStorage.setItem('userPhone', extractedData.phone);
+        sessionStorage.setItem('userPosition', extractedData.position);
+        sessionStorage.setItem('userSkills', '');
+        sessionStorage.setItem('userExperience', '3-5');
+        sessionStorage.setItem('experienceText', 'Mid-Level');
         
         showStep(3);
+        
+        // Start auto-start countdown after showing step 3
+        startAutoStartCountdown();
       }, 500);
     } else {
       // Profile incomplete - show Step 1 to upload resume
@@ -1967,10 +2022,58 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Auto-start countdown variables
+let autoStartTimer = null;
+let autoStartCountdown = 5;
+
+function startAutoStartCountdown() {
+  // Show overlay
+  const overlay = document.getElementById('autoStartOverlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+  }
+  
+  // Reset countdown
+  autoStartCountdown = 5;
+  document.getElementById('countdownTimer').textContent = autoStartCountdown;
+  
+  // Start countdown
+  autoStartTimer = setInterval(() => {
+    autoStartCountdown--;
+    document.getElementById('countdownTimer').textContent = autoStartCountdown;
+    
+    if (autoStartCountdown <= 0) {
+      clearInterval(autoStartTimer);
+      // Trigger launch
+      launchAutomation();
+    }
+  }, 1000);
+}
+
+function cancelAutoStart() {
+  // Clear timer
+  if (autoStartTimer) {
+    clearInterval(autoStartTimer);
+    autoStartTimer = null;
+  }
+  
+  // Hide overlay
+  const overlay = document.getElementById('autoStartOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+}
+
 // Handle Resume Upload with Auto-extraction
 async function handleResumeUpload(input) {
   const file = input.files[0];
   if (!file) return;
+  
+  // If user uploads new file, uncheck existing resume option
+  const useExistingCheckbox = document.getElementById('useExistingResume');
+  if (useExistingCheckbox) {
+    useExistingCheckbox.checked = false;
+  }
 
   // Show progress
   document.getElementById('uploadProgress').style.display = 'block';
@@ -2245,10 +2348,27 @@ function goToStep3() {
   sessionStorage.setItem('experienceText', experienceText);
   
   showStep(3);
+  
+  // Start auto-start countdown since all details are complete
+  setTimeout(() => {
+    startAutoStartCountdown();
+  }, 300);
 }
 
 async function launchAutomation() {
-  const launchBtn = event.target;
+  // Clear auto-start timer if running
+  if (autoStartTimer) {
+    clearInterval(autoStartTimer);
+    autoStartTimer = null;
+  }
+  
+  // Hide countdown overlay
+  const overlay = document.getElementById('autoStartOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+  
+  const launchBtn = document.getElementById('launchButton') || event.target;
   
   // Check if coming from job posts (via URL parameter or referrer)
   const urlParams = new URLSearchParams(window.location.search);
@@ -2298,11 +2418,18 @@ Phone: ${phone}`;
     formData.append('userName', name);
     formData.append('userPhone', phone);
     
-    // Add resume if uploaded
+    // Add resume - either new upload or use existing
+    const useExistingResume = document.getElementById('useExistingResume')?.checked;
     const resumeFile = document.getElementById('resumeUpload')?.files[0];
+    
     if (resumeFile) {
+      // New resume uploaded - use it
       formData.append('resumeFile', resumeFile);
+    } else if (useExistingResume) {
+      // Use existing resume from DB - backend will keep existing resume
+      formData.append('keepExistingResume', 'true');
     }
+    // If neither - backend will handle missing resume error
     
     const response = await fetch('/save_profile', {
       method: 'POST',

@@ -6,7 +6,7 @@ from job_analyzer import JobAnalyzer
 from database import Database  # Import SQLite database
 
 # Import logging
-from logger_config import app_logger, error_logger, scraper_logger, auth_logger, email_logger, LOGS_DIR
+from logger_config import app_logger, error_logger, scraper_logger, auth_logger, email_logger, activity_logger, LOGS_DIR
 
 # Import utilities from refactored modules
 from utils.helpers import extract_company_from_email, parse_skills
@@ -52,6 +52,20 @@ load_dotenv()
 
 
 app = Flask(__name__)
+
+# Activity logging middleware
+@app.before_request
+def log_request():
+    """Log every request with user info"""
+    user = session.get('user', 'anonymous')
+    activity_logger.info(f"[{request.method}] {request.path} | User: {user} | IP: {request.remote_addr}")
+
+@app.after_request
+def log_response(response):
+    """Log response status"""
+    user = session.get('user', 'anonymous')
+    activity_logger.info(f"[{request.method}] {request.path} | Status: {response.status_code} | User: {user}")
+    return response
 
 # Initialize SQLite database with absolute path
 # Ensures admin panel and main functions use the same database
@@ -1147,6 +1161,7 @@ def update_automation_run(run_id, stats):
 def save_profile():
     """Save user profile data to SQLite."""
     user_email = session.get("user")
+    activity_logger.info(f"💾 Profile update | User: {user_email}")
     
     # Get form data
     email_subject = request.form.get("emailSubject")
@@ -1424,6 +1439,7 @@ def sitemap():
 def home():
     """Home dashboard after login with links to the main features."""
     user_email = session["user"]
+    activity_logger.info(f"📊 Dashboard accessed | User: {user_email}")
     
     # Get user's email stats from SQLite
     sent_emails, stats = get_user_email_stats(user_email)
@@ -3417,6 +3433,7 @@ def send_email():
     # Get the logged-in user's email
     user_email = session.get("user")
     print(f"[@] User email: {user_email}")
+    activity_logger.info(f"🚀 Automation started | User: {user_email}")
     
     # Check if this user already has an automation running
     if user_email in automation_sessions and automation_sessions[user_email].get('running'):
@@ -3973,6 +3990,7 @@ def admin_panel():
     """Admin panel dashboard"""
     try:
         print(f"[ADMIN] Loading admin panel - DB path: {db.db_path}", flush=True)
+        activity_logger.info(f"🔐 Admin panel accessed | User: {session.get('user')}")
         conn = db.get_connection()
         cursor = conn.cursor()
         

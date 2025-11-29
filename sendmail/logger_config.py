@@ -17,6 +17,7 @@ ERROR_LOG_FILE = os.path.join(LOGS_DIR, 'error.log')
 SCRAPER_LOG_FILE = os.path.join(LOGS_DIR, 'scraper.log')
 AUTH_LOG_FILE = os.path.join(LOGS_DIR, 'auth.log')
 EMAIL_LOG_FILE = os.path.join(LOGS_DIR, 'email.log')
+ACTIVITY_LOG_FILE = os.path.join(LOGS_DIR, 'activity.log')
 
 # Log format
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s'
@@ -67,6 +68,7 @@ error_logger = setup_logger('error', ERROR_LOG_FILE, logging.ERROR)
 scraper_logger = setup_logger('scraper', SCRAPER_LOG_FILE, logging.INFO)
 auth_logger = setup_logger('auth', AUTH_LOG_FILE, logging.INFO)
 email_logger = setup_logger('email', EMAIL_LOG_FILE, logging.INFO)
+activity_logger = setup_logger('activity', ACTIVITY_LOG_FILE, logging.INFO)
 
 # Log startup
 app_logger.info("="*60)

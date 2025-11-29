@@ -58,6 +58,7 @@ app = Flask(__name__)
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'justmailit.db')
 DB_PATH = os.path.abspath(DB_PATH)  # Normalize path: /app/justmailit.db
 print(f"[DATABASE] Using database at: {DB_PATH}")
+app_logger.info(f"Using database at: {DB_PATH}")
 db = Database(db_path=DB_PATH)
 
 # Cron Scheduler for scheduled jobs
@@ -915,7 +916,7 @@ def login():
     id_token = data.get("idToken")
     display_name = data.get("displayName", "")
     
-    print(f"[LOGIN] Received login request - displayName: {display_name}", flush=True)
+    auth_logger.info(f"Login request received - displayName: {display_name}")
     
     try:
         # Add clock skew tolerance to handle timestamp differences
@@ -924,65 +925,65 @@ def login():
         session["user"] = user_email
         
         # Log user in immediately
-        print(f"[LOGIN] ✅ {user_email} authenticated with Firebase", flush=True)
+        auth_logger.info(f"✅ {user_email} authenticated with Firebase")
         
         # Check if this is a new user (doesn't exist in our database yet)
         is_new_user = False
         try:
-            print(f"[LOGIN] Checking if user exists in DB: {user_email}", flush=True)
+            auth_logger.info(f"Checking if user exists in DB: {user_email}")
             existing_profile = db.get_profile(user_email)
             if not existing_profile:
                 is_new_user = True
-                print(f"[LOGIN] 🆕 New user detected: {user_email}", flush=True)
+                auth_logger.info(f"🆕 New user detected: {user_email}")
             else:
-                print(f"[LOGIN] ✅ Existing user found: {user_email}", flush=True)
+                auth_logger.info(f"✅ Existing user found: {user_email}")
         except Exception as check_error:
-            print(f"[LOGIN] ⚠️ Error checking user existence: {check_error}", flush=True)
+            auth_logger.warning(f"⚠️ Error checking user existence: {check_error}")
             is_new_user = True  # Assume new user if check fails
         
         # Create or update user profile in SQLite
         try:
-            print(f"[LOGIN] Saving profile to DB - email={user_email}, name={display_name or decoded_token.get('name', '')}", flush=True)
+            auth_logger.info(f"Saving profile to DB - email={user_email}, name={display_name or decoded_token.get('name', '')}")
             db.create_or_update_profile(
                 email=user_email,
                 display_name=display_name or decoded_token.get('name', ''),
                 photo_url=decoded_token.get('picture')
             )
-            print(f"[LOGIN] ✅ User profile saved to database: {user_email}", flush=True)
+            auth_logger.info(f"✅ User profile saved to database: {user_email}")
             
             # Verify the save worked
             verify_profile = db.get_profile(user_email)
             if verify_profile:
-                print(f"[LOGIN] ✅ Profile verification successful: {user_email}", flush=True)
+                auth_logger.info(f"✅ Profile verification successful: {user_email}")
             else:
-                print(f"[LOGIN] ❌ Profile verification FAILED - not found after save: {user_email}", flush=True)
+                auth_logger.error(f"❌ Profile verification FAILED - not found after save: {user_email}")
                 
         except Exception as profile_error:
-            print(f"[LOGIN] ❌ Profile creation error: {profile_error}", flush=True)
+            auth_logger.error(f"❌ Profile creation error: {profile_error}")
             import traceback
-            print(f"[LOGIN] Traceback: {traceback.format_exc()}", flush=True)
+            auth_logger.error(f"Traceback: {traceback.format_exc()}")
             # Continue login even if profile update fails
             if "429" in str(profile_error) or "Quota exceeded" in str(profile_error):
-                print(f"[LOGIN] ⚠️ Quota exceeded - login successful but profile not synced", flush=True)
+                auth_logger.warning(f"⚠️ Quota exceeded - login successful but profile not synced")
             else:
-                print(f"[LOGIN] ⚠️ Profile sync error (non-critical): {profile_error}", flush=True)
+                auth_logger.warning(f"⚠️ Profile sync error (non-critical): {profile_error}")
         
         # Send welcome email to new users
         if is_new_user:
             try:
                 dashboard_url = url_for('landing', _external=True)
                 send_welcome_email(user_email, dashboard_url)
-                print(f"[LOGIN] ✅ Welcome email sent to new user: {user_email}", flush=True)
+                email_logger.info(f"✅ Welcome email sent to new user: {user_email}")
             except Exception as email_error:
-                print(f"[LOGIN] ⚠️ Failed to send welcome email to {user_email}: {email_error}", flush=True)
+                email_logger.warning(f"⚠️ Failed to send welcome email to {user_email}: {email_error}")
                 # Don't fail login if welcome email fails
         
-        print(f"[LOGIN] ✅ Login complete for: {user_email}", flush=True)
+        auth_logger.info(f"✅ Login complete for: {user_email}")
         return jsonify({"status": "success"}), 200
     except Exception as e:
-        print(f"[LOGIN] ❌ Login failed: {e}", flush=True)
+        auth_logger.error(f"❌ Login failed: {e}")
         import traceback
-        print(f"[LOGIN] Traceback: {traceback.format_exc()}", flush=True)
+        auth_logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({"error": str(e)}), 401
 
 

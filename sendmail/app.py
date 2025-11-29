@@ -4094,7 +4094,7 @@ def admin_api_stats():
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/admin/debug/db-check')
-# @admin_required  # Temporarily disabled for debugging
+@admin_required
 def admin_debug_db():
     """Debug endpoint to check database contents"""
     try:

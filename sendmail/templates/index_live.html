@@ -2023,65 +2023,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         ratingClass = 'success';
         ratingText = 'Excellent';
         ratingEmoji = '🌟';
-        ratingColor = '#10b981';
-        gradientStart = '#10b981';
-        gradientEnd = '#059669';
-        bgGradient = 'linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(5,150,105,0.05) 100%)';
+        ratingColor = '#667eea';
+        gradientStart = '#667eea';
+        gradientEnd = '#8b9fff';
+        bgGradient = 'linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(139,159,255,0.05) 100%)';
       } else if (percentage >= 60) {
         ratingClass = 'info';
         ratingText = 'Good';
         ratingEmoji = '👍';
         ratingColor = '#3b82f6';
         gradientStart = '#3b82f6';
-        gradientEnd = '#2563eb';
-        bgGradient = 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(37,99,235,0.05) 100%)';
+        gradientEnd = '#60a5fa';
+        bgGradient = 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(96,165,250,0.05) 100%)';
       } else if (percentage >= 40) {
         ratingClass = 'warning';
         ratingText = 'Needs Improvement';
         ratingEmoji = '⚠️';
         ratingColor = '#f59e0b';
         gradientStart = '#f59e0b';
-        gradientEnd = '#d97706';
-        bgGradient = 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(217,119,6,0.05) 100%)';
+        gradientEnd = '#fbbf24';
+        bgGradient = 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(251,191,36,0.05) 100%)';
       } else {
         ratingClass = 'danger';
         ratingText = 'Poor';
         ratingEmoji = '❌';
         ratingColor = '#ef4444';
         gradientStart = '#ef4444';
-        gradientEnd = '#dc2626';
-        bgGradient = 'linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(220,38,38,0.05) 100%)';
+        gradientEnd = '#f87171';
+        bgGradient = 'linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(248,113,113,0.05) 100%)';
       }
 
-      const strengthsList = rating.strengths.length ?
-        `<div class="mb-2" style="background: rgba(16,185,129,0.05); border-radius: 10px; padding: 0.875rem; border-left: 3px solid #10b981;">
-          <h6 style="color: #10b981; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem;">
-            <i class="bi bi-check-circle-fill me-1"></i>Strengths
+      // Limit to 3 items for strengths and issues
+      const topStrengths = rating.strengths.slice(0, 3);
+      const topIssues = rating.issues.slice(0, 3);
+
+      const strengthsList = topStrengths.length ?
+        `<div class="mb-3" style="background: linear-gradient(135deg, rgba(102,126,234,0.08) 0%, rgba(139,159,255,0.08) 100%); border-radius: 14px; padding: 1.25rem; border: 2px solid rgba(102,126,234,0.2);">
+          <h6 style="color: #667eea; font-weight: 700; margin-bottom: 0.75rem; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="bi bi-check-circle-fill"></i>Strengths
           </h6>
-          <ul style="margin: 0; padding-left: 1.25rem; color: #374151; font-size: 0.85rem; line-height: 1.6;">
-            ${rating.strengths.map(s => `<li style="margin-bottom: 0.35rem;">${s}</li>`).join('')}
+          <ul style="margin: 0; padding-left: 1.5rem; color: #334155; font-size: 0.875rem; line-height: 1.7;">
+            ${topStrengths.map(s => `<li style="margin-bottom: 0.5rem;">${s}</li>`).join('')}
           </ul>
         </div>` : '';
 
-      const issuesList = rating.issues.length ?
-        `<div class="mb-2" style="background: rgba(239,68,68,0.05); border-radius: 10px; padding: 0.875rem; border-left: 3px solid #ef4444;">
-          <h6 style="color: #ef4444; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem;">
-            <i class="bi bi-exclamation-circle-fill me-1"></i>Issues Found
+      const issuesList = topIssues.length ?
+        `<div class="mb-3" style="background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(248,113,113,0.08) 100%); border-radius: 14px; padding: 1.25rem; border: 2px solid rgba(239,68,68,0.2);">
+          <h6 style="color: #ef4444; font-weight: 700; margin-bottom: 0.75rem; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="bi bi-exclamation-circle-fill"></i>Areas to Improve
           </h6>
-          <ul style="margin: 0; padding-left: 1.25rem; color: #374151; font-size: 0.85rem; line-height: 1.6;">
-            ${rating.issues.map(i => `<li style="margin-bottom: 0.35rem;">${i}</li>`).join('')}
+          <ul style="margin: 0; padding-left: 1.5rem; color: #334155; font-size: 0.875rem; line-height: 1.7;">
+            ${topIssues.map(i => `<li style="margin-bottom: 0.5rem;">${i}</li>`).join('')}
           </ul>
         </div>` : '';
 
-      const suggestionsList = rating.suggestions.length ?
-        `<div class="mb-2" style="background: rgba(59,130,246,0.05); border-radius: 10px; padding: 0.875rem; border-left: 3px solid #3b82f6;">
-          <h6 style="color: #3b82f6; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem;">
-            <i class="bi bi-lightbulb-fill me-1"></i>Suggestions
-          </h6>
-          <ul style="margin: 0; padding-left: 1.25rem; color: #374151; font-size: 0.85rem; line-height: 1.6;">
-            ${rating.suggestions.map(s => `<li style="margin-bottom: 0.35rem;">${s}</li>`).join('')}
-          </ul>
-        </div>` : '';      const modalHTML = `
+      const suggestionsList = '';      const modalHTML = `
         <div class="modal fade show" id="emailRatingModal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.75);">
           <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: min(600px, 95vw);">
             <div class="modal-content" style="border: none; border-radius: 32px; overflow: hidden; box-shadow: 0 25px 80px rgba(139, 159, 255, 0.3); background: linear-gradient(180deg, #c8d5f7 0%, #e8ecff 35%, #ffffff 100%); max-height: 95vh;">
@@ -2095,7 +2091,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" alt="JustMailIt" style="width: 24px; height: 24px; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: white; font-weight: 800; font-size: 0.9rem;\'>AI</span>'">
                   </div>
                 
-                <span style="font-weight: 700; color: #2d3748; font-size: 0.95rem;">Justmailit</span>
+                <span style="font-weight: 700; color: #2d3748; font-size: 0.95rem;">JustMailIt</span>
               </div>
                   </div>
                 </div>
@@ -2112,41 +2108,53 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <!-- Central White Card -->
                 <div style="background: white; border-radius: 24px; padding: 2.5rem 2rem; box-shadow: 0 10px 40px rgba(139, 159, 255, 0.15); margin: 0 auto; max-width: 550px;">
                   
-                  <!-- Score Display -->
-                  <div class="text-center mb-4" style="background: ${bgGradient}; border-radius: 16px; padding: 1.5rem 1rem; position: relative; overflow: hidden;">
-                    <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, ${gradientStart}, ${gradientEnd});"></div>
-                    
-                    <div style="font-size: 3rem; margin-bottom: 0.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
+                  <!-- Score Display with Speedometer -->
+                  <div class="text-center mb-4">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
                       ${ratingEmoji}
                     </div>
-                    <h3 class="mb-2" style="color: ${ratingColor}; font-weight: 800; font-size: 1.5rem; letter-spacing: -0.3px;">
+                    <h3 class="mb-3" style="color: ${ratingColor}; font-weight: 800; font-size: 1.5rem; letter-spacing: -0.3px;">
                       ${ratingText}
                     </h3>
                     
-                    <!-- Circular Progress -->
-                    <div style="position: relative; width: 110px; height: 110px; margin: 1rem auto;">
-                      <svg width="110" height="110" style="transform: rotate(-90deg);">
-                        <circle cx="55" cy="55" r="48" fill="none" stroke="#e5e7eb" stroke-width="10"/>
-                        <circle cx="55" cy="55" r="48" fill="none" stroke="url(#gradient${percentage})" stroke-width="10" 
-                                stroke-dasharray="${2 * Math.PI * 48}" 
-                                stroke-dashoffset="${2 * Math.PI * 48 * (1 - percentage / 100)}"
-                                stroke-linecap="round"
-                                style="transition: stroke-dashoffset 1s ease-in-out;"/>
-                        <defs>
-                          <linearGradient id="gradient${percentage}">
-                            <stop offset="0%" stop-color="${gradientStart}"/>
-                            <stop offset="100%" stop-color="${gradientEnd}"/>
-                          </linearGradient>
-                        </defs>
+                    <!-- Speedometer Gauge -->
+                    <div style="position: relative; width: 200px; height: 130px; margin: 1rem auto;">
+                      <svg width="200" height="130" viewBox="0 0 200 130">
+                        <!-- Background arc (gray) -->
+                        <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="#e5e7eb" stroke-width="20" stroke-linecap="round"/>
+                        
+                        <!-- Colored segments -->
+                        <!-- Red segment (0-40%) -->
+                        <path d="M 20 110 A 80 80 0 0 1 56 52" fill="none" stroke="#ef4444" stroke-width="20" stroke-linecap="round" opacity="0.3"/>
+                        <!-- Orange segment (40-60%) -->
+                        <path d="M 56 52 A 80 80 0 0 1 100 30" fill="none" stroke="#f59e0b" stroke-width="20" stroke-linecap="round" opacity="0.3"/>
+                        <!-- Blue segment (60-80%) -->
+                        <path d="M 100 30 A 80 80 0 0 1 144 52" fill="none" stroke="#3b82f6" stroke-width="20" stroke-linecap="round" opacity="0.3"/>
+                        <!-- Purple segment (80-100%) -->
+                        <path d="M 144 52 A 80 80 0 0 1 180 110" fill="none" stroke="#667eea" stroke-width="20" stroke-linecap="round" opacity="0.3"/>
+                        
+                        <!-- Active segment highlight based on score -->
+                        <path d="M 20 110 A 80 80 0 ${percentage > 50 ? 1 : 0} 1 ${20 + 160 * (percentage / 100)} ${110 - 80 * Math.sin(Math.PI * percentage / 100)}" 
+                              fill="none" stroke="${ratingColor}" stroke-width="20" stroke-linecap="round"
+                              style="filter: drop-shadow(0 0 8px ${ratingColor}50);"/>
+                        
+                        <!-- Needle -->
+                        <g transform="rotate(${-90 + (180 * percentage / 100)} 100 110)">
+                          <line x1="100" y1="110" x2="100" y2="45" stroke="${ratingColor}" stroke-width="3" stroke-linecap="round"
+                                style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));"/>
+                          <circle cx="100" cy="110" r="8" fill="${ratingColor}" stroke="white" stroke-width="2"/>
+                        </g>
                       </svg>
-                      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                        <div style="font-size: 2rem; font-weight: 800; color: ${ratingColor};">${percentage}</div>
-                        <div style="font-size: 0.7rem; color: #6b7280; font-weight: 600;">SCORE</div>
+                      
+                      <!-- Score Text -->
+                      <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); text-align: center;">
+                        <div style="font-size: 2.5rem; font-weight: 800; color: ${ratingColor}; line-height: 1;">${percentage}</div>
+                        <div style="font-size: 0.75rem; color: #6b7280; font-weight: 600; letter-spacing: 1px;">SCORE</div>
                       </div>
                     </div>
                     
-                    <div style="display: inline-block; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); padding: 0.4rem 1rem; border-radius: 50px; margin-top: 0.5rem;">
-                      <span style="color: #6b7280; font-weight: 600; font-size: 0.8rem;">${rating.score} / ${rating.maxScore} pts</span>
+                    <div style="display: inline-block; background: ${bgGradient}; padding: 0.5rem 1.25rem; border-radius: 50px; margin-top: 0.5rem; border: 2px solid ${ratingColor}20;">
+                      <span style="color: ${ratingColor}; font-weight: 700; font-size: 0.85rem;">${rating.score} / ${rating.maxScore} points</span>
                     </div>
                   </div>
 
@@ -2176,9 +2184,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <i class="bi bi-stars me-2"></i>Improve with AI
                       </button>
                     ` : ''}
-                    <button class="btn btn-success" onclick="continueWithAutomation();" style="padding: 1rem 2rem; border-radius: 14px; font-weight: 700; font-size: 1.05rem; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);"
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 28px rgba(16, 185, 129, 0.45)';"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(16, 185, 129, 0.35)';">
+                    <button class="btn" onclick="continueWithAutomation();" style="padding: 1rem 2rem; border-radius: 14px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); color: white; border: none; font-size: 1.05rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35);"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 28px rgba(102, 126, 234, 0.45)';"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.35)';">
                       <i class="bi bi-send-fill me-2"></i>Continue Anyway
                     </button>
                     <button class="btn" onclick="document.getElementById('emailRatingModal').remove();" style="padding: 1rem 2rem; border-radius: 14px; font-weight: 600; background: white; color: #64748b; border: 2px solid #e2e8f0; font-size: 1.05rem; transition: all 0.3s ease;"
@@ -2985,7 +2993,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           `<div class="card mb-2" style="border: 2px solid ${idx === 0 ? '#667eea' : '#dee2e6'}; border-radius: 10px; cursor: pointer; transition: all 0.3s; box-shadow: ${idx === 0 ? '0 4px 12px rgba(102,126,234,0.15)' : 'none'};" onclick="document.getElementById('subject${idx}').checked = true; document.querySelectorAll('.card').forEach(c => { c.style.border = '2px solid #dee2e6'; c.style.boxShadow = 'none'; }); this.style.border = '2px solid #667eea'; this.style.boxShadow = '0 4px 12px rgba(102,126,234,0.15)';">
             <div class="card-body py-2 px-3">
               <div class="form-check mb-0 d-flex align-items-start" style="padding: 0 !important; background: transparent !important; gap: 0.5rem;">
-                <input class="form-check-input flex-shrink-0" type="radio" name="subjectOption" id="subject${idx}" value="${subj}" ${idx === 0 ? 'checked' : ''} style="width: 16px; height: 16px; margin-top: 0.25rem; margin-left: 1 rem;border: 2px solid #cbd5e1; cursor: pointer;">
+                <input class="form-check-input flex-shrink-0" type="radio" name="subjectOption" id="subject${idx}" value="${subj}" ${idx === 0 ? 'checked' : ''} style="width: 16px; height: 16px; margin-top: 0.25rem; margin-left: 1.3 rem;border: 2px solid #cbd5e1; cursor: pointer;">
                 <label class="form-check-label flex-grow-1" for="subject${idx}" style="cursor: pointer; font-size: 0.875rem !important; color: #334155 !important; font-weight: 500; line-height: 1.6; margin: 0; padding: 0;">
                   ${subj}
                 </label>

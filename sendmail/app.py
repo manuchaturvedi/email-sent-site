@@ -1225,7 +1225,14 @@ def blog_avoiding_spam_filters():
 @app.route("/blog/post")
 def blog_post():
     """Generic Blog Post"""
-    return render_template("blog_post.html")
+    return render_template("blog_post.html",
+        title="Sample Blog Post",
+        category="Guide",
+        date="Nov 29, 2025",
+        read_time="5 min read",
+        author="JustMailIt Team",
+        author_bio="Helping job seekers land their dream jobs with smart automation."
+    )
 
 @app.route("/contact")
 def contact():

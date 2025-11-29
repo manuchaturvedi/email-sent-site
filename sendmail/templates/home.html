@@ -1460,31 +1460,40 @@
 
       <!-- Step 2: Auto-filled Information (Game-like) -->
       <div id="step2" class="modal-step" style="display: none;">
-        <div class="modal-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 1.75rem 1.5rem; border: none; position: relative; overflow: hidden;">
-          <div style="position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; filter: blur(60px);"></div>
-          <div style="width: 100%; position: relative; z-index: 1;">
+        <div class="modal-header" style="background: transparent; border: none; padding: 1.5rem 2rem 0.5rem;">
+          <div style="width: 100%;">
             <div class="d-flex align-items-center justify-content-between">
-              <div>
-                <h5 style="font-weight: 800; margin: 0; font-size: 1.5rem; letter-spacing: -0.5px;">✨ Your Details</h5>
-                <small style="opacity: 0.95; font-size: 0.9rem; font-weight: 500;">Step 2/3 • Confirm & Edit</small>
+              <div class="d-flex align-items-center gap-2">
+                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                  <span style="color: white; font-weight: 800; font-size: 0.9rem;">AI</span>
+                </div>
+                <span style="font-weight: 700; color: #2d3748; font-size: 0.95rem;">Step 2/3</span>
               </div>
-              <div class="badge" style="background: rgba(255,255,255,0.25); font-size: 0.85rem; padding: 0.6rem 1.2rem; border-radius: 12px; font-weight: 700; backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);" id="profileScoreBadge">💪 85%</div>
+              <div class="badge" style="background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); color: white; font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: 10px; font-weight: 700; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);" id="profileScoreBadge">💪 85%</div>
             </div>
           </div>
-          <button type="button" class="btn-close btn-close-white" aria-label="Close" data-bs-dismiss="modal" style="position: absolute; right: 0.75rem; top: 0.75rem;"></button>
+          <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" style="position: absolute; right: 1.25rem; top: 1.25rem; opacity: 0.5;"></button>
         </div>
-        <div class="modal-body" style="padding: 2rem 1.5rem; max-height: 60vh; overflow-y: auto;">
-          <form id="profileForm">
+        <div class="modal-body" style="padding: 1rem 2rem 3rem;">
+          <!-- Main Title -->
+          <div class="text-center mb-4">
+            <h2 style="font-weight: 800; color: #1a202c; font-size: 2rem; margin-bottom: 0.75rem; letter-spacing: -0.5px;">Confirm Your Details</h2>
+            <p style="color: #718096; font-size: 0.95rem; line-height: 1.6; max-width: 450px; margin: 0 auto;">Review and edit your information extracted by AI</p>
+          </div>
+
+          <!-- Central White Card -->
+          <div style="background: white; border-radius: 24px; padding: 2.5rem 2rem; box-shadow: 0 10px 40px rgba(139, 159, 255, 0.15); margin: 0 auto; max-width: 550px;">
+            <form id="profileForm">
             <!-- Name with animation -->
-            <div class="mb-4" style="animation: slideInRight 0.5s;">
-              <label class="form-label" style="font-weight: 700; color: #1e293b; font-size: 1.15rem; margin-bottom: 0.75rem;">
-                <i class="bi bi-person-badge-fill text-primary me-2" style="font-size: 1.25rem;"></i>Full Name
-                <span class="badge bg-success ms-2 d-none" id="nameAutoFilled" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">Auto-filled ✓</span>
+            <div class="mb-4">
+              <label class="form-label" style="font-weight: 700; color: #2d3748; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                Full Name
+                <span class="badge bg-success ms-2 d-none" id="nameAutoFilled" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">Auto-filled ✓</span>
               </label>
-              <input type="text" class="form-control form-control-lg" id="userName" required 
+              <input type="text" class="form-control" id="userName" required 
                      placeholder="Enter your full name"
-                     style="padding: 1.1rem 1.5rem; border-radius: 14px; border: 2.5px solid #e2e8f0; background: white; font-size: 1.1rem; font-weight: 600; transition: all 0.3s ease;"
-                     onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 4px rgba(102, 126, 234, 0.1)';"
+                     style="padding: 0.9rem 1.25rem; border-radius: 12px; border: 2px solid #e2e8f0; background: white; font-size: 1rem; font-weight: 600; transition: all 0.3s ease;"
+                     onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';"
                      onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
             </div>
 
@@ -1492,68 +1501,68 @@
               <div class="col-md-6">
                 <!-- Email -->
                 <div class="mb-3">
-                  <label class="form-label" style="font-weight: 700; color: #1e293b; font-size: 0.95rem; margin-bottom: 0.5rem;">
-                    <i class="bi bi-envelope text-primary me-1" style="font-size: 1rem;"></i>Email
-                    <span class="badge bg-success ms-2 d-none" id="emailAutoFilled" style="font-size: 0.7rem; padding: 0.3rem 0.65rem;">✓</span>
+                  <label class="form-label" style="font-weight: 700; color: #2d3748; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                    Email
+                    <span class="badge bg-success ms-2 d-none" id="emailAutoFilled" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">✓</span>
                   </label>
                   <input type="email" class="form-control" id="userContactEmail" required
                          placeholder="your@email.com"
-                         style="padding: 0.9rem 1rem; border-radius: 12px; border: 2.5px solid #bbf7d0; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); font-size: 0.95rem; font-weight: 600; transition: all 0.3s ease;"
-                         onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 4px rgba(16, 185, 129, 0.1)';"
-                         onblur="this.style.borderColor='#bbf7d0'; this.style.boxShadow='none';">
+                         style="padding: 0.9rem 1rem; border-radius: 12px; border: 2px solid #e2e8f0; background: white; font-size: 0.95rem; font-weight: 600; transition: all 0.3s ease;"
+                         onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';"
+                         onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
                 </div>
               </div>
               <div class="col-md-6">
                 <!-- Phone -->
                 <div class="mb-3">
-                  <label class="form-label" style="font-weight: 700; color: #1e293b; font-size: 0.95rem; margin-bottom: 0.5rem;">
-                    <i class="bi bi-telephone text-primary me-1" style="font-size: 1rem;"></i>Phone
-                    <span class="badge bg-success ms-2 d-none" id="phoneAutoFilled" style="font-size: 0.7rem; padding: 0.3rem 0.65rem;">✓</span>
+                  <label class="form-label" style="font-weight: 700; color: #2d3748; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                    Phone
+                    <span class="badge bg-success ms-2 d-none" id="phoneAutoFilled" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">✓</span>
                   </label>
                   <input type="tel" class="form-control" id="userPhone" required
                          placeholder="+91 1234567890"
-                         style="padding: 0.9rem 1rem; border-radius: 12px; border: 2.5px solid #bbf7d0; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); font-size: 0.95rem; font-weight: 600; transition: all 0.3s ease;"
-                         onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 4px rgba(16, 185, 129, 0.1)';"
-                         onblur="this.style.borderColor='#bbf7d0'; this.style.boxShadow='none';">
+                         style="padding: 0.9rem 1rem; border-radius: 12px; border: 2px solid #e2e8f0; background: white; font-size: 0.95rem; font-weight: 600; transition: all 0.3s ease;"
+                         onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';"
+                         onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
                 </div>
               </div>
             </div>
 
             <!-- Skills (Interactive Tags) -->
-            <div class="mb-4" style="animation: slideInRight 0.7s;">
-              <label class="form-label" style="font-weight: 700; color: #1e293b; font-size: 1.15rem; margin-bottom: 0.75rem;">
-                <i class="bi bi-stars text-primary me-2" style="font-size: 1.25rem;"></i>Your Superpowers (Skills)
-                <span class="badge bg-success ms-2 d-none" id="skillsAutoFilled" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">Auto-detected ✓</span>
+            <div class="mb-4">
+              <label class="form-label" style="font-weight: 700; color: #2d3748; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                Skills
+                <span class="badge bg-success ms-2 d-none" id="skillsAutoFilled" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">Auto-detected ✓</span>
               </label>
-              <div id="skillTags" class="mb-3" style="display: flex; flex-wrap: wrap; gap: 0.65rem; min-height: 60px; padding: 1.25rem; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; border: 2.5px solid #cbd5e1; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);"></div>
-              <input type="text" class="form-control" id="skillInput" placeholder="Add your skills and press Enter (e.g., Python, React, AWS)" 
-                     style="padding: 1rem 1.25rem; border-radius: 12px; border: 2.5px solid #e2e8f0; font-size: 0.95rem; font-weight: 600; transition: all 0.3s ease;"
-                     onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 4px rgba(102, 126, 234, 0.1)';"
+              <div id="skillTags" class="mb-3" style="display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 50px; padding: 1rem; background: #f8fafc; border-radius: 12px; border: 2px solid #e2e8f0;"></div>
+              <input type="text" class="form-control" id="skillInput" placeholder="Add skills and press Enter (e.g., Python, React, AWS)" 
+                     style="padding: 0.9rem 1.25rem; border-radius: 12px; border: 2px solid #e2e8f0; font-size: 0.95rem; font-weight: 600; transition: all 0.3s ease;"
+                     onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';"
                      onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
             </div>
 
             <!-- Position -->
-            <div class="mb-4" style="animation: slideInRight 0.8s;">
-              <label class="form-label" style="font-weight: 700; color: #1e293b; font-size: 1.15rem; margin-bottom: 0.75rem;">
-                <i class="bi bi-bullseye text-primary me-2" style="font-size: 1.25rem;"></i>Target Position
-                <span class="badge bg-success ms-2 d-none" id="positionAutoFilled" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">Auto-filled ✓</span>
+            <div class="mb-4">
+              <label class="form-label" style="font-weight: 700; color: #2d3748; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                Target Position
+                <span class="badge bg-success ms-2 d-none" id="positionAutoFilled" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">Auto-filled ✓</span>
               </label>
-              <input type="text" class="form-control form-control-lg" id="userPosition" required 
+              <input type="text" class="form-control" id="userPosition" required 
                      placeholder="e.g., Software Developer, Data Scientist, DevOps Engineer"
-                     style="padding: 1.1rem 1.5rem; border-radius: 14px; border: 2.5px solid #e2e8f0; background: white; font-size: 1.1rem; font-weight: 600; transition: all 0.3s ease;"
-                     onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 4px rgba(102, 126, 234, 0.1)';"
+                     style="padding: 0.9rem 1.25rem; border-radius: 12px; border: 2px solid #e2e8f0; background: white; font-size: 1rem; font-weight: 600; transition: all 0.3s ease;"
+                     onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';"
                      onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
             </div>
 
-            <!-- Experience (Gamified Slider) -->
-            <div class="mb-4" style="animation: slideInRight 0.9s;">
-              <label class="form-label" style="font-weight: 700; color: #1e293b; font-size: 1.15rem; margin-bottom: 0.75rem;">
-                <i class="bi bi-trophy-fill text-primary me-2" style="font-size: 1.25rem;"></i>Experience Level
+            <!-- Experience -->
+            <div class="mb-4">
+              <label class="form-label" style="font-weight: 700; color: #2d3748; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                Experience Level
               </label>
-              <select class="form-select form-select-lg" id="userExperience" required 
-                      style="padding: 1.1rem 1.5rem; border-radius: 14px; border: 2.5px solid #bbf7d0; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); font-size: 1.05rem; font-weight: 700; transition: all 0.3s ease; cursor: pointer;"
-                      onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 4px rgba(16, 185, 129, 0.1)';"
-                      onblur="this.style.borderColor='#bbf7d0'; this.style.boxShadow='none';">
+              <select class="form-select" id="userExperience" required 
+                      style="padding: 0.9rem 1.25rem; border-radius: 12px; border: 2px solid #e2e8f0; background: white; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; cursor: pointer;"
+                      onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';"
+                      onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
                 <option value="0-1">🌱 Fresher (0-1 years)</option>
                 <option value="1-3">🚀 Junior (1-3 years)</option>
                 <option value="3-5">⭐ Mid-Level (3-5 years)</option>
@@ -1562,82 +1571,114 @@
               </select>
             </div>
 
-            <!-- XP Points Display -->
-            <div class="text-center mb-4" style="padding: 2rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 18px; box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25); border: 3px solid #fbbf24;">
-              <h5 style="margin: 0 0 0.5rem 0; color: #92400e; font-weight: 800; font-size: 1.6rem; letter-spacing: -0.5px;">
-                <i class="bi bi-lightning-charge-fill" style="color: #f59e0b; font-size: 1.8rem; animation: pulse 2s infinite;"></i>
-                Profile Strength: <span id="profileScore">85</span>/100
-              </h5>
-              <small style="color: #78350f; font-weight: 600; font-size: 0.95rem;">Keep going! You're almost at maximum power!</small>
+            <!-- Profile Strength -->
+            <div class="text-center mb-4 mt-4" style="padding: 1.5rem; background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%); border-radius: 16px; border: 2px solid #c7d2fe;">
+              <h6 style="margin: 0; color: #4c51bf; font-weight: 700; font-size: 1rem;">
+                💪 Profile Strength: <span id="profileScore">85</span>%
+              </h6>
             </div>
 
             <div class="d-grid gap-2">
-              <button type="button" class="btn btn-lg" onclick="goToStep3()" 
-                      style="padding: 1.4rem; border-radius: 16px; font-weight: 800; font-size: 1.25rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; box-shadow: 0 12px 35px rgba(16, 185, 129, 0.45); transition: all 0.3s ease; letter-spacing: 0.5px;"
-                      onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 16px 45px rgba(16, 185, 129, 0.5)';"
-                      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 12px 35px rgba(16, 185, 129, 0.45)';">
-                <i class="bi bi-rocket-takeoff-fill me-2"></i>Continue to Final Step!
+              <button type="button" class="btn" onclick="goToStep3()" 
+                      style="padding: 1rem 1.5rem; border-radius: 14px; font-weight: 700; font-size: 1.05rem; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); color: white; border: none; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35); transition: all 0.3s ease;"
+                      onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 28px rgba(102, 126, 234, 0.45)';"
+                      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.35)';">
+                Continue to Final Step →
               </button>
             </div>
           </form>
         </div>
       </div>
+    </div>
 
       <!-- Step 3: Email Review & Stats -->
       <div id="step3" class="modal-step" style="display: none;">
-        <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 1.75rem 1.5rem; border: none; position: relative; overflow: hidden;">
-          <div style="position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; filter: blur(60px);"></div>
-          <div style="width: 100%; position: relative; z-index: 1;">
+        <div class="modal-header" style="background: transparent; border: none; padding: 1.5rem 2rem 0.5rem;">
+          <div style="width: 100%;">
             <div class="d-flex align-items-center justify-content-between">
-              <div>
-                <h5 style="font-weight: 800; margin: 0; font-size: 1.5rem; letter-spacing: -0.5px;">🎯 Ready to Launch</h5>
-                <small style="opacity: 0.95; font-size: 0.9rem; font-weight: 500;">Step 3/3 • Final Review</small>
+              <div class="d-flex align-items-center gap-2">
+                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                  <span style="color: white; font-weight: 800; font-size: 0.9rem;">AI</span>
+                </div>
+                <span style="font-weight: 700; color: #2d3748; font-size: 0.95rem;">Step 3/3</span>
               </div>
-              <div class="badge" style="background: rgba(255,255,255,0.25); font-size: 0.85rem; padding: 0.6rem 1.2rem; border-radius: 12px; font-weight: 700; backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">✅ All Set</div>
+              <div class="badge" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: 10px; font-weight: 700; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">✅ Ready</div>
             </div>
           </div>
-          <button type="button" class="btn-close btn-close-white" aria-label="Close" data-bs-dismiss="modal" style="position: absolute; right: 0.75rem; top: 0.75rem;"></button>
+          <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" style="position: absolute; right: 1.25rem; top: 1.25rem; opacity: 0.5;"></button>
         </div>
-        <div class="modal-body" style="padding: 2rem 1.5rem;">
-          <!-- Your Stats -->
-          <div class="mb-4">
-            <h6 style="font-weight: 800; color: #1e293b; font-size: 1.1rem; margin-bottom: 1rem;">
-              <i class="bi bi-graph-up me-2" style="font-size: 1.2rem;"></i>Your Email Stats
-            </h6>
-            <div class="row g-3">
-              <div class="col-4">
-                <div class="text-center" style="padding: 1.25rem 0.75rem; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 14px; border: 3px solid #93c5fd; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';">
-                  <div style="font-size: 2rem; font-weight: 900; color: #1e40af; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);" id="statSent">{{ stats.sent or 0 }}</div>
-                  <small style="color: #1e40af; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">Sent</small>
+        <div class="modal-body" style="padding: 1rem 2rem 3rem;">
+          <!-- Main Title -->
+          <div class="text-center mb-4">
+            <h2 style="font-weight: 800; color: #1a202c; font-size: 2rem; margin-bottom: 0.75rem; letter-spacing: -0.5px;">Ready to Launch</h2>
+            <p style="color: #718096; font-size: 0.95rem; line-height: 1.6; max-width: 450px; margin: 0 auto;">Review your stats and customize your email</p>
+          </div>
+
+          <!-- Central White Card -->
+          <div style="background: white; border-radius: 24px; padding: 2.5rem 2rem; box-shadow: 0 10px 40px rgba(139, 159, 255, 0.15); margin: 0 auto; max-width: 550px;">
+            <!-- Your Stats -->
+            <div class="mb-4">
+              <h6 style="font-weight: 700; color: #2d3748; font-size: 0.95rem; margin-bottom: 1rem;">
+                Your Email Stats
+              </h6>
+              <div class="row g-3">
+                <div class="col-4">
+                  <div class="text-center" style="padding: 1rem 0.5rem; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 12px; border: 2px solid #93c5fd;">
+                    <div style="font-size: 1.75rem; font-weight: 800; color: #1e40af;" id="statSent">{{ stats.sent or 0 }}</div>
+                    <small style="color: #1e40af; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">Sent</small>
+                  </div>
                 </div>
-              </div>
-              <div class="col-4">
-                <div class="text-center" style="padding: 1.25rem 0.75rem; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-radius: 14px; border: 3px solid #6ee7b7; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';">
-                  <div style="font-size: 2rem; font-weight: 900; color: #065f46; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);" id="statJobs">{{ stats.total_jobs or 0 }}</div>
-                  <small style="color: #065f46; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">Jobs</small>
+                <div class="col-4">
+                  <div class="text-center" style="padding: 1rem 0.5rem; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-radius: 12px; border: 2px solid #6ee7b7;">
+                    <div style="font-size: 1.75rem; font-weight: 800; color: #065f46;" id="statJobs">{{ stats.total_jobs or 0 }}</div>
+                    <small style="color: #065f46; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">Jobs</small>
+                  </div>
                 </div>
-              </div>
-              <div class="col-4">
-                <div class="text-center" style="padding: 1.25rem 0.75rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 14px; border: 3px solid #fbbf24; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';">
-                  <div style="font-size: 2rem; font-weight: 900; color: #92400e; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);" id="statRemaining">{{ stats.remaining or 0 }}</div>
-                  <small style="color: #92400e; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">Remaining</small>
+                <div class="col-4">
+                  <div class="text-center" style="padding: 1rem 0.5rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; border: 2px solid #fbbf24;">
+                    <div style="font-size: 1.75rem; font-weight: 800; color: #92400e;" id="statRemaining">{{ stats.remaining or 0 }}</div>
+                    <small style="color: #92400e; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">Remaining</small>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
           <!-- Email Subject -->
           <div class="mb-4">
-            <label class="form-label" style="font-weight: 800; color: #1e293b; font-size: 1.05rem; margin-bottom: 0.75rem;">
-              <i class="bi bi-envelope-paper me-2" style="font-size: 1.1rem;"></i>Email Subject Line
+            <label class="form-label" style="font-weight: 700; color: #2d3748; font-size: 0.9rem; margin-bottom: 0.5rem;">
+              Email Subject Line
             </label>
             <textarea class="form-control" id="finalEmailSubject" rows="2" 
-                      style="padding: 1rem 1.25rem; border-radius: 12px; border: 2.5px solid #93c5fd; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); font-size: 0.95rem; font-weight: 600; color: #1e293b; resize: none; transition: all 0.3s ease;"
-                      onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 4px rgba(59, 130, 246, 0.1)';"
-                      onblur="this.style.borderColor='#93c5fd'; this.style.boxShadow='none';"></textarea>
-            <small class="text-muted" style="font-weight: 600; margin-top: 0.5rem; display: block;">
-              <i class="bi bi-pencil me-1"></i>Edit if needed
+                      style="padding: 0.9rem 1.25rem; border-radius: 12px; border: 2px solid #e2e8f0; background: white; font-size: 0.95rem; font-weight: 600; color: #1e293b; resize: none; transition: all 0.3s ease;"
+                      onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';"
+                      onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"></textarea>
+            <small class="text-muted" style="font-weight: 500; margin-top: 0.5rem; display: block; font-size: 0.85rem;">
+              Customize your subject line
             </small>
+          </div>
+
+          <!-- Info Alert -->
+          <div class="alert" style="padding: 1rem; border-radius: 12px; font-size: 0.9rem; background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%); border: 2px solid #c7d2fe; color: #4c51bf; font-weight: 600; margin-bottom: 1.5rem;">
+            💡 AI will find recruiters on LinkedIn and send customized emails with your resume
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-flex gap-2">
+            <button type="button" class="btn" onclick="showStep(2)" 
+                    style="padding: 0.9rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.95rem; background: white; color: #667eea; border: 2px solid #667eea; transition: all 0.3s ease;"
+                    onmouseover="this.style.background='#f7fafc'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.2)';"
+                    onmouseout="this.style.background='white'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+              ← Back
+            </button>
+            <button type="button" onclick="launchAutomation()" class="btn flex-grow-1"
+                    style="padding: 0.9rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 1rem; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); color: white; border: none; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35); transition: all 0.3s ease;"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 28px rgba(102, 126, 234, 0.45)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.35)';">
+              🚀 Launch Automation
+            </button>
+          </div>
+        </div>
+      </div>
           </div>
 
           <!-- Quick Tips -->

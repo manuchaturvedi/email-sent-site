@@ -910,6 +910,8 @@ def login():
     id_token = data.get("idToken")
     display_name = data.get("displayName", "")
     
+    print(f"[LOGIN] Received login request - displayName: {display_name}", flush=True)
+    
     try:
         # Add clock skew tolerance to handle timestamp differences
         decoded_token = auth.verify_id_token(id_token, check_revoked=False, clock_skew_seconds=60)
@@ -917,47 +919,65 @@ def login():
         session["user"] = user_email
         
         # Log user in immediately
-        print(f"[OK] {user_email} logged in successfully!")
+        print(f"[LOGIN] ✅ {user_email} authenticated with Firebase", flush=True)
         
         # Check if this is a new user (doesn't exist in our database yet)
         is_new_user = False
         try:
+            print(f"[LOGIN] Checking if user exists in DB: {user_email}", flush=True)
             existing_profile = db.get_profile(user_email)
             if not existing_profile:
                 is_new_user = True
-                print(f"[INFO] New user detected: {user_email}")
-        except Exception:
-            pass
+                print(f"[LOGIN] 🆕 New user detected: {user_email}", flush=True)
+            else:
+                print(f"[LOGIN] ✅ Existing user found: {user_email}", flush=True)
+        except Exception as check_error:
+            print(f"[LOGIN] ⚠️ Error checking user existence: {check_error}", flush=True)
+            is_new_user = True  # Assume new user if check fails
         
         # Create or update user profile in SQLite
         try:
+            print(f"[LOGIN] Saving profile to DB - email={user_email}, name={display_name or decoded_token.get('name', '')}", flush=True)
             db.create_or_update_profile(
                 email=user_email,
                 display_name=display_name or decoded_token.get('name', ''),
                 photo_url=decoded_token.get('picture')
             )
-            print(f"[OK] User profile updated in database: {user_email}")
+            print(f"[LOGIN] ✅ User profile saved to database: {user_email}", flush=True)
+            
+            # Verify the save worked
+            verify_profile = db.get_profile(user_email)
+            if verify_profile:
+                print(f"[LOGIN] ✅ Profile verification successful: {user_email}", flush=True)
+            else:
+                print(f"[LOGIN] ❌ Profile verification FAILED - not found after save: {user_email}", flush=True)
+                
         except Exception as profile_error:
-            print(f"[WARN] Profile creation/check error: {profile_error}")
+            print(f"[LOGIN] ❌ Profile creation error: {profile_error}", flush=True)
+            import traceback
+            print(f"[LOGIN] Traceback: {traceback.format_exc()}", flush=True)
             # Continue login even if profile update fails
             if "429" in str(profile_error) or "Quota exceeded" in str(profile_error):
-                print(f"[WARN] Firestore quota exceeded - login successful but profile not synced")
+                print(f"[LOGIN] ⚠️ Quota exceeded - login successful but profile not synced", flush=True)
             else:
-                print(f"[WARN] Profile sync error (non-critical): {profile_error}")
+                print(f"[LOGIN] ⚠️ Profile sync error (non-critical): {profile_error}", flush=True)
         
         # Send welcome email to new users
         if is_new_user:
             try:
                 dashboard_url = url_for('landing', _external=True)
                 send_welcome_email(user_email, dashboard_url)
-                print(f"[OK] Welcome email sent to new user: {user_email}")
+                print(f"[LOGIN] ✅ Welcome email sent to new user: {user_email}", flush=True)
             except Exception as email_error:
-                print(f"[WARN] Failed to send welcome email to {user_email}: {email_error}")
+                print(f"[LOGIN] ⚠️ Failed to send welcome email to {user_email}: {email_error}", flush=True)
                 # Don't fail login if welcome email fails
         
+        print(f"[LOGIN] ✅ Login complete for: {user_email}", flush=True)
         return jsonify({"status": "success"}), 200
     except Exception as e:
-        print(f"[ERROR] Login failed: {e}")
+        print(f"[LOGIN] ❌ Login failed: {e}", flush=True)
+        import traceback
+        print(f"[LOGIN] Traceback: {traceback.format_exc()}", flush=True)
         return jsonify({"error": str(e)}), 401
 
 
@@ -4061,7 +4081,7 @@ def admin_panel():
     except Exception as e:
         print(f"Admin panel error: {e}")
         flash(f"Error loading admin panel: {str(e)}", "danger")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('landing'))
 
 @app.route('/admin/api/stats')
 @admin_required

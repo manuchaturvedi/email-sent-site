@@ -43,7 +43,7 @@ def admin_required(f):
         if user_email != ADMIN_EMAIL:
             print(f"[DEBUG] admin_required: Access denied - not admin", flush=True)
             flash("Access denied. Admin only!", "danger")
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('landing'))
         
         print(f"[DEBUG] admin_required: Access granted", flush=True)
         return f(*args, **kwargs)

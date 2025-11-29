@@ -2993,7 +2993,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           `<div class="card mb-2" style="border: 2px solid ${idx === 0 ? '#667eea' : '#dee2e6'}; border-radius: 10px; cursor: pointer; transition: all 0.3s; box-shadow: ${idx === 0 ? '0 4px 12px rgba(102,126,234,0.15)' : 'none'};" onclick="document.getElementById('subject${idx}').checked = true; document.querySelectorAll('.card').forEach(c => { c.style.border = '2px solid #dee2e6'; c.style.boxShadow = 'none'; }); this.style.border = '2px solid #667eea'; this.style.boxShadow = '0 4px 12px rgba(102,126,234,0.15)';">
             <div class="card-body py-2 px-3">
               <div class="form-check mb-0 d-flex align-items-start" style="padding: 0 !important; background: transparent !important; gap: 0.5rem;">
-                <input class="form-check-input flex-shrink-0" type="radio" name="subjectOption" id="subject${idx}" value="${subj}" ${idx === 0 ? 'checked' : ''} style="width: 16px; height: 16px; margin-top: 0.25rem; margin-left: 1.3 rem;border: 2px solid #cbd5e1; cursor: pointer;">
+                <input class="form-check-input flex-shrink-0" type="radio" name="subjectOption" id="subject${idx}" value="${subj}" ${idx === 0 ? 'checked' : ''} style="width: 16px; height: 16px; margin-top: 0.25rem; margin-left: 1.5 rem;border: 2px solid #cbd5e1; cursor: pointer;">
                 <label class="form-check-label flex-grow-1" for="subject${idx}" style="cursor: pointer; font-size: 0.875rem !important; color: #334155 !important; font-weight: 500; line-height: 1.6; margin: 0; padding: 0;">
                   ${subj}
                 </label>

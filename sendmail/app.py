@@ -40,6 +40,8 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from datetime import datetime, timedelta
 import json
 import platform
+import urllib3.exceptions
+import http.client
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -2766,19 +2768,31 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     log("[STOP!] Automation stopped by user")
                     return
                 
-                # Scroll down
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(3)  # Wait for content to load
-                
-                # Calculate new scroll height and compare with last scroll height
-                new_height = driver.execute_script("return document.body.scrollHeight")
-                if new_height == last_height:
-                    # If heights are the same, content might be fully loaded
-                    break
+                # Scroll down with error handling
+                try:
+                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(3)  # Wait for content to load
+                    
+                    # Calculate new scroll height and compare with last scroll height
+                    new_height = driver.execute_script("return document.body.scrollHeight")
+                    if new_height == last_height:
+                        # If heights are the same, content might be fully loaded
+                        break
 
-                last_height = new_height
-                scroll_attempts += 1
-                log(f"[SCROLL] Scrolling... ({scroll_attempts}/{max_attempts})")
+                    last_height = new_height
+                    scroll_attempts += 1
+                    log(f"[SCROLL] Scrolling... ({scroll_attempts}/{max_attempts})")
+                except (urllib3.exceptions.ProtocolError, http.client.RemoteDisconnected):
+                    log(f"[WARN] Scroll connection error at attempt {scroll_attempts}, checking browser...")
+                    try:
+                        driver.current_url  # Test if browser is alive
+                        log("[OK] Browser still responsive, continuing...")
+                    except:
+                        log("[ERROR] Browser crashed during scroll, stopping...")
+                        break
+                except Exception as e:
+                    log(f"[WARN] Scroll error: {e}")
+                    break
             
             # Add wait for job posts
             from selenium.webdriver.support.ui import WebDriverWait
@@ -4730,11 +4744,24 @@ def scrape_and_save_jobs(search_role, search_time='past-week', user_email=None, 
         driver.get(url)
         time.sleep(5)
         
-        # Scroll to load more posts
+        # Scroll to load more posts with error handling
         for i in range(scrolls):
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(2)
-            print(f"[SCRAPER] Scroll {i+1}/{scrolls}")
+            try:
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(2)
+                print(f"[SCRAPER] Scroll {i+1}/{scrolls}")
+            except (urllib3.exceptions.ProtocolError, http.client.RemoteDisconnected) as scroll_error:
+                print(f"[WARN] Scroll error on attempt {i+1}, Chrome may have crashed. Trying to recover...")
+                try:
+                    # Try to check if browser is still alive
+                    driver.current_url
+                    print(f"[SCRAPER] Browser still responsive, continuing...")
+                except:
+                    print(f"[ERROR] Browser crashed, stopping scroll at {i+1}/{scrolls}")
+                    break
+            except Exception as e:
+                print(f"[WARN] Unexpected scroll error: {e}")
+                break
         
         # Extract job posts
         posts = driver.find_elements(By.CSS_SELECTOR, ".feed-shared-update-v2")
@@ -5033,29 +5060,41 @@ def admin_scrape_jobs():
                 no_change_count = 0
                 
                 for i in range(scrolls):
-                    # Scroll up a bit first to trigger lazy loading
-                    current_scroll = driver.execute_script("return window.pageYOffset")
-                    driver.execute_script(f"window.scrollTo(0, {current_scroll - 100});")
-                    time.sleep(0.5)
-                    
-                    # Now scroll to bottom
-                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                    time.sleep(4)  # Increased wait time for content to load
-                    
-                    new_height = driver.execute_script("return document.body.scrollHeight")
-                    log(f"[SCROLL] Scrolling... ({i+1}/{scrolls}) - Height: {new_height}")
-                    
-                    if new_height == last_height:
-                        no_change_count += 1
-                        log(f"[SCROLL] No new content loaded (attempt {no_change_count}/3)")
-                        if no_change_count >= 3:
-                            log("[OK] Reached end of feed after 3 attempts")
+                    try:
+                        # Scroll up a bit first to trigger lazy loading
+                        current_scroll = driver.execute_script("return window.pageYOffset")
+                        driver.execute_script(f"window.scrollTo(0, {current_scroll - 100});")
+                        time.sleep(0.5)
+                        
+                        # Now scroll to bottom
+                        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                        time.sleep(4)  # Increased wait time for content to load
+                        
+                        new_height = driver.execute_script("return document.body.scrollHeight")
+                        log(f"[SCROLL] Scrolling... ({i+1}/{scrolls}) - Height: {new_height}")
+                        
+                        if new_height == last_height:
+                            no_change_count += 1
+                            log(f"[SCROLL] No new content loaded (attempt {no_change_count}/3)")
+                            if no_change_count >= 3:
+                                log("[OK] Reached end of feed after 3 attempts")
+                                break
+                            # Try waiting longer and scroll again
+                            time.sleep(2)
+                        else:
+                            no_change_count = 0  # Reset counter when new content loads
+                            last_height = new_height
+                    except (urllib3.exceptions.ProtocolError, http.client.RemoteDisconnected):
+                        log(f"[WARN] Connection lost during scroll {i+1}, checking browser...")
+                        try:
+                            driver.current_url
+                            log("[OK] Browser recovered, continuing...")
+                        except:
+                            log("[ERROR] Browser crashed, stopping scroll")
                             break
-                        # Try waiting longer and scroll again
-                        time.sleep(2)
-                    else:
-                        no_change_count = 0  # Reset counter when new content loads
-                        last_height = new_height
+                    except Exception as e:
+                        log(f"[ERROR] Scroll error: {e}")
+                        break
                 
                 log("[WAIT] Waiting for posts to load...")
                 wait = WebDriverWait(driver, 20)

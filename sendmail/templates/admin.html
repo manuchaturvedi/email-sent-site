@@ -211,6 +211,9 @@
                     <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.5rem 1rem; border-radius: 10px; font-weight: bold; font-size: 0.9rem;">✓ ADMIN PAGE LOADED</span>
                 </div>
                 <div class="d-flex gap-2">
+                    <a href="/admin/logs" class="btn btn-outline-info">
+                        <i class="bi bi-file-earmark-text"></i> View Logs
+                    </a>
                     <a href="/admin/job_posts" class="btn btn-outline-success">
                         <i class="bi bi-briefcase"></i> Manage Jobs
                     </a>
@@ -937,6 +940,42 @@
         }
         
         }); // End DOMContentLoaded
+        
+        // Sync Firebase Users
+        function syncFirebaseUsers() {
+            if (!confirm('Sync all Firebase users to the database? This will add any users that are not already in the database.')) {
+                return;
+            }
+            
+            const btn = event.target.closest('button');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Syncing...';
+            
+            fetch('/admin/sync-firebase-users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                
+                if (data.success) {
+                    alert(`Sync Complete!\n\nTotal Firebase users: ${data.total_firebase_users}\nNewly synced: ${data.newly_synced}\nAlready existed: ${data.already_existed}\n${data.errors.length > 0 ? '\nErrors: ' + data.errors.length : ''}`);
+                    location.reload();
+                } else {
+                    alert('Sync failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                alert('Sync failed: ' + error.message);
+            });
+        }
     </script>
 </body>
 </html>

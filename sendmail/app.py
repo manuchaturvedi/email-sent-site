@@ -1,9 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, Response
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, Response, send_file
 from functools import wraps
 import firebase_admin
 from firebase_admin import credentials, auth
 from job_analyzer import JobAnalyzer
 from database import Database  # Import SQLite database
+
+# Import logging
+from logger_config import app_logger, error_logger, scraper_logger, auth_logger, email_logger, LOGS_DIR
 
 # Import utilities from refactored modules
 from utils.helpers import extract_company_from_email, parse_skills
@@ -4393,6 +4396,105 @@ def admin_sync_firebase_users():
         print(f"[ERROR] Firebase sync error: {str(e)}", flush=True)
         import traceback
         traceback.print_exc()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/logs')
+@admin_required
+def admin_logs():
+    """Admin page to view application logs"""
+    return render_template('admin_logs.html')
+
+@app.route('/admin/logs/list')
+@admin_required
+def admin_logs_list():
+    """Get list of available log files"""
+    try:
+        log_files = []
+        for filename in os.listdir(LOGS_DIR):
+            if filename.endswith('.log'):
+                filepath = os.path.join(LOGS_DIR, filename)
+                size = os.path.getsize(filepath)
+                modified = datetime.fromtimestamp(os.path.getmtime(filepath))
+                log_files.append({
+                    'name': filename,
+                    'size': size,
+                    'size_mb': round(size / 1024 / 1024, 2),
+                    'modified': modified.strftime('%Y-%m-%d %H:%M:%S')
+                })
+        
+        log_files.sort(key=lambda x: x['modified'], reverse=True)
+        return jsonify({'success': True, 'logs': log_files})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/logs/view/<filename>')
+@admin_required
+def admin_logs_view(filename):
+    """View log file content (last N lines)"""
+    try:
+        # Security: prevent path traversal
+        if '..' in filename or '/' in filename or '\\' in filename:
+            return jsonify({'success': False, 'message': 'Invalid filename'}), 400
+        
+        filepath = os.path.join(LOGS_DIR, filename)
+        if not os.path.exists(filepath):
+            return jsonify({'success': False, 'message': 'Log file not found'}), 404
+        
+        lines = int(request.args.get('lines', 500))
+        
+        # Read last N lines
+        with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+            all_lines = f.readlines()
+            last_lines = all_lines[-lines:]
+            content = ''.join(last_lines)
+        
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'content': content,
+            'total_lines': len(all_lines),
+            'showing_lines': len(last_lines)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/logs/download/<filename>')
+@admin_required
+def admin_logs_download(filename):
+    """Download log file"""
+    try:
+        # Security: prevent path traversal
+        if '..' in filename or '/' in filename or '\\' in filename:
+            return jsonify({'success': False, 'message': 'Invalid filename'}), 400
+        
+        filepath = os.path.join(LOGS_DIR, filename)
+        if not os.path.exists(filepath):
+            return jsonify({'success': False, 'message': 'Log file not found'}), 404
+        
+        return send_file(filepath, as_attachment=True, download_name=filename)
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/logs/clear/<filename>', methods=['POST'])
+@admin_required
+def admin_logs_clear(filename):
+    """Clear log file content"""
+    try:
+        # Security: prevent path traversal
+        if '..' in filename or '/' in filename or '\\' in filename:
+            return jsonify({'success': False, 'message': 'Invalid filename'}), 400
+        
+        filepath = os.path.join(LOGS_DIR, filename)
+        if not os.path.exists(filepath):
+            return jsonify({'success': False, 'message': 'Log file not found'}), 404
+        
+        # Clear file content
+        with open(filepath, 'w') as f:
+            f.write('')
+        
+        app_logger.info(f"Log file cleared by admin: {filename}")
+        return jsonify({'success': True, 'message': f'{filename} cleared'})
+    except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/admin/api/user_count')

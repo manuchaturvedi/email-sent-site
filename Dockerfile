@@ -58,7 +58,8 @@ RUN mkdir -p /app/uploads \
     /app/chrome-profile \
     /app/sendmail/uploads \
     /app/sendmail/templates \
-    /app/scripts
+    /app/scripts \
+    /app/logs
 
 # Copy Chrome profile if it exists (optional - can be mounted as volume)
 # COPY chrome-profile/ /app/chrome-profile/

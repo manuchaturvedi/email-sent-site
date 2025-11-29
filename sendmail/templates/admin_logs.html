@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Logs - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .log-viewer {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .log-file-item {
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .log-file-item:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+        .log-file-item.active {
+            background: #e7f3ff;
+            border-color: #667eea;
+            border-width: 2px;
+        }
+        .error-line {
+            color: #f48771;
+        }
+        .warning-line {
+            color: #dcdcaa;
+        }
+        .info-line {
+            color: #4ec9b0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-file-earmark-text" style="font-size: 2rem; color: #667eea;"></i>
+                    <h1 class="mb-0">Application Logs</h1>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" onclick="refreshLogs()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                    <a href="/admin" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Log Files List -->
+            <div class="col-md-4">
+                <div class="content-card">
+                    <h4><i class="bi bi-folder2-open"></i> Log Files</h4>
+                    <div id="logFilesList">
+                        <div class="text-center text-muted py-3">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading log files...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Viewer -->
+            <div class="col-md-8">
+                <div class="content-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 id="currentLogName"><i class="bi bi-file-text"></i> Select a log file</h4>
+                        <div class="btn-group" id="logActions" style="display: none;">
+                            <button class="btn btn-sm btn-outline-primary" onclick="downloadLog()">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" onclick="clearLog()">
+                                <i class="bi bi-trash"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="lineCount" class="form-label">Lines to display:</label>
+                        <select id="lineCount" class="form-select form-select-sm w-auto" onchange="viewLog(currentLogFile)">
+                            <option value="100">Last 100 lines</option>
+                            <option value="500" selected>Last 500 lines</option>
+                            <option value="1000">Last 1000 lines</option>
+                            <option value="5000">Last 5000 lines</option>
+                        </select>
+                    </div>
+
+                    <div id="logContent">
+                        <div class="log-viewer">
+                            <div class="text-center text-muted py-5">
+                                <i class="bi bi-file-earmark-text" style="font-size: 3rem;"></i>
+                                <p class="mt-3">Select a log file to view its contents</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentLogFile = null;
+
+        // Load log files on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLogFiles();
+            // Auto-refresh every 30 seconds
+            setInterval(function() {
+                if (currentLogFile) {
+                    viewLog(currentLogFile);
+                }
+            }, 30000);
+        });
+
+        function loadLogFiles() {
+            fetch('/admin/logs/list')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayLogFiles(data.logs);
+                    } else {
+                        document.getElementById('logFilesList').innerHTML = 
+                            '<div class="alert alert-danger">Error loading logs: ' + data.message + '</div>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('logFilesList').innerHTML = 
+                        '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+                });
+        }
+
+        function displayLogFiles(logs) {
+            if (logs.length === 0) {
+                document.getElementById('logFilesList').innerHTML = 
+                    '<div class="alert alert-info">No log files found</div>';
+                return;
+            }
+
+            let html = '';
+            logs.forEach(log => {
+                html += `
+                    <div class="log-file-item" onclick="viewLog('${log.name}')">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <i class="bi bi-file-earmark-text"></i>
+                                <strong>${log.name}</strong>
+                            </div>
+                            <span class="badge bg-secondary">${log.size_mb} MB</span>
+                        </div>
+                        <small class="text-muted">Modified: ${log.modified}</small>
+                    </div>
+                `;
+            });
+            document.getElementById('logFilesList').innerHTML = html;
+        }
+
+        function viewLog(filename) {
+            currentLogFile = filename;
+            const lines = document.getElementById('lineCount').value;
+            
+            // Update active state
+            document.querySelectorAll('.log-file-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.log-file-item')?.classList.add('active');
+            
+            document.getElementById('currentLogName').innerHTML = 
+                '<i class="bi bi-file-text"></i> ' + filename;
+            document.getElementById('logActions').style.display = 'block';
+            
+            document.getElementById('logContent').innerHTML = 
+                '<div class="log-viewer"><div class="text-center"><div class="spinner-border" role="status"></div><p class="mt-2">Loading...</p></div></div>';
+            
+            fetch(`/admin/logs/view/${filename}?lines=${lines}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayLogContent(data);
+                    } else {
+                        document.getElementById('logContent').innerHTML = 
+                            '<div class="alert alert-danger">Error: ' + data.message + '</div>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('logContent').innerHTML = 
+                        '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+                });
+        }
+
+        function displayLogContent(data) {
+            let content = data.content;
+            
+            // Colorize log levels
+            content = content.replace(/ERROR/g, '<span class="error-line">ERROR</span>');
+            content = content.replace(/WARNING/g, '<span class="warning-line">WARNING</span>');
+            content = content.replace(/INFO/g, '<span class="info-line">INFO</span>');
+            
+            document.getElementById('logContent').innerHTML = `
+                <div class="mb-2">
+                    <span class="badge bg-info">Showing ${data.showing_lines} of ${data.total_lines} lines</span>
+                </div>
+                <div class="log-viewer">${content}</div>
+            `;
+            
+            // Scroll to bottom
+            const viewer = document.querySelector('.log-viewer');
+            viewer.scrollTop = viewer.scrollHeight;
+        }
+
+        function downloadLog() {
+            if (!currentLogFile) return;
+            window.location.href = `/admin/logs/download/${currentLogFile}`;
+        }
+
+        function clearLog() {
+            if (!currentLogFile) return;
+            
+            if (!confirm(`Are you sure you want to clear ${currentLogFile}? This cannot be undone.`)) {
+                return;
+            }
+            
+            fetch(`/admin/logs/clear/${currentLogFile}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    viewLog(currentLogFile);
+                    loadLogFiles();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            });
+        }
+
+        function refreshLogs() {
+            loadLogFiles();
+            if (currentLogFile) {
+                viewLog(currentLogFile);
+            }
+        }
+    </script>
+</body>
+</html>

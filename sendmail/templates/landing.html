@@ -11,11 +11,12 @@
             <div style="width: 100%;">
               <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-2">
-                  <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-stars" style="color: white; font-size: 1rem;"></i>
+                 <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" alt="JustMailIt" style="width: 24px; height: 24px; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: white; font-weight: 800; font-size: 0.9rem;\'>AI</span>'">
                   </div>
-                  <span style="font-weight: 700; color: #2d3748; font-size: 0.95rem;">AI Powered</span>
-                </div>
+                
+                <span style="font-weight: 700; color: #2d3748; font-size: 0.95rem;">JustMailIt</span>
+              </div>
               </div>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="position: absolute; right: 1.25rem; top: 1.25rem; opacity: 0.5;"></button>
@@ -41,7 +42,7 @@
                   </div>
                   <div style="flex: 1;">
                     <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">Upload your resume</h6>
-                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">PDF works best</p>
+                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">AI reads your skills AND Create professional mail for you</p>
                   </div>
                 </div>
 
@@ -51,8 +52,8 @@
                     <span style="color: white; font-weight: 800; font-size: 1rem;">2</span>
                   </div>
                   <div style="flex: 1;">
-                    <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">AI reads your skills</h6>
-                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">Automatically extracts from resume</p>
+                    <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">We run live automation to get post from linkedin/h6>
+                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">send mail to recuriters how is hirinh</p>
                   </div>
                 </div>
 
@@ -62,8 +63,8 @@
                     <span style="color: white; font-weight: 800; font-size: 1rem;">3</span>
                   </div>
                   <div style="flex: 1;">
-                    <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">We find LinkedIn job posts</h6>
-                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">Matching your skills and preferences</p>
+                    <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">Check your mailbox</h6>
+                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">And verify replies from recruiters</p>
                   </div>
                 </div>
 
@@ -73,31 +74,16 @@
                     <span style="color: white; font-weight: 800; font-size: 1rem;">4</span>
                   </div>
                   <div style="flex: 1;">
-                    <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">We send personalized emails</h6>
-                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">To recruiters with your resume</p>
+                    <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">Expolore other job post and just click apply</h6>
+                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">it will send mail to recuriter with you details</p>
                   </div>
                 </div>
 
-                <!-- Step 5 -->
-                <div style="display: flex; align-items: start; gap: 1rem;">
-                  <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <span style="color: white; font-weight: 800; font-size: 1rem;">5</span>
-                  </div>
-                  <div style="flex: 1;">
-                    <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">Check your mailbox</h6>
-                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">And verify replies from recruiters</p>
-                  </div>
-                </div>
+                
 
               </div>
 
-              <!-- Info Notice -->
-              <div style="margin-top: 1.5rem; padding: 1rem 1.25rem; background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%); border-radius: 12px; border: 2px solid #c7d2fe;">
-                <p style="margin: 0; color: #2d3748; font-size: 0.85rem; display: flex; align-items-center; gap: 0.5rem;">
-                  <i class="bi bi-info-circle" style="color: #667eea; font-size: 1.1rem;"></i>
-                  <span>You can review the email subject/body before sending</span>
-                </p>
-              </div>
+             
 
               <!-- Buttons -->
               <div class="d-flex gap-2 mt-3">

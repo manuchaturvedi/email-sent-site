@@ -13,7 +13,8 @@ from utils.helpers import extract_company_from_email, parse_skills
 from utils.decorators import login_required, admin_required, ADMIN_EMAIL
 from services.email_service import (send_plain_email, send_admin_alert, 
                                    send_verification_email, send_password_reset_email,
-                                   send_welcome_email, send_automation_summary_email)
+                                   send_welcome_email, send_automation_summary_email,
+                                   send_missed_opportunity_email, send_success_summary_email)
 from services.job_service import (
     is_duplicate_job_post, load_job_posts, save_job_post,
     load_sent_emails, get_user_email_stats, prepare_email_record,
@@ -209,25 +210,70 @@ clients_lock = threading.Lock()
 
 def send_upgrade_notification_email(user_email, user_name, plan, duration_days=None, upgraded_by='self'):
     """Send email notification when user is upgraded to Pro"""
+    from services.email_service import send_html_email, get_html_template
+    from datetime import datetime, timedelta
+    
     try:
-        # Gmail SMTP settings
-        smtp_server = "smtp.gmail.com"
-        smtp_port = 587
-        sender_email = "mail@justmailit.in"
-        smtp_user = "manudrive06@gmail.com"
-        sender_password = "ozds nrqo gduy mnwd"
-        
         # Calculate expiry date
-        from datetime import datetime, timedelta
         if duration_days:
             expiry_date = (datetime.now() + timedelta(days=duration_days)).strftime('%B %d, %Y')
         else:
             expiry_date = (datetime.now() + timedelta(days=30)).strftime('%B %d, %Y')
         
-        # Email subject and body based on who upgraded
+        # Email subject and content based on who upgraded
         if upgraded_by == 'admin':
             subject = "🎉 Your JustMailIt Account Has Been Upgraded to Pro!"
-            body = f"""Hi {user_name},
+            
+            html_content = get_html_template(f'''
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">🎉</div>
+                    <h2 style="color: #2d3748; margin: 0 0 10px 0; font-size: 26px; font-weight: 700;">Congratulations!</h2>
+                    <p style="color: #718096; margin: 0; font-size: 16px;">Your account has been upgraded to Pro</p>
+                </div>
+                
+                <p style="color: #4a5568; margin: 0 0 25px 0; font-size: 15px; line-height: 1.6;">
+                    Hi <strong>{user_name}</strong>,
+                </p>
+                
+                <p style="color: #4a5568; margin: 0 0 25px 0; font-size: 15px; line-height: 1.6;">
+                    Great news! Your JustMailIt account has been upgraded to <strong style="color: #667eea;">Pro plan</strong> by our admin team!
+                </p>
+                
+                <div style="background: linear-gradient(135deg, #ffd89b, #19547b); padding: 30px; border-radius: 10px; margin: 25px 0;">
+                    <h3 style="color: #ffffff; margin: 0 0 20px 0; font-size: 20px; font-weight: 700; text-align: center;">✨ Your Pro Benefits</h3>
+                    <ul style="color: #ffffff; margin: 0; padding-left: 20px; line-height: 2; font-size: 15px;">
+                        <li><strong>🚀 Unlimited job applications</strong> - no more daily limits</li>
+                        <li><strong>⚡ Priority support</strong> from our team</li>
+                        <li><strong>🤖 Advanced AI-powered</strong> job matching</li>
+                        <li><strong>🎯 Extended profile</strong> customization</li>
+                        <li><strong>📧 No restrictions</strong> on email sending</li>
+                    </ul>
+                </div>
+                
+                <div style="background-color: #f7fafc; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center;">
+                    <p style="color: #718096; margin: 0 0 5px 0; font-size: 14px;">📅 Your Pro plan is active until</p>
+                    <p style="color: #2d3748; margin: 0; font-size: 20px; font-weight: 700;">{expiry_date}</p>
+                </div>
+                
+                <p style="color: #4a5568; margin: 25px 0; font-size: 15px; line-height: 1.6;">
+                    You can now enjoy unlimited job applications and make the most of your job search!
+                </p>
+                
+                <div style="text-align: center; margin: 35px 0;">
+                    <a href="https://justmailit.in/dashboard" style="display: inline-block; background: linear-gradient(135deg, #667eea, #764ba2); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.4);">
+                        Go to Dashboard
+                    </a>
+                </div>
+                
+                <div style="background-color: #ebf8ff; padding: 20px; border-radius: 8px; border-left: 4px solid #4299e1; margin: 30px 0;">
+                    <p style="color: #2c5282; margin: 0; font-size: 14px; line-height: 1.6;">
+                        <strong>💡 Need Help?</strong><br>
+                        Reply to this email or visit our support page. We're here to help!
+                    </p>
+                </div>
+            ''', "Account Upgraded to Pro")
+            
+            plain_text = f"""Hi {user_name},
 
 Great news! Your JustMailIt account has been upgraded to Pro plan by our admin team!
 
@@ -247,15 +293,63 @@ Login to your dashboard: https://justmailit.in/dashboard
 Need help? Reply to this email or visit our support page.
 
 Best regards,
-The JustMailIt Team
-https://justmailit.in
-
----
-This is an automated notification from JustMailIt.
-"""
+The JustMailIt Team"""
+            
         else:
             subject = "🎉 Welcome to JustMailIt Pro!"
-            body = f"""Hi {user_name},
+            
+            html_content = get_html_template(f'''
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">🚀</div>
+                    <h2 style="color: #2d3748; margin: 0 0 10px 0; font-size: 26px; font-weight: 700;">Welcome to Pro!</h2>
+                    <p style="color: #718096; margin: 0; font-size: 16px;">Your payment was successful</p>
+                </div>
+                
+                <p style="color: #4a5568; margin: 0 0 25px 0; font-size: 15px; line-height: 1.6;">
+                    Hi <strong>{user_name}</strong>,
+                </p>
+                
+                <p style="color: #4a5568; margin: 0 0 25px 0; font-size: 15px; line-height: 1.6;">
+                    Thank you for upgrading to <strong style="color: #667eea;">JustMailIt Pro</strong>! 🎉
+                </p>
+                
+                <div style="background: linear-gradient(135deg, #a8edea, #fed6e3); padding: 25px; border-radius: 10px; margin: 25px 0; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 15px;">✅</div>
+                    <h3 style="color: #2d3748; margin: 0; font-size: 18px; font-weight: 700;">Payment Successful</h3>
+                    <p style="color: #4a5568; margin: 10px 0 0 0; font-size: 14px;">Your Pro subscription is now active</p>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 30px; border-radius: 10px; margin: 25px 0;">
+                    <h3 style="color: #ffffff; margin: 0 0 20px 0; font-size: 20px; font-weight: 700; text-align: center;">✨ Your Pro Benefits</h3>
+                    <ul style="color: #ffffff; margin: 0; padding-left: 20px; line-height: 2; font-size: 15px;">
+                        <li><strong>🚀 Unlimited job applications</strong> - send as many emails as you need</li>
+                        <li><strong>⚡ Priority support</strong> from our team</li>
+                        <li><strong>🤖 Advanced AI-powered</strong> job matching</li>
+                        <li><strong>🎯 Extended profile</strong> customization</li>
+                        <li><strong>📧 No daily email limits</strong></li>
+                    </ul>
+                </div>
+                
+                <div style="background-color: #f7fafc; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center;">
+                    <p style="color: #718096; margin: 0 0 5px 0; font-size: 14px;">📅 Your subscription is valid until</p>
+                    <p style="color: #2d3748; margin: 0; font-size: 20px; font-weight: 700;">{expiry_date}</p>
+                </div>
+                
+                <div style="text-align: center; margin: 35px 0;">
+                    <a href="https://justmailit.in/dashboard" style="display: inline-block; background: linear-gradient(135deg, #667eea, #764ba2); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.4);">
+                        Start Sending Unlimited Emails
+                    </a>
+                </div>
+                
+                <div style="background-color: #fffff0; padding: 20px; border-radius: 8px; border-left: 4px solid #f6ad55; margin: 30px 0;">
+                    <p style="color: #744210; margin: 0; font-size: 14px; line-height: 1.6;">
+                        <strong>💡 Questions or need assistance?</strong><br>
+                        Feel free to reach out to us. We're here to help you succeed!
+                    </p>
+                </div>
+            ''', "Welcome to Pro")
+            
+            plain_text = f"""Hi {user_name},
 
 Thank you for upgrading to JustMailIt Pro! 🚀
 
@@ -275,31 +369,14 @@ Start sending unlimited job applications now: https://justmailit.in/dashboard
 If you have any questions or need assistance, feel free to reach out to us.
 
 Best regards,
-The JustMailIt Team
-https://justmailit.in
-
----
-This is an automated confirmation from JustMailIt.
-"""
+The JustMailIt Team"""
         
-        # Create email message
-        msg = MIMEMultipart()
-        msg["From"] = f"JustMailIt <{sender_email}>"
-        msg["To"] = user_email
-        msg["Subject"] = subject
-        msg["Reply-To"] = sender_email
+        # Send HTML email
+        success = send_html_email(user_email, subject, html_content, plain_text)
         
-        msg.attach(MIMEText(body, "plain", "utf-8"))
-        
-        # Send email
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()
-        server.login(smtp_user, sender_password)
-        server.sendmail(sender_email, user_email, msg.as_string())
-        server.quit()
-        
-        print(f"[OK] Upgrade notification email sent to {user_email}")
-        return True
+        if success:
+            print(f"[OK] Upgrade notification email sent to {user_email}")
+        return success
         
     except Exception as e:
         print(f"[ERROR] Failed to send upgrade notification email: {str(e)}")
@@ -3202,63 +3279,18 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 # Send email notification to user about skipped emails
                 if user_email:
                     try:
-                        print(f"[EMAIL] Sending automation summary email to {user_email}")
+                        print(f"[EMAIL] Sending missed opportunity email to {user_email}")
                         
-                        # Create detailed email body
-                        skipped_list_html = '\n'.join([
-                            f"<li style='padding: 8px; border-bottom: 1px solid #eee;'><strong>{extract_company_from_email(email)}</strong> ({email})</li>"
-                            for email in skipped_emails[:10]
-                        ])
-                        
-                        if len(skipped_emails) > 10:
-                            skipped_list_html += f"<li style='padding: 8px; color: #666;'><em>...and {len(skipped_emails) - 10} more companies</em></li>"
-                        
-                        email_subject = f"⚠️ You Missed {len(skipped_emails)} Job Opportunities - Upgrade to Pro"
-                        email_body = f"""
-Hi there!
-
-Your automation just completed, but unfortunately you hit your Free plan limit.
-
-📊 AUTOMATION SUMMARY:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ Emails Successfully Sent: {emails_sent_count}/10
-❌ Emails Skipped (Limit Reached): {len(skipped_emails)}
-📧 Total Opportunities Found: {len(all_emails) + len(skipped_emails)}
-
-
-🏢 COMPANIES YOU MISSED:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-{chr(10).join([f"• {extract_company_from_email(email)} ({email})" for email in skipped_emails[:10]])}
-{f'...and {len(skipped_emails) - 10} more companies' if len(skipped_emails) > 10 else ''}
-
-
-💎 UPGRADE TO PRO AND NEVER MISS AN OPPORTUNITY!
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-With Pro, you get:
-✓ UNLIMITED daily emails (no more 10/day limit)
-✓ Priority email delivery
-✓ Advanced analytics and tracking
-✓ Custom email templates
-✓ Priority support
-
-👉 Upgrade Now: https://justmailit.in/pricing
-
-Don't let the Free plan limit hold back your career growth!
-
-Best regards,
-JustMailIt Team
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Need help? Reply to this email or visit https://justmailit.in
-"""
-                        
-                        _send_plain_email(
+                        send_missed_opportunity_email(
                             recipient_email=user_email,
-                            subject=email_subject,
-                            body=email_body
+                            emails_sent=emails_sent_count,
+                            skipped_count=len(skipped_emails),
+                            total_found=len(all_emails) + len(skipped_emails),
+                            skipped_emails=skipped_emails,
+                            extract_company_func=extract_company_from_email
                         )
                         
-                        print(f"[OK] Automation summary email sent to {user_email}")
+                        print(f"[OK] Missed opportunity email sent to {user_email}")
                         
                     except Exception as email_error:
                         print(f"[ERROR] Failed to send automation summary email: {str(email_error)}")
@@ -3286,43 +3318,10 @@ Need help? Reply to this email or visit https://justmailit.in
                 try:
                     print(f"[EMAIL] Sending success summary email to {user_email}")
                     
-                    email_subject = f"✅ Automation Complete - {emails_sent_count} Emails Sent Successfully!"
-                    email_body = f"""
-Hi there!
-
-Great news! Your automation completed successfully.
-
-📊 AUTOMATION SUMMARY:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ Emails Successfully Sent: {emails_sent_count}
-📧 Total Opportunities Found: {len(all_emails)}
-🎯 Success Rate: 100%
-
-
-🚀 NEXT STEPS:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• Check your sent emails in the dashboard
-• Track responses and follow-ups
-• Run automation again tomorrow for new opportunities
-
-
-💡 TIP: Upgrade to Pro for unlimited emails and never worry about daily limits!
-👉 https://justmailit.in/pricing
-
-
-Keep up the great work!
-
-Best regards,
-JustMailIt Team
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Need help? Reply to this email or visit https://justmailit.in
-"""
-                    
-                    _send_plain_email(
+                    send_success_summary_email(
                         recipient_email=user_email,
-                        subject=email_subject,
-                        body=email_body
+                        emails_sent=emails_sent_count,
+                        total_found=len(all_emails)
                     )
                     
                     print(f"[OK] Success summary email sent to {user_email}")

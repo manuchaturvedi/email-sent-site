@@ -4,24 +4,116 @@
     <!-- Simple Intro Modal: How it works -->
     <div class="modal fade" id="landingIntroModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border:none; border-radius:16px; overflow:hidden;">
-          <div class="modal-header" style="background:linear-gradient(135deg,#a8e6cf,#8b9fff); color:white;">
-            <h5 class="modal-title"><i class="bi bi-stars me-2"></i>How JustMailIt Works</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content" style="border: none; border-radius: 32px; overflow: hidden; box-shadow: 0 25px 80px rgba(139, 159, 255, 0.3); background: linear-gradient(180deg, #c8d5f7 0%, #e8ecff 35%, #ffffff 100%);">
+          
+          <!-- Header -->
+          <div class="modal-header" style="background: transparent; border: none; padding: 1.5rem 2rem 0.5rem;">
+            <div style="width: 100%;">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-stars" style="color: white; font-size: 1rem;"></i>
+                  </div>
+                  <span style="font-weight: 700; color: #2d3748; font-size: 0.95rem;">AI Powered</span>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="position: absolute; right: 1.25rem; top: 1.25rem; opacity: 0.5;"></button>
           </div>
-          <div class="modal-body" style="background:white;">
-            <ol class="mb-0 ps-3" style="line-height:1.8; color:#475569;">
-              <li><strong>Upload your resume</strong> (PDF works best).</li>
-              <li><strong>AI reads your skills</strong> from the resume.</li>
-              <li><strong>We find LinkedIn job posts</strong> matching your skills.</li>
-              <li><strong>We send personalized emails</strong> to recruiters with your resume.</li>
-              <li><strong>Check your mailbox</strong> and verify replies.</li>
-            </ol>
-            <div class="mt-3 text-muted small"><i class="bi bi-info-circle me-1"></i>You can review the email subject/body before sending.</div>
-          </div>
-          <div class="modal-footer" style="background:#fafafa;">
-            <button type="button" id="landingIntroGetStartedBtn" class="btn btn-primary"><i class="bi bi-person-plus me-2"></i>Get Started</button>
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+          
+          <div class="modal-body" style="padding: 1rem 2rem 2.5rem;">
+            <!-- Main Title -->
+            <div class="text-center mb-4">
+              <h2 style="font-weight: 800; color: #1a202c; font-size: 1.75rem; margin-bottom: 0.75rem; letter-spacing: -0.5px;">How JustMailIt Works</h2>
+              <p style="color: #718096; font-size: 0.9rem; line-height: 1.6;">Simple steps to automate your job search</p>
+            </div>
+
+            <!-- Central White Card -->
+            <div style="background: white; border-radius: 24px; padding: 2rem 1.75rem; box-shadow: 0 10px 40px rgba(139, 159, 255, 0.15);">
+              
+              <!-- Steps with Icons -->
+              <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                
+                <!-- Step 1 -->
+                <div style="display: flex; align-items: start; gap: 1rem;">
+                  <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <span style="color: white; font-weight: 800; font-size: 1rem;">1</span>
+                  </div>
+                  <div style="flex: 1;">
+                    <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">Upload your resume</h6>
+                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">PDF works best</p>
+                  </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div style="display: flex; align-items: start; gap: 1rem;">
+                  <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <span style="color: white; font-weight: 800; font-size: 1rem;">2</span>
+                  </div>
+                  <div style="flex: 1;">
+                    <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">AI reads your skills</h6>
+                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">Automatically extracts from resume</p>
+                  </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div style="display: flex; align-items: start; gap: 1rem;">
+                  <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <span style="color: white; font-weight: 800; font-size: 1rem;">3</span>
+                  </div>
+                  <div style="flex: 1;">
+                    <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">We find LinkedIn job posts</h6>
+                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">Matching your skills and preferences</p>
+                  </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div style="display: flex; align-items: start; gap: 1rem;">
+                  <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <span style="color: white; font-weight: 800; font-size: 1rem;">4</span>
+                  </div>
+                  <div style="flex: 1;">
+                    <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">We send personalized emails</h6>
+                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">To recruiters with your resume</p>
+                  </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div style="display: flex; align-items: start; gap: 1rem;">
+                  <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <span style="color: white; font-weight: 800; font-size: 1rem;">5</span>
+                  </div>
+                  <div style="flex: 1;">
+                    <h6 style="font-weight: 700; color: #1a202c; font-size: 0.95rem; margin-bottom: 0.25rem;">Check your mailbox</h6>
+                    <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 0;">And verify replies from recruiters</p>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Info Notice -->
+              <div style="margin-top: 1.5rem; padding: 1rem 1.25rem; background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%); border-radius: 12px; border: 2px solid #c7d2fe;">
+                <p style="margin: 0; color: #2d3748; font-size: 0.85rem; display: flex; align-items-center; gap: 0.5rem;">
+                  <i class="bi bi-info-circle" style="color: #667eea; font-size: 1.1rem;"></i>
+                  <span>You can review the email subject/body before sending</span>
+                </p>
+              </div>
+
+              <!-- Buttons -->
+              <div class="d-flex gap-2 mt-3">
+                <button type="button" id="landingIntroGetStartedBtn" class="btn flex-fill" style="padding: 0.875rem 1.5rem; border-radius: 14px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); color: white; border: none; font-size: 1rem; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35);"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 28px rgba(102, 126, 234, 0.45)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.35)';">
+                  <i class="bi bi-person-plus me-2"></i>Get Started
+                </button>
+                <button type="button" class="btn" data-bs-dismiss="modal" style="padding: 0.875rem 1.5rem; border-radius: 14px; font-weight: 600; background: white; color: #64748b; border: 2px solid #e2e8f0; font-size: 1rem; transition: all 0.3s ease;"
+                        onmouseover="this.style.borderColor='#cbd5e1'; this.style.color='#475569';"
+                        onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#64748b';">
+                  Close
+                </button>
+              </div>
+
+            </div>
           </div>
         </div>
       </div>

@@ -2449,47 +2449,330 @@
   </section>
 
   <!-- Social Proof / Testimonials -->
-  <section style="padding: 4rem 0; background: white;">
+  <section style="padding: 4rem 0; background: white; overflow: hidden;">
     <div class="container">
       <h2 class="section-title" style="margin-bottom:0.5rem;">Loved By Job Seekers</h2>
       <p class="section-subtitle">Real results with simple automation</p>
-      <div class="row g-4">
-        <div class="col-md-4">
-          <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
-            <div class="card-body">
-              <div class="mb-2" style="color:#f59e0b;">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+      
+      <!-- Testimonials Carousel -->
+      <div class="testimonials-carousel-wrapper" style="position: relative; margin-top: 3rem;">
+        <div class="testimonials-carousel" id="testimonialsCarousel">
+          <!-- Review 1 -->
+          <div class="testimonial-card">
+            <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08); border: none;">
+              <div class="card-body" style="padding: 2rem;">
+                <div class="d-flex align-items-center mb-3">
+                  <img src="https://ui-avatars.com/api/?name=Akash+Kumar&background=667eea&color=fff&size=60&bold=true" 
+                       alt="Akash Kumar" 
+                       style="width: 60px; height: 60px; border-radius: 50%; margin-right: 1rem; border: 3px solid #667eea;">
+                  <div>
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #2d3748;">Akash Kumar</div>
+                    <div style="color: #718096; font-size: 0.9rem;">Software Engineer</div>
+                  </div>
+                </div>
+                <div class="mb-3" style="color:#f59e0b; font-size: 1.2rem;">
+                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                </div>
+                <p style="color:#475569; font-size: 1rem; line-height: 1.6; margin: 0;">Sent 300+ applications in a week and got 5 callbacks. Setting this up took me 10 minutes. This is a game changer!</p>
               </div>
-              <p style="color:#475569;">Sent 300+ applications in a week and got 5 callbacks. Setting this up took me 10 minutes.</p>
-              <div class="fw-bold mt-2">Akash, Software Engineer</div>
+            </div>
+          </div>
+
+          <!-- Review 2 -->
+          <div class="testimonial-card">
+            <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08); border: none;">
+              <div class="card-body" style="padding: 2rem;">
+                <div class="d-flex align-items-center mb-3">
+                  <img src="https://ui-avatars.com/api/?name=Meera+Sharma&background=f59e0b&color=fff&size=60&bold=true" 
+                       alt="Meera Sharma" 
+                       style="width: 60px; height: 60px; border-radius: 50%; margin-right: 1rem; border: 3px solid #f59e0b;">
+                  <div>
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #2d3748;">Meera Sharma</div>
+                    <div style="color: #718096; font-size: 0.9rem;">Data Analyst</div>
+                  </div>
+                </div>
+                <div class="mb-3" style="color:#f59e0b; font-size: 1.2rem;">
+                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                </div>
+                <p style="color:#475569; font-size: 1rem; line-height: 1.6; margin: 0;">Personal emails worked way better than portals. I finally stopped copy-pasting messages. Got 3 interview calls in 2 days!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review 3 -->
+          <div class="testimonial-card">
+            <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08); border: none;">
+              <div class="card-body" style="padding: 2rem;">
+                <div class="d-flex align-items-center mb-3">
+                  <img src="https://ui-avatars.com/api/?name=Rohit+Verma&background=10b981&color=fff&size=60&bold=true" 
+                       alt="Rohit Verma" 
+                       style="width: 60px; height: 60px; border-radius: 50%; margin-right: 1rem; border: 3px solid #10b981;">
+                  <div>
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #2d3748;">Rohit Verma</div>
+                    <div style="color: #718096; font-size: 0.9rem;">Frontend Developer</div>
+                  </div>
+                </div>
+                <div class="mb-3" style="color:#f59e0b; font-size: 1.2rem;">
+                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                </div>
+                <p style="color:#475569; font-size: 1rem; line-height: 1.6; margin: 0;">Upload resume, click start. The AI does the boring work. I just review and send. Saved me 10+ hours every week!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review 4 -->
+          <div class="testimonial-card">
+            <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08); border: none;">
+              <div class="card-body" style="padding: 2rem;">
+                <div class="d-flex align-items-center mb-3">
+                  <img src="https://ui-avatars.com/api/?name=Priya+Patel&background=ec4899&color=fff&size=60&bold=true" 
+                       alt="Priya Patel" 
+                       style="width: 60px; height: 60px; border-radius: 50%; margin-right: 1rem; border: 3px solid #ec4899;">
+                  <div>
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #2d3748;">Priya Patel</div>
+                    <div style="color: #718096; font-size: 0.9rem;">Product Manager</div>
+                  </div>
+                </div>
+                <div class="mb-3" style="color:#f59e0b; font-size: 1.2rem;">
+                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                </div>
+                <p style="color:#475569; font-size: 1rem; line-height: 1.6; margin: 0;">Finally found a tool that actually works! Got responses from companies I never thought would reply. Landed my dream job in 3 weeks!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review 5 -->
+          <div class="testimonial-card">
+            <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08); border: none;">
+              <div class="card-body" style="padding: 2rem;">
+                <div class="d-flex align-items-center mb-3">
+                  <img src="https://ui-avatars.com/api/?name=Arjun+Singh&background=8b5cf6&color=fff&size=60&bold=true" 
+                       alt="Arjun Singh" 
+                       style="width: 60px; height: 60px; border-radius: 50%; margin-right: 1rem; border: 3px solid #8b5cf6;">
+                  <div>
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #2d3748;">Arjun Singh</div>
+                    <div style="color: #718096; font-size: 0.9rem;">DevOps Engineer</div>
+                  </div>
+                </div>
+                <div class="mb-3" style="color:#f59e0b; font-size: 1.2rem;">
+                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                </div>
+                <p style="color:#475569; font-size: 1rem; line-height: 1.6; margin: 0;">The automation is smooth and professional. Recruiters actually respond because emails feel personal. Best investment for job hunting!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review 6 -->
+          <div class="testimonial-card">
+            <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08); border: none;">
+              <div class="card-body" style="padding: 2rem;">
+                <div class="d-flex align-items-center mb-3">
+                  <img src="https://ui-avatars.com/api/?name=Sneha+Reddy&background=f97316&color=fff&size=60&bold=true" 
+                       alt="Sneha Reddy" 
+                       style="width: 60px; height: 60px; border-radius: 50%; margin-right: 1rem; border: 3px solid #f97316;">
+                  <div>
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #2d3748;">Sneha Reddy</div>
+                    <div style="color: #718096; font-size: 0.9rem;">UI/UX Designer</div>
+                  </div>
+                </div>
+                <div class="mb-3" style="color:#f59e0b; font-size: 1.2rem;">
+                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                </div>
+                <p style="color:#475569; font-size: 1rem; line-height: 1.6; margin: 0;">No more manual searching and emailing! This tool does everything. I got 8 responses in my first batch. Worth every rupee!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review 7 -->
+          <div class="testimonial-card">
+            <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08); border: none;">
+              <div class="card-body" style="padding: 2rem;">
+                <div class="d-flex align-items-center mb-3">
+                  <img src="https://ui-avatars.com/api/?name=Karan+Malhotra&background=06b6d4&color=fff&size=60&bold=true" 
+                       alt="Karan Malhotra" 
+                       style="width: 60px; height: 60px; border-radius: 50%; margin-right: 1rem; border: 3px solid #06b6d4;">
+                  <div>
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #2d3748;">Karan Malhotra</div>
+                    <div style="color: #718096; font-size: 0.9rem;">Full Stack Developer</div>
+                  </div>
+                </div>
+                <div class="mb-3" style="color:#f59e0b; font-size: 1.2rem;">
+                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                </div>
+                <p style="color:#475569; font-size: 1rem; line-height: 1.6; margin: 0;">Impressed by how it finds relevant jobs and crafts personalized emails. Got interview at a unicorn startup within 5 days!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review 8 -->
+          <div class="testimonial-card">
+            <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08); border: none;">
+              <div class="card-body" style="padding: 2rem;">
+                <div class="d-flex align-items-center mb-3">
+                  <img src="https://ui-avatars.com/api/?name=Anjali+Gupta&background=14b8a6&color=fff&size=60&bold=true" 
+                       alt="Anjali Gupta" 
+                       style="width: 60px; height: 60px; border-radius: 50%; margin-right: 1rem; border: 3px solid #14b8a6;">
+                  <div>
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #2d3748;">Anjali Gupta</div>
+                    <div style="color: #718096; font-size: 0.9rem;">Business Analyst</div>
+                  </div>
+                </div>
+                <div class="mb-3" style="color:#f59e0b; font-size: 1.2rem;">
+                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                </div>
+                <p style="color:#475569; font-size: 1rem; line-height: 1.6; margin: 0;">Best decision during my job search! Simple setup, powerful results. Received multiple offers and negotiated better salary. Highly recommend!</p>
+              </div>
             </div>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
-            <div class="card-body">
-              <div class="mb-2" style="color:#f59e0b;">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
-              <p style="color:#475569;">Personal emails worked way better than portals. I finally stopped copy-pasting messages.</p>
-              <div class="fw-bold mt-2">Meera, Data Analyst</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card h-100" style="border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
-            <div class="card-body">
-              <div class="mb-2" style="color:#f59e0b;">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
-              <p style="color:#475569;">Upload resume, click start. The AI does the boring work. I just review and send.</p>
-              <div class="fw-bold mt-2">Rohit, Frontend Developer</div>
-            </div>
-          </div>
+        
+        <!-- Navigation Dots -->
+        <div class="carousel-dots" style="text-align: center; margin-top: 2rem;">
+          <span class="dot active" onclick="currentSlide(0)"></span>
+          <span class="dot" onclick="currentSlide(1)"></span>
+          <span class="dot" onclick="currentSlide(2)"></span>
+          <span class="dot" onclick="currentSlide(3)"></span>
+          <span class="dot" onclick="currentSlide(4)"></span>
+          <span class="dot" onclick="currentSlide(5)"></span>
+          <span class="dot" onclick="currentSlide(6)"></span>
+          <span class="dot" onclick="currentSlide(7)"></span>
         </div>
       </div>
     </div>
   </section>
+
+  <style>
+    .testimonials-carousel-wrapper {
+      overflow: hidden;
+      position: relative;
+    }
+
+    .testimonials-carousel {
+      display: flex;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      gap: 1.5rem;
+    }
+
+    .testimonial-card {
+      min-width: calc(33.333% - 1rem);
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 992px) {
+      .testimonial-card {
+        min-width: calc(50% - 0.75rem);
+      }
+    }
+
+    @media (max-width: 576px) {
+      .testimonial-card {
+        min-width: 100%;
+      }
+    }
+
+    .dot {
+      height: 12px;
+      width: 12px;
+      margin: 0 6px;
+      background-color: #cbd5e0;
+      border-radius: 50%;
+      display: inline-block;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .dot:hover {
+      background-color: #a0aec0;
+      transform: scale(1.2);
+    }
+
+    .dot.active {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      width: 32px;
+      border-radius: 6px;
+    }
+  </style>
+
+  <script>
+    (function() {
+      let currentIndex = 0;
+      const carousel = document.getElementById('testimonialsCarousel');
+      const dots = document.querySelectorAll('.dot');
+      const totalCards = 8; // Total number of testimonials
+      
+      // Calculate cards visible based on screen width
+      function getVisibleCards() {
+        if (window.innerWidth <= 576) return 1;
+        if (window.innerWidth <= 992) return 2;
+        return 3;
+      }
+      
+      function updateCarousel() {
+        const visibleCards = getVisibleCards();
+        const cardWidth = 100 / visibleCards;
+        const maxIndex = Math.max(0, totalCards - visibleCards);
+        
+        // Ensure currentIndex doesn't exceed maxIndex
+        if (currentIndex > maxIndex) {
+          currentIndex = maxIndex;
+        }
+        
+        const translateX = -(currentIndex * cardWidth);
+        carousel.style.transform = `translateX(${translateX}%)`;
+        
+        // Update dots
+        dots.forEach((dot, index) => {
+          dot.classList.remove('active');
+          if (index === currentIndex) {
+            dot.classList.add('active');
+          }
+        });
+      }
+      
+      function nextSlide() {
+        const visibleCards = getVisibleCards();
+        const maxIndex = Math.max(0, totalCards - visibleCards);
+        
+        currentIndex++;
+        if (currentIndex > maxIndex) {
+          currentIndex = 0; // Loop back to start
+        }
+        updateCarousel();
+      }
+      
+      // Auto-slide every 4 seconds
+      let autoSlideInterval = setInterval(nextSlide, 4000);
+      
+      // Manual navigation
+      window.currentSlide = function(index) {
+        currentIndex = index;
+        updateCarousel();
+        
+        // Reset auto-slide interval when user manually navigates
+        clearInterval(autoSlideInterval);
+        autoSlideInterval = setInterval(nextSlide, 4000);
+      };
+      
+      // Update on window resize
+      let resizeTimeout;
+      window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(updateCarousel, 150);
+      });
+      
+      // Pause on hover
+      carousel.addEventListener('mouseenter', function() {
+        clearInterval(autoSlideInterval);
+      });
+      
+      carousel.addEventListener('mouseleave', function() {
+        autoSlideInterval = setInterval(nextSlide, 4000);
+      });
+      
+      // Initialize
+      updateCarousel();
+    })();
+  </script>
 
   <!-- Compliance & Safety -->
   <section style="padding: 4rem 0; background: linear-gradient(135deg, rgba(168,230,207,0.06), rgba(139,159,255,0.06));">

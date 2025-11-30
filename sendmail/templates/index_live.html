@@ -1842,6 +1842,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sent = window.stats?.emailsSent || 0;
     const failed = window.stats?.emailsFailed || 0;
     const skipped = window.stats?.emailsSkipped || Math.max(0, found - sent - failed);
+    
+    // Ensure buttons are in correct state
+    const runBtn = document.getElementById('runBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    
+    if (runBtn) {
+      runBtn.disabled = false;
+      runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
+      runBtn.style.display = 'block';
+    }
+    
+    if (stopBtn) {
+      stopBtn.style.display = 'none';
+    }
 
     const modal = document.createElement('div');
     modal.id = 'completionSummaryModal';
@@ -2427,7 +2441,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Show stop button
     const stopBtn = document.getElementById('stopBtn');
-    stopBtn.style.display = 'block';
+    if (stopBtn) {
+      stopBtn.style.display = 'block';
+    }
+    
+    // Hide run button, show stop button prominently
+    runBtn.style.display = 'none';
+    if (stopBtn) {
+      stopBtn.style.display = 'block';
+    }
     
     // Add automation-running class to shrink form and enlarge progress
     document.body.classList.add('automation-running');
@@ -2615,11 +2637,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Check for completion message (both formats)
     if (msg.includes("🎉 Automation completed") || msg.includes("✅ Automation completed")) {
       const runBtn = document.getElementById('runBtn');
+      const stopBtn = document.getElementById('stopBtn');
       const progressBar = document.getElementById('progressBar');
 
-      // Re-enable the run button
+      // Re-enable the run button and hide stop button
       runBtn.disabled = false;
-      runBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Run Automation';
+      runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
+      runBtn.style.display = 'block';
+      
+      if (stopBtn) {
+        stopBtn.style.display = 'none';
+      }
 
       // Show completion status
       progressBar.style.width = "100%";
@@ -2794,12 +2822,19 @@ document.addEventListener('DOMContentLoaded', async () => {
           evtSource.close();
           window.progressEventSource = null;
           const runBtn = document.getElementById('runBtn');
-          runBtn.disabled = false;
-          runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
+          const stopBtn = document.getElementById('stopBtn');
+          
+          // Show run button, hide stop button
+          if (runBtn) {
+            runBtn.disabled = false;
+            runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
+            runBtn.style.display = 'block';
+          }
           
           // Hide stop button
-          const stopBtn = document.getElementById('stopBtn');
-          stopBtn.style.display = 'none';
+          if (stopBtn) {
+            stopBtn.style.display = 'none';
+          }
           
           // Remove automation-running class to restore normal view
           document.body.classList.remove('automation-running');

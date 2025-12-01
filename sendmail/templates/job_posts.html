@@ -205,13 +205,49 @@
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
 
+.stat-tab .stat-icon i {
+    color: #667eea;
+}
+
 .stat-tab:hover .stat-icon {
     transform: scale(1.3) rotate(360deg);
+}
+
+.stat-tab:hover .stat-icon i {
+    color: #764ba2;
 }
 
 .stat-tab.active .stat-icon {
     transform: scale(1.2);
     filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.5));
+}
+
+.stat-tab.active .stat-icon i {
+    color: white;
+}
+
+/* Filter Input Groups */
+.input-group-text {
+    border: 2px solid #e8f3fe;
+    border-right: none;
+    color: #667eea;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.input-group .form-control,
+.input-group .skill-search-input {
+    border-left: none;
+    border: 2px solid #e8f3fe;
+}
+
+.input-group:focus-within .input-group-text {
+    border-color: #667eea;
+    background: #f0f9ff;
+}
+
+.input-group:focus-within .form-control {
+    border-color: #667eea;
 }
 
 /* Filter card animation */
@@ -1798,17 +1834,17 @@
         <!-- Stats Tabs -->
         <div class="stats-tabs">
             <div class="stat-tab active" data-filter="all" id="statAll">
-                <div class="stat-icon">📊</div>
+                <div class="stat-icon"><i class="bi bi-bar-chart-fill"></i></div>
                 <div class="stat-number" id="countAll">{{ job_posts|length }}</div>
                 <div class="stat-label">Total Posts</div>
             </div>
             <div class="stat-tab" data-filter="sent" id="statSent">
-                <div class="stat-icon">✅</div>
+                <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
                 <div class="stat-number" id="countSent">0</div>
                 <div class="stat-label">Already Sent</div>
             </div>
             <div class="stat-tab" data-filter="remaining" id="statRemaining">
-                <div class="stat-icon">⏳</div>
+                <div class="stat-icon"><i class="bi bi-clock-fill"></i></div>
                 <div class="stat-number" id="countRemaining">0</div>
                 <div class="stat-label">Remaining</div>
             </div>
@@ -1820,25 +1856,29 @@
                 <!-- Filters -->
                 <div class="filter-card">
                     <div class="row g-3 align-items-center">
-                        <div class="col-md-4">
-                            <input id="filterText" class="form-control skill-search-input" type="text" placeholder="🔍 Search description, company, or email..." />
+                        <div class="col-12 col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                                <input id="filterText" class="form-control skill-search-input" type="text" placeholder="Search description, company, or email..." />
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <input id="filterSkillSearch" class="form-control skill-search-input" type="text" placeholder="🏷️ Search skills..." />
+                        <div class="col-12 col-md-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-tags"></i></span>
+                                <input id="filterSkillSearch" class="form-control skill-search-input" type="text" placeholder="Search skills..." />
+                            </div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2">
                             <select id="filterStatus" class="form-select skill-search-input">
                                 <option value="">All Status</option>
                                 <option value="sent">Already Sent</option>
                                 <option value="not-sent">Not Sent</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-check" style="padding-top: 8px;">
-                                <input class="form-check-input" type="checkbox" value="" id="filterHasEmail">
-                                <label class="form-check-label" for="filterHasEmail">
-                                    📧 Has email only
-                                </label>
+                        <div class="col-6 col-md-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-geo-alt"></i></span>
+                                <input id="filterLocation" class="form-control skill-search-input" type="text" placeholder="Filter by location..." />
                             </div>
                         </div>
                     </div>
@@ -2103,7 +2143,7 @@
             const filterText = document.getElementById('filterText');
             const filterSkillSearch = document.getElementById('filterSkillSearch');
             const filterStatus = document.getElementById('filterStatus');
-            const filterHasEmail = document.getElementById('filterHasEmail');
+            const filterLocation = document.getElementById('filterLocation');
             const resetBtn = document.getElementById('resetFilters');
             const visibleCount = document.getElementById('visibleCount');
             const totalCount = document.getElementById('totalCount');
@@ -2263,6 +2303,7 @@
                 const desc = card.querySelector('.naukri-job-title')?.textContent.trim().toLowerCase() || '';
                 const email = card.querySelector('.naukri-contact-info a')?.textContent.trim().toLowerCase() || '';
                 const company = card.querySelector('.naukri-company-name')?.textContent.trim().toLowerCase() || '';
+                const location = card.querySelector('.naukri-job-info .info-item .bi-geo-alt-fill')?.parentElement?.textContent.trim().toLowerCase() || '';
 
                 // Tab filter (all/sent/remaining)
                 const isSent = card.querySelector('.btn-naukri-applied') || card.querySelector('.sent-badge');
@@ -2287,9 +2328,10 @@
                     if (filterStatus.value === 'not-sent' && isSent) return false;
                 }
 
-                // Has email filter
-                if (filterHasEmail.checked){
-                    if (!hasEmail) return false;
+                // Location filter
+                const locationQuery = filterLocation.value.trim().toLowerCase();
+                if (locationQuery && !location.includes(locationQuery)){
+                    return false;
                 }
 
                 return true;
@@ -2467,7 +2509,7 @@
                 paginationElement.appendChild(nextLi);
             }
 
-            [filterText, filterStatus, filterHasEmail].forEach(el => {
+            [filterText, filterStatus, filterLocation].forEach(el => {
                 if (el) el.addEventListener('input', function() {
                     currentPage = 1; // Reset to first page on filter change
                     applyFilters();
@@ -2483,7 +2525,7 @@
                 filterText.value = '';
                 filterSkillSearch.value = '';
                 filterStatus.value = '';
-                filterHasEmail.checked = false;
+                filterLocation.value = '';
                 selectedSkills.clear();
                 currentTabFilter = 'all';
                 currentPage = 1; // Reset to first page

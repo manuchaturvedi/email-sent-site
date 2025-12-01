@@ -926,6 +926,7 @@
 /* Contact Info Section - Compact */
 .naukri-contact-info {
     display: flex;
+    flex-direction: row;
     align-items: center;
     gap: 8px;
     color: #64748b;
@@ -935,30 +936,26 @@
     border-radius: 10px;
     border: 2px solid #e8f3fe;
     margin-top: auto;
-    white-space: nowrap;
-    overflow: hidden;
-    line-height: 1;
 }
 
 .naukri-contact-info i {
     color: #4a90e2;
     font-size: 1rem;
     flex-shrink: 0;
-    line-height: 1;
-    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
 }
 
 .naukri-contact-info a {
-    word-break: normal;
-    overflow-wrap: normal;
-    line-height: 1;
     color: #4a90e2;
     text-decoration: none;
     font-weight: 500;
     flex: 1;
-    display: inline-block;
-    text-overflow: ellipsis;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-flex;
+    align-items: center;
 }
 
 .naukri-contact-info a:hover {

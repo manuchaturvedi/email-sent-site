@@ -1302,6 +1302,255 @@
         padding: 15px;
     }
     
+    /* Job Details Modal Styling */
+    #jobDetailsModal .modal-dialog {
+        max-width: 800px;
+    }
+    
+    #jobDetailsModal .modal-content {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(74, 144, 226, 0.2);
+        overflow: hidden;
+    }
+    
+    #jobDetailsModal .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 20px 24px;
+    }
+    
+    #jobDetailsModal .modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    #jobDetailsModal .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.9;
+    }
+    
+    #jobDetailsModal .btn-close:hover {
+        opacity: 1;
+    }
+    
+    #jobDetailsModal .modal-body {
+        padding: 24px;
+        background: linear-gradient(135deg, #f8f9ff 0%, #f0f9ff 100%);
+    }
+    
+    .modal-info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        border: 2px solid #e8f3fe;
+        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
+        transition: all 0.3s ease;
+    }
+    
+    .modal-info-card:hover {
+        box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .modal-info-card h6 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #667eea;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .modal-info-card h6 i {
+        font-size: 1rem;
+    }
+    
+    .modal-info-card p,
+    .modal-info-card a {
+        font-size: 0.95rem;
+        color: #1a1a1a;
+        margin: 0;
+        font-weight: 500;
+    }
+    
+    .modal-info-card a {
+        color: #4a90e2;
+        text-decoration: none;
+        word-break: break-all;
+    }
+    
+    .modal-info-card a:hover {
+        text-decoration: underline;
+    }
+    
+    .modal-description-card {
+        background: white;
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 16px;
+        border: 2px solid #e8f3fe;
+        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
+    }
+    
+    .modal-description-card h6 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #667eea;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .modal-description-content {
+        background: linear-gradient(135deg, #f0f9ff 0%, #f8f9ff 100%);
+        border-radius: 10px;
+        padding: 16px;
+        max-height: 350px;
+        overflow-y: auto;
+        font-size: 0.9rem;
+        line-height: 1.7;
+        color: #475569;
+        white-space: pre-wrap;
+        border: 1px solid #e8f3fe;
+    }
+    
+    .modal-description-content::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .modal-description-content::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+    
+    .modal-description-content::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+    }
+    
+    .modal-skills-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        border: 2px solid #e8f3fe;
+        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
+    }
+    
+    .modal-skills-card h6 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #667eea;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .modal-skills-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .modal-skill-tag {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .modal-skill-tag:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+    }
+    
+    .modal-link-card {
+        background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        border: none;
+        box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        text-align: center;
+    }
+    
+    .modal-link-card h6 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: white;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .modal-link-card .btn {
+        background: white;
+        color: #4a90e2;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .modal-link-card .btn:hover {
+        background: #f8f9ff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    #jobDetailsModal .modal-footer {
+        background: white;
+        border: none;
+        padding: 16px 24px;
+        display: flex;
+        justify-content: center;
+    }
+    
+    #jobDetailsModal .modal-footer .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    #jobDetailsModal .modal-footer .btn:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+    
     #fullTextContent {
         font-size: 0.875rem;
         line-height: 1.6;
@@ -1690,8 +1939,8 @@
                     <!-- Email Info -->
                     {% if post.get('email') %}
                     <div class="naukri-contact-info">
-                        <i class="bi bi-envelope-fill"></i>
-                        <a href="mailto:{{ post.get('email', '') }}">{{ post.get('email', '') }}</a>
+                        <i class="bi bi-envelope-fill"><a href="mailto:{{ post.get('email', '') }}">{{ post.get('email', '') }}</a></i>
+                        
                     </div>
                     {% endif %}
                     
@@ -1769,40 +2018,54 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="jobDetailsModalLabel">
-                        <i class="bi bi-file-text-fill me-2"></i>Full Job Post
+                        <i class="bi bi-briefcase-fill"></i>
+                        <span>Job Details</span>
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <h6 class="text-primary"><i class="bi bi-building me-2"></i>Company</h6>
-                        <p id="modalCompany" class="mb-3"></p>
+                    <!-- Company Info Card -->
+                    <div class="modal-info-card">
+                        <h6><i class="bi bi-building"></i>Company</h6>
+                        <p id="modalCompany"></p>
                     </div>
-                    <div class="mb-3">
-                        <h6 class="text-primary"><i class="bi bi-envelope-at me-2"></i>Email</h6>
-                        <p id="modalEmail" class="mb-3"></p>
+                    
+                    <!-- Email Info Card -->
+                    <div class="modal-info-card">
+                        <h6><i class="bi bi-envelope-at"></i>Contact Email</h6>
+                        <a id="modalEmail" href="#"></a>
                     </div>
-                    <div class="mb-3">
-                        <h6 class="text-primary"><i class="bi bi-calendar-event me-2"></i>Posted Date</h6>
-                        <p id="modalDate" class="mb-3"></p>
+                    
+                    <!-- Posted Date Card -->
+                    <div class="modal-info-card">
+                        <h6><i class="bi bi-calendar-event"></i>Posted Date</h6>
+                        <p id="modalDate"></p>
                     </div>
-                    <div class="mb-3">
-                        <h6 class="text-primary"><i class="bi bi-file-earmark-text me-2"></i>Complete Job Post</h6>
-                        <div id="modalDescription" class="mb-3 p-3 bg-light rounded" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;"></div>
+                    
+                    <!-- Job Description Card -->
+                    <div class="modal-description-card">
+                        <h6><i class="bi bi-file-earmark-text"></i>Complete Job Description</h6>
+                        <div id="modalDescription" class="modal-description-content"></div>
                     </div>
-                    <div class="mb-3" id="skillsContainer">
-                        <h6 class="text-primary"><i class="bi bi-star-fill me-2"></i>Skills</h6>
-                        <div id="modalSkills"></div>
+                    
+                    <!-- Skills Card -->
+                    <div class="modal-skills-card" id="skillsContainer">
+                        <h6><i class="bi bi-star-fill"></i>Required Skills</h6>
+                        <div id="modalSkills" class="modal-skills-container"></div>
                     </div>
-                    <div class="mb-3" id="linkContainer">
-                        <h6 class="text-primary"><i class="bi bi-link-45deg me-2"></i>LinkedIn Post</h6>
-                        <a id="modalLink" href="#" target="_blank" class="btn btn-sm btn-primary">
-                            <i class="bi bi-box-arrow-up-right me-1"></i>Open LinkedIn Post
+                    
+                    <!-- LinkedIn Link Card -->
+                    <div class="modal-link-card" id="linkContainer">
+                        <h6><i class="bi bi-linkedin"></i>View Original Post</h6>
+                        <a id="modalLink" href="#" target="_blank" class="btn">
+                            <i class="bi bi-box-arrow-up-right me-2"></i>Open LinkedIn Post
                         </a>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Close
+                    </button>
                 </div>
             </div>
         </div>
@@ -2240,18 +2503,23 @@
                 
                 // Populate modal
                 document.getElementById('modalCompany').textContent = company;
-                document.getElementById('modalEmail').textContent = email;
+                
+                // Update email with mailto link
+                const emailElement = document.getElementById('modalEmail');
+                emailElement.textContent = email;
+                emailElement.href = `mailto:${email}`;
+                
                 document.getElementById('modalDate').textContent = date;
                 document.getElementById('modalDescription').textContent = fullText; // Use full text
                 
-                // Handle skills
+                // Handle skills with modern styling
                 const skillsContainer = document.getElementById('modalSkills');
                 skillsContainer.innerHTML = '';
                 
                 if (skills && Array.isArray(skills) && skills.length > 0) {
                     skills.forEach(skill => {
                         const badge = document.createElement('span');
-                        badge.className = 'badge bg-info me-1 mb-1';
+                        badge.className = 'modal-skill-tag';
                         badge.textContent = skill;
                         skillsContainer.appendChild(badge);
                     });
@@ -2260,7 +2528,7 @@
                     // Handle skills as dictionary
                     Object.values(skills).flat().forEach(skill => {
                         const badge = document.createElement('span');
-                        badge.className = 'badge bg-info me-1 mb-1';
+                        badge.className = 'modal-skill-tag';
                         badge.textContent = skill;
                         skillsContainer.appendChild(badge);
                     });

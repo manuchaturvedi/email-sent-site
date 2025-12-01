@@ -1337,7 +1337,7 @@
     
     /* Job Details Modal Styling */
     #jobDetailsModal .modal-dialog {
-        max-width: 800px;
+        max-width: 900px;
     }
     
     #jobDetailsModal .modal-content {
@@ -1351,12 +1351,12 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        padding: 24px 28px;
+        padding: 24px 30px;
         position: relative;
     }
     
     #jobDetailsModal .modal-title {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         font-weight: 700;
         display: flex;
         align-items: center;
@@ -1364,242 +1364,179 @@
     }
     
     #jobDetailsModal .modal-title i {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
     }
     
     #jobDetailsModal .btn-close {
         filter: brightness(0) invert(1);
         opacity: 0.9;
+        font-size: 1.2rem;
     }
     
     #jobDetailsModal .btn-close:hover {
         opacity: 1;
-        transform: scale(1.1);
+        transform: scale(1.15);
     }
     
     #jobDetailsModal .modal-body {
-        padding: 28px;
-        background: #fafafa;
-        max-height: 70vh;
-        overflow-y: auto;
+        padding: 0;
+        background: #ffffff;
     }
     
-    #jobDetailsModal .modal-body::-webkit-scrollbar {
-        width: 10px;
-    }
-    
-    #jobDetailsModal .modal-body::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 10px;
-    }
-    
-    #jobDetailsModal .modal-body::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 10px;
-    }
-    
-    .modal-info-card {
-        background: white;
-        border-radius: 14px;
-        padding: 18px;
-        margin-bottom: 16px;
-        border: 2px solid #e8f3fe;
-        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
+    /* Detail Sections */
+    .detail-section {
+        padding: 20px 30px;
+        border-bottom: 1px solid #f1f5f9;
         transition: all 0.3s ease;
     }
     
-    .modal-info-card:hover {
-        box-shadow: 0 6px 16px rgba(74, 144, 226, 0.15);
-        transform: translateY(-2px);
-        border-color: #c7d7fe;
+    .detail-section:hover {
+        background: #fafbff;
     }
     
-    .modal-info-card h6 {
+    .detail-section:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-section-full {
+        padding: 24px 30px;
+    }
+    
+    .detail-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
         font-size: 0.8rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 1.2px;
         color: #667eea;
         margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
     }
     
-    .modal-info-card h6 i {
-        font-size: 1.1rem;
+    .detail-label i {
+        font-size: 1.2rem;
         opacity: 0.9;
     }
     
-    .modal-info-card p,
-    .modal-info-card a {
-        font-size: 1rem;
-        color: #1a1a1a;
-        margin: 0;
+    .detail-value {
+        font-size: 1.05rem;
+        color: #1a202c;
         font-weight: 500;
         line-height: 1.6;
     }
     
-    .modal-info-card a {
+    .email-link {
         color: #4a90e2;
         text-decoration: none;
-        word-break: break-all;
-        transition: color 0.3s ease;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
     
-    .modal-info-card a:hover {
+    .email-link:hover {
         color: #357abd;
         text-decoration: underline;
     }
     
-    .modal-description-card {
-        background: white;
-        border-radius: 14px;
-        padding: 20px;
-        margin-bottom: 16px;
-        border: 2px solid #e8f3fe;
-        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
+    .email-link::before {
+        content: '\f1e0';
+        font-family: 'bootstrap-icons';
+        font-size: 1rem;
+        opacity: 0.7;
     }
     
-    .modal-description-card h6 {
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #667eea;
-        margin-bottom: 14px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .modal-description-content {
+    /* Description Section */
+    .detail-description {
         background: linear-gradient(135deg, #f8f9ff 0%, #f0f9ff 100%);
         border-radius: 12px;
-        padding: 18px;
-        max-height: 300px;
-        overflow-y: auto;
-        font-size: 0.92rem;
+        padding: 20px;
+        font-size: 0.95rem;
         line-height: 1.8;
         color: #475569;
         white-space: pre-wrap;
         border: 1px solid #e8f3fe;
+        max-height: 400px;
+        overflow-y: auto;
     }
     
-    .modal-description-content::-webkit-scrollbar {
+    .detail-description::-webkit-scrollbar {
         width: 8px;
     }
     
-    .modal-description-content::-webkit-scrollbar-track {
+    .detail-description::-webkit-scrollbar-track {
         background: #f1f5f9;
         border-radius: 10px;
     }
     
-    .modal-description-content::-webkit-scrollbar-thumb {
+    .detail-description::-webkit-scrollbar-thumb {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 10px;
     }
     
-    .modal-skills-card {
-        background: white;
-        border-radius: 14px;
-        padding: 18px;
-        margin-bottom: 16px;
-        border: 2px solid #e8f3fe;
-        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
-    }
-    
-    .modal-skills-card h6 {
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #667eea;
-        margin-bottom: 14px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .modal-skills-container {
+    /* Skills Section */
+    .detail-skills {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
+        margin-top: 4px;
     }
     
-    .modal-skill-tag {
+    .detail-skill-tag {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 8px 16px;
+        padding: 8px 18px;
         border-radius: 20px;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         font-weight: 600;
         display: inline-block;
         box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
         transition: all 0.3s ease;
     }
     
-    .modal-skill-tag:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 12px rgba(102, 126, 234, 0.4);
+    .detail-skill-tag:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 14px rgba(102, 126, 234, 0.45);
     }
     
-    .modal-link-card {
-        background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-        border-radius: 14px;
-        padding: 18px;
-        margin-bottom: 16px;
-        border: none;
-        box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
-        text-align: center;
-    }
-    
-    .modal-link-card h6 {
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: white;
-        margin-bottom: 14px;
-        display: flex;
+    /* LinkedIn Link */
+    .linkedin-link {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        gap: 8px;
-        opacity: 0.95;
-    }
-    
-    .modal-link-card .btn {
-        background: white;
-        color: #4a90e2;
-        border: none;
+        background: linear-gradient(135deg, #0077b5 0%, #005885 100%);
+        color: white;
         padding: 12px 28px;
         border-radius: 12px;
+        text-decoration: none;
         font-weight: 700;
-        font-size: 0.95rem;
+        font-size: 1rem;
         transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 119, 181, 0.3);
     }
     
-    .modal-link-card .btn:hover {
-        background: #f8f9ff;
+    .linkedin-link:hover {
+        background: linear-gradient(135deg, #005885 0%, #003d5c 100%);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 6px 16px rgba(0, 119, 181, 0.4);
+        color: white;
     }
     
     #jobDetailsModal .modal-footer {
-        background: white;
+        background: #fafafa;
         border: none;
-        padding: 20px 28px;
+        padding: 20px 30px;
         display: flex;
         justify-content: center;
-        border-top: 2px solid #f1f5f9;
+        border-top: 1px solid #f1f5f9;
     }
     
-    #jobDetailsModal .modal-footer .btn {
+    .modal-close-btn {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        padding: 12px 32px;
+        padding: 12px 36px;
         border-radius: 12px;
         font-weight: 600;
         font-size: 1rem;
@@ -1607,10 +1544,11 @@
         transition: all 0.3s ease;
     }
     
-    #jobDetailsModal .modal-footer .btn:hover {
+    .modal-close-btn:hover {
         background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        color: white;
     }
     
     #fullTextContent {
@@ -2080,7 +2018,7 @@
 
     <!-- Job Details Modal -->
     <div class="modal fade" id="jobDetailsModal" tabindex="-1" aria-labelledby="jobDetailsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="jobDetailsModalLabel">
@@ -2090,46 +2028,68 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Company Info Card -->
-                    <div class="modal-info-card">
-                        <h6><i class="bi bi-building"></i>Company</h6>
-                        <p id="modalCompany"></p>
+                    <!-- Company Section -->
+                    <div class="detail-section">
+                        <div class="detail-label">
+                            <i class="bi bi-building"></i>
+                            <span>Company</span>
+                        </div>
+                        <div class="detail-value" id="modalCompany"></div>
                     </div>
                     
-                    <!-- Email Info Card -->
-                    <div class="modal-info-card">
-                        <h6><i class="bi bi-envelope-at"></i>Contact Email</h6>
-                        <a id="modalEmail" href="#"></a>
+                    <!-- Email Section -->
+                    <div class="detail-section">
+                        <div class="detail-label">
+                            <i class="bi bi-envelope-at"></i>
+                            <span>Contact Email</span>
+                        </div>
+                        <div class="detail-value">
+                            <a id="modalEmail" href="#" class="email-link"></a>
+                        </div>
                     </div>
                     
-                    <!-- Posted Date Card -->
-                    <div class="modal-info-card">
-                        <h6><i class="bi bi-calendar-event"></i>Posted Date</h6>
-                        <p id="modalDate"></p>
+                    <!-- Posted Date Section -->
+                    <div class="detail-section">
+                        <div class="detail-label">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>Posted Date</span>
+                        </div>
+                        <div class="detail-value" id="modalDate"></div>
                     </div>
                     
-                    <!-- Job Description Card -->
-                    <div class="modal-description-card">
-                        <h6><i class="bi bi-file-earmark-text"></i>Complete Job Description</h6>
-                        <div id="modalDescription" class="modal-description-content"></div>
+                    <!-- Job Description Section -->
+                    <div class="detail-section detail-section-full">
+                        <div class="detail-label">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>Complete Job Description</span>
+                        </div>
+                        <div class="detail-description" id="modalDescription"></div>
                     </div>
                     
-                    <!-- Skills Card -->
-                    <div class="modal-skills-card" id="skillsContainer">
-                        <h6><i class="bi bi-star-fill"></i>Required Skills</h6>
-                        <div id="modalSkills" class="modal-skills-container"></div>
+                    <!-- Skills Section -->
+                    <div class="detail-section detail-section-full" id="skillsContainer">
+                        <div class="detail-label">
+                            <i class="bi bi-star-fill"></i>
+                            <span>Required Skills</span>
+                        </div>
+                        <div class="detail-skills" id="modalSkills"></div>
                     </div>
                     
-                    <!-- LinkedIn Link Card -->
-                    <div class="modal-link-card" id="linkContainer">
-                        <h6><i class="bi bi-linkedin"></i>View Original Post</h6>
-                        <a id="modalLink" href="#" target="_blank" class="btn">
-                            <i class="bi bi-box-arrow-up-right me-2"></i>Open LinkedIn Post
-                        </a>
+                    <!-- LinkedIn Link Section -->
+                    <div class="detail-section detail-section-full" id="linkContainer">
+                        <div class="detail-label">
+                            <i class="bi bi-linkedin"></i>
+                            <span>View Original Post</span>
+                        </div>
+                        <div class="detail-value">
+                            <a id="modalLink" href="#" target="_blank" class="linkedin-link">
+                                <i class="bi bi-box-arrow-up-right me-2"></i>Open LinkedIn Post
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn" data-bs-dismiss="modal">
+                    <button type="button" class="btn modal-close-btn" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle me-2"></i>Close
                     </button>
                 </div>
@@ -2587,7 +2547,7 @@
                 if (skills && Array.isArray(skills) && skills.length > 0) {
                     skills.forEach(skill => {
                         const badge = document.createElement('span');
-                        badge.className = 'modal-skill-tag';
+                        badge.className = 'detail-skill-tag';
                         badge.textContent = skill;
                         skillsContainer.appendChild(badge);
                     });
@@ -2596,7 +2556,7 @@
                     // Handle skills as dictionary
                     Object.values(skills).flat().forEach(skill => {
                         const badge = document.createElement('span');
-                        badge.className = 'modal-skill-tag';
+                        badge.className = 'detail-skill-tag';
                         badge.textContent = skill;
                         skillsContainer.appendChild(badge);
                     });

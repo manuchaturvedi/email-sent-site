@@ -721,331 +721,370 @@
     animation: glow 1.5s ease-in-out infinite;
 }
 
-/* ==================== NAUKRI.COM INSPIRED DESIGN ==================== */
+/* ==================== MODERN CARD DESIGN ==================== */
 
-/* Naukri-style Job Card Container */
+/* Modern Job Card Container */
 .naukri-job-card {
-    background: linear-gradient(135deg, #f0f9ff 0%, #f8f9ff 100%);
-    border: 2px solid #e8f3fe;
-    border-radius: 20px;
-    padding: 20px;
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fd 100%);
+    border: none;
+    border-radius: 24px;
+    padding: 24px;
     margin-bottom: 16px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
     height: 100%;
     position: relative;
-    overflow: hidden;
-}
-
-.naukri-job-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #4a90e2, #667eea, #764ba2);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.naukri-job-card:hover::before {
-    opacity: 1;
+    overflow: visible;
 }
 
 .naukri-job-card:hover {
-    border-color: #4a90e2;
-    box-shadow: 0 8px 24px rgba(74, 144, 226, 0.2);
-    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    transform: translateY(-8px);
 }
 
-/* Company Logo Section - Now with API */
+/* Company Logo Section - Circular Badge */
 .company-logo {
-    width: 56px;
-    height: 56px;
-    background: white;
-    border-radius: 12px;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    border: 2px solid #e8f3fe;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
     overflow: hidden;
     position: relative;
+    border: 4px solid white;
 }
 
 .company-logo img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    padding: 4px;
+    object-fit: cover;
+    padding: 8px;
 }
 
 .company-logo-fallback {
-    width: 56px;
-    height: 56px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #5b7ae8 0%, #6d4e9f 100%);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 700;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    border: 4px solid white;
 }
 
-/* Job Title - Compact Naukri Style */
+/* Badge in top-right corner */
+.card-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: #f0f4ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5b7ae8;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.card-badge:hover {
+    background: #5b7ae8;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Job Title - Clean Typography */
 .naukri-job-title {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    color: #1a1a1a;
-    margin: 0 0 6px 0;
-    line-height: 1.3;
+    color: #2d3748;
+    margin: 8px 0 4px 0;
+    line-height: 1.4;
     transition: color 0.3s ease;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
 }
 
 .naukri-job-card:hover .naukri-job-title {
-    color: #4a90e2;
+    color: #5b7ae8;
 }
 
-/* Company Name Below Title */
+/* Subtle timestamp */
+.post-time {
+    font-size: 0.8rem;
+    color: #a0aec0;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+/* Company Name */
 .naukri-company-name {
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 600;
-    color: #4a5568;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    color: #718096;
+    margin-bottom: 12px;
 }
 
-.naukri-company-name i {
-    color: #94a3b8;
-    font-size: 0.85rem;
-}
-
-/* Job Info Row - Compact */
+/* Info Section with Icons */
 .naukri-job-info {
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #e8f3fe;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 16px;
 }
 
 .naukri-job-info .info-item {
     display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.8rem;
-    color: #64748b;
-    background: white;
-    padding: 4px 10px;
-    border-radius: 8px;
-    border: 1px solid #e8f3fe;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: #4a5568;
+    line-height: 1.6;
 }
 
 .naukri-job-info .info-item i {
-    color: #4a90e2;
-    font-size: 0.85rem;
+    color: #5b7ae8;
+    font-size: 1rem;
+    margin-top: 2px;
+    flex-shrink: 0;
 }
 
-.naukri-job-info .info-item strong {
+.naukri-job-info .info-label {
     font-weight: 600;
-    color: #475569;
+    color: #2d3748;
+    min-width: 80px;
 }
 
-/* Job Description Section - Compact */
+/* Description */
 .naukri-job-description {
-    color: #64748b;
+    color: #718096;
     font-size: 0.875rem;
-    line-height: 1.5;
-    margin-bottom: 10px;
-}
-
-.naukri-job-description p {
-    margin: 6px 0;
+    line-height: 1.6;
+    margin-bottom: 12px;
 }
 
 .naukri-job-description .description-text {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
-/* Role Badge - Compact */
-.role-badge {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
+/* Role Badge - Pleated style */
+.role-info {
     display: inline-block;
-    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.25);
+    background: #e6f0ff;
+    color: #2d3748;
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 12px;
 }
 
-/* Skills Section - Compact Tags */
+/* Skills Section - Circular Icons */
 .naukri-skills {
     display: flex;
     flex-wrap: wrap;
+    gap: 12px;
+    margin: 16px 0;
+    padding: 16px;
+    background: #fafbfc;
+    border-radius: 16px;
+}
+
+.skill-icon-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 6px;
-    margin-bottom: 10px;
+    min-width: 70px;
 }
 
-.naukri-skills .skill-tag {
-    background: white;
-    color: #475569;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    border: 1px solid #e8f3fe;
+.skill-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
     transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
 }
 
-.naukri-skills .skill-tag:hover {
-    background: #eff6ff;
-    color: #4a90e2;
-    border-color: #4a90e2;
-    transform: translateY(-1px);
+.skill-icon:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
-/* Contact Info Section - Compact */
+.skill-icon.pink { background: #ffe5ea; color: #d63384; }
+.skill-icon.pink:hover { border-color: #d63384; }
+
+.skill-icon.orange { background: #fff3e0; color: #fd7e14; }
+.skill-icon.orange:hover { border-color: #fd7e14; }
+
+.skill-icon.cyan { background: #e0f7fa; color: #0dcaf0; }
+.skill-icon.cyan:hover { border-color: #0dcaf0; }
+
+.skill-icon.red { background: #ffe5e5; color: #dc3545; }
+.skill-icon.red:hover { border-color: #dc3545; }
+
+.skill-icon.purple { background: #f0e5ff; color: #9b59b6; }
+.skill-icon.purple:hover { border-color: #9b59b6; }
+
+.skill-icon.blue { background: #e3f2fd; color: #2196f3; }
+.skill-icon.blue:hover { border-color: #2196f3; }
+
+.skill-icon.green { background: #e8f5e9; color: #4caf50; }
+.skill-icon.green:hover { border-color: #4caf50; }
+
+.skill-icon.coral { background: #fff0e8; color: #ff7043; }
+.skill-icon.coral:hover { border-color: #ff7043; }
+
+.skill-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #4a5568;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70px;
+}
+
+/* Contact Info - Minimal Design */
 .naukri-contact-info {
     display: flex;
     align-items: center;
-    gap: 6px;
-    color: #64748b;
+    gap: 8px;
+    color: #718096;
     font-size: 0.8rem;
-    padding: 8px 12px;
-    background: white;
-    border-radius: 10px;
-    border: 1px solid #e8f3fe;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-radius: 12px;
     margin-top: auto;
 }
 
 .naukri-contact-info i {
-    color: #4a90e2;
+    color: #5b7ae8;
     font-size: 0.9rem;
-    flex-shrink: 0;
 }
 
 .naukri-contact-info a {
-    word-break: break-all;
-    overflow-wrap: anywhere;
-    line-height: 1.4;
-    color: #4a90e2;
+    color: #5b7ae8;
     text-decoration: none;
     font-weight: 500;
+    word-break: break-all;
 }
 
-.naukri-contact-info a:hover {
-    text-decoration: underline;
-}
-
-/* Action Buttons - Compact Naukri Style */
+/* Action Buttons - Dark & Full Width */
 .naukri-actions {
     display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.btn-naukri-apply,
+.btn-naukri-detail {
+    flex: 1;
+    padding: 14px 24px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 8px;
-    margin-top: auto;
-    padding-top: 10px;
 }
 
 .btn-naukri-apply {
-    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    background: #4a5568;
     color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.25);
-    flex: 1;
+    box-shadow: 0 4px 12px rgba(74, 85, 104, 0.3);
 }
 
 .btn-naukri-apply:hover {
-    background: linear-gradient(135deg, #357abd 0%, #2a5f8f 100%);
-    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.35);
+    background: #2d3748;
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 85, 104, 0.4);
 }
 
-.btn-naukri-apply:disabled,
 .btn-naukri-applied {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    cursor: not-allowed;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
     flex: 1;
-    padding: 8px 16px;
-    border-radius: 10px;
+    padding: 14px 24px;
+    border-radius: 16px;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
+    background: #10b981;
     color: white;
     border: none;
+    cursor: not-allowed;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .btn-naukri-detail {
-    background: white;
-    color: #4a90e2;
-    border: 2px solid #4a90e2;
-    padding: 8px 16px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    flex: 1;
+    background: #4a5568;
+    color: white;
+    box-shadow: 0 4px 12px rgba(74, 85, 104, 0.3);
 }
 
 .btn-naukri-detail:hover {
-    background: #4a90e2;
-    color: white;
-    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.25);
+    background: #2d3748;
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 85, 104, 0.4);
 }
 
-/* Delete Button - Compact */
+/* Delete Button */
 .btn-delete-job {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    padding: 14px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    background: #dc3545;
     color: white;
     border: none;
-    padding: 8px 14px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.85rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.25);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 .btn-delete-job:hover {
-    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
-    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+    background: #c82333;
     transform: translateY(-2px);
 }
 
-/* Sent Badge */
+/* Sent Badge - Corner Ribbon */
 .sent-badge {
     position: absolute;
     top: 16px;
     right: 16px;
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
-    padding: 5px 12px;
+    padding: 6px 14px;
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: 600;
@@ -1055,10 +1094,10 @@
     gap: 4px;
 }
 
-/* Card Top Section with Logo */
+/* Card Top Section */
 .job-card-top {
     display: flex;
-    gap: 12px;
+    gap: 14px;
     align-items: flex-start;
 }
 
@@ -1067,40 +1106,63 @@
     min-width: 0;
 }
 
-/* Responsive Design for Compact Cards */
+/* Arrow icon in corner */
+.arrow-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    background: #f0f4ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5b7ae8;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.arrow-icon:hover {
+    background: #5b7ae8;
+    color: white;
+    transform: translateX(4px);
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
     .naukri-job-card {
-        padding: 16px;
-        gap: 12px;
-    }
-    
-    .naukri-job-title {
-        font-size: 1rem;
+        padding: 20px;
     }
     
     .company-logo,
     .company-logo-fallback {
-        width: 48px;
-        height: 48px;
+        width: 56px;
+        height: 56px;
+        border: 3px solid white;
     }
     
-    .naukri-job-info {
-        gap: 8px;
+    .naukri-job-title {
+        font-size: 1.1rem;
+    }
+    
+    .naukri-skills {
+        gap: 10px;
+    }
+    
+    .skill-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1rem;
     }
     
     .naukri-actions {
         flex-direction: column;
     }
-    
-    .btn-naukri-apply,
-    .btn-naukri-detail,
-    .btn-naukri-applied {
-        width: 100%;
-        text-align: center;
-    }
 }
 
-/* ==================== END NAUKRI STYLES ==================== */
+/* ==================== END MODERN STYLES ==================== */
 
 /* Pulse animation for badge numbers */
 @keyframes pulse {

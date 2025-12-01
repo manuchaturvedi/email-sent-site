@@ -1307,7 +1307,7 @@
     #jobDetailsModal .modal-content {
         border: none;
         border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(74, 144, 226, 0.2);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         overflow: hidden;
     }
     
@@ -1315,15 +1315,20 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        padding: 20px 24px;
+        padding: 24px 28px;
+        position: relative;
     }
     
     #jobDetailsModal .modal-title {
-        font-size: 1.3rem;
+        font-size: 1.4rem;
         font-weight: 700;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+    }
+    
+    #jobDetailsModal .modal-title i {
+        font-size: 1.5rem;
     }
     
     #jobDetailsModal .btn-close {
@@ -1333,17 +1338,34 @@
     
     #jobDetailsModal .btn-close:hover {
         opacity: 1;
+        transform: scale(1.1);
     }
     
     #jobDetailsModal .modal-body {
-        padding: 24px;
-        background: linear-gradient(135deg, #f8f9ff 0%, #f0f9ff 100%);
+        padding: 28px;
+        background: #fafafa;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    
+    #jobDetailsModal .modal-body::-webkit-scrollbar {
+        width: 10px;
+    }
+    
+    #jobDetailsModal .modal-body::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+    
+    #jobDetailsModal .modal-body::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
     }
     
     .modal-info-card {
         background: white;
-        border-radius: 12px;
-        padding: 16px;
+        border-radius: 14px;
+        padding: 18px;
         margin-bottom: 16px;
         border: 2px solid #e8f3fe;
         box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
@@ -1351,58 +1373,16 @@
     }
     
     .modal-info-card:hover {
-        box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+        box-shadow: 0 6px 16px rgba(74, 144, 226, 0.15);
         transform: translateY(-2px);
+        border-color: #c7d7fe;
     }
     
     .modal-info-card h6 {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #667eea;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .modal-info-card h6 i {
-        font-size: 1rem;
-    }
-    
-    .modal-info-card p,
-    .modal-info-card a {
-        font-size: 0.95rem;
-        color: #1a1a1a;
-        margin: 0;
-        font-weight: 500;
-    }
-    
-    .modal-info-card a {
-        color: #4a90e2;
-        text-decoration: none;
-        word-break: break-all;
-    }
-    
-    .modal-info-card a:hover {
-        text-decoration: underline;
-    }
-    
-    .modal-description-card {
-        background: white;
-        border-radius: 12px;
-        padding: 18px;
-        margin-bottom: 16px;
-        border: 2px solid #e8f3fe;
-        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
-    }
-    
-    .modal-description-card h6 {
-        font-size: 0.85rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
         color: #667eea;
         margin-bottom: 12px;
         display: flex;
@@ -1410,14 +1390,61 @@
         gap: 8px;
     }
     
+    .modal-info-card h6 i {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .modal-info-card p,
+    .modal-info-card a {
+        font-size: 1rem;
+        color: #1a1a1a;
+        margin: 0;
+        font-weight: 500;
+        line-height: 1.6;
+    }
+    
+    .modal-info-card a {
+        color: #4a90e2;
+        text-decoration: none;
+        word-break: break-all;
+        transition: color 0.3s ease;
+    }
+    
+    .modal-info-card a:hover {
+        color: #357abd;
+        text-decoration: underline;
+    }
+    
+    .modal-description-card {
+        background: white;
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 16px;
+        border: 2px solid #e8f3fe;
+        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
+    }
+    
+    .modal-description-card h6 {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #667eea;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
     .modal-description-content {
-        background: linear-gradient(135deg, #f0f9ff 0%, #f8f9ff 100%);
-        border-radius: 10px;
-        padding: 16px;
-        max-height: 350px;
+        background: linear-gradient(135deg, #f8f9ff 0%, #f0f9ff 100%);
+        border-radius: 12px;
+        padding: 18px;
+        max-height: 300px;
         overflow-y: auto;
-        font-size: 0.9rem;
-        line-height: 1.7;
+        font-size: 0.92rem;
+        line-height: 1.8;
         color: #475569;
         white-space: pre-wrap;
         border: 1px solid #e8f3fe;
@@ -1439,20 +1466,20 @@
     
     .modal-skills-card {
         background: white;
-        border-radius: 12px;
-        padding: 16px;
+        border-radius: 14px;
+        padding: 18px;
         margin-bottom: 16px;
         border: 2px solid #e8f3fe;
         box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
     }
     
     .modal-skills-card h6 {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
         color: #667eea;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -1461,30 +1488,30 @@
     .modal-skills-container {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 10px;
     }
     
     .modal-skill-tag {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 6px 14px;
+        padding: 8px 16px;
         border-radius: 20px;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         font-weight: 600;
         display: inline-block;
-        box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
         transition: all 0.3s ease;
     }
     
     .modal-skill-tag:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 5px 12px rgba(102, 126, 234, 0.4);
     }
     
     .modal-link-card {
         background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-        border-radius: 12px;
-        padding: 16px;
+        border-radius: 14px;
+        padding: 18px;
         margin-bottom: 16px;
         border: none;
         box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
@@ -1492,26 +1519,27 @@
     }
     
     .modal-link-card h6 {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
         color: white;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
+        opacity: 0.95;
     }
     
     .modal-link-card .btn {
         background: white;
         color: #4a90e2;
         border: none;
-        padding: 10px 24px;
-        border-radius: 10px;
+        padding: 12px 28px;
+        border-radius: 12px;
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         transition: all 0.3s ease;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
@@ -1525,19 +1553,20 @@
     #jobDetailsModal .modal-footer {
         background: white;
         border: none;
-        padding: 16px 24px;
+        padding: 20px 28px;
         display: flex;
         justify-content: center;
+        border-top: 2px solid #f1f5f9;
     }
     
     #jobDetailsModal .modal-footer .btn {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        padding: 10px 30px;
-        border-radius: 10px;
+        padding: 12px 32px;
+        border-radius: 12px;
         font-weight: 600;
-        font-size: 0.95rem;
+        font-size: 1rem;
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         transition: all 0.3s ease;
     }

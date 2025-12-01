@@ -1939,8 +1939,8 @@
                     <!-- Email Info -->
                     {% if post.get('email') %}
                     <div class="naukri-contact-info">
-                        <i class="bi bi-envelope-fill"><a href="mailto:{{ post.get('email', '') }}">{{ post.get('email', '') }}</a></i>
-                        
+                        <i class="bi bi-envelope-fill"></i>
+                        <a href="mailto:{{ post.get('email', '') }}">{{ post.get('email', '') }}</a>
                     </div>
                     {% endif %}
                     

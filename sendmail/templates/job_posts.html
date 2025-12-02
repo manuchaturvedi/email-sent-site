@@ -1624,7 +1624,7 @@
 {% block content %}
         <div class="row mb-4 page-header">
             <div class="col">
-                <h4><i class="bi bi-briefcase-fill me-2"></i>Recent Job Posts</h4>
+                <h4><img src="https://img.icons8.com/fluency/48/000000/briefcase.png" alt="" style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle;">Recent Job Posts</h4>
                 <p class="text-muted">Job posts from which emails were collected</p>
             </div>
         </div>
@@ -1662,13 +1662,13 @@
                     <div class="row g-3 align-items-center">
                         <div class="col-12 col-md-4">
                             <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                                <span class="input-group-text bg-white"><img src="https://img.icons8.com/fluency/48/000000/search.png" alt="" style="width: 20px; height: 20px;"></span>
                                 <input id="filterText" class="form-control skill-search-input" type="text" placeholder="Search description, company, or email..." />
                             </div>
                         </div>
                         <div class="col-12 col-md-3">
                             <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="bi bi-tags"></i></span>
+                                <span class="input-group-text bg-white"><img src="https://img.icons8.com/fluency/48/000000/tags.png" alt="" style="width: 20px; height: 20px;"></span>
                                 <input id="filterSkillSearch" class="form-control skill-search-input" type="text" placeholder="Search skills..." />
                             </div>
                         </div>
@@ -1681,7 +1681,7 @@
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="bi bi-geo-alt"></i></span>
+                                <span class="input-group-text bg-white"><img src="https://img.icons8.com/fluency/48/000000/marker.png" alt="" style="width: 20px; height: 20px;"></span>
                                 <input id="filterLocation" class="form-control skill-search-input" type="text" placeholder="Filter by location..." />
                             </div>
                         </div>
@@ -1697,7 +1697,7 @@
                     <div style="margin-top: 15px;">
                         <details>
                             <summary style="cursor: pointer; user-select: none; font-weight: 600; color: #a8e6cf;">
-                                <i class="bi bi-tags-fill me-2"></i>Filter by Skills (Click to expand)
+                                <img src="https://img.icons8.com/fluency/48/000000/tags.png" alt="" style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;">Filter by Skills (Click to expand)
                             </summary>
                             <div id="skillTagsContainer" class="skill-tags"></div>
                         </details>
@@ -1706,7 +1706,7 @@
                     <div class="row mt-3">
                         <div class="col-md-6">
                             <button id="resetFilters" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset All Filters
+                                <img src="https://img.icons8.com/fluency/48/000000/reset.png" alt="" style="width: 18px; height: 18px; margin-right: 4px; vertical-align: middle;">Reset All Filters
                             </button>
                         </div>
                         <div class="col-md-6 text-end">
@@ -1755,18 +1755,18 @@
                             <div class="naukri-job-info">
                                 {% if post.get('experience_level') %}
                                 <span class="info-item">
-                                    <i class="bi bi-briefcase-fill"></i>
+                                    <img src="https://img.icons8.com/fluency/48/000000/briefcase.png" alt="" style="width: 14px; height: 14px; vertical-align: middle;">
                                     {{ post.get('experience_level', 'Mid-Level') }}
                                 </span>
                                 {% endif %}
                                 
                                 <span class="info-item">
-                                    <i class="bi bi-geo-alt-fill"></i>
+                                    <img src="https://img.icons8.com/fluency/48/000000/marker.png" alt="" style="width: 14px; height: 14px; vertical-align: middle;">
                                     {{ post.get('location', 'Remote') }}
                                 </span>
                                 
                                 <span class="info-item">
-                                    <i class="bi bi-calendar3"></i>
+                                    <img src="https://img.icons8.com/fluency/48/000000/calendar.png" alt="" style="width: 14px; height: 14px; vertical-align: middle;">
                                     {% if post.get('posted_date') and post.get('posted_date') != 'N/A' %}{{ post.get('posted_date') }}{% else %}{{ current_date }}{% endif %}
                                 </span>
                             </div>
@@ -1774,7 +1774,7 @@
                         
                         {% if post.get('already_sent') %}
                         <div class="sent-badge">
-                            <i class="bi bi-check-circle-fill"></i> Sent
+                            <img src="https://img.icons8.com/fluency/48/000000/checkmark.png" alt="" style="width: 16px; height: 16px; vertical-align: middle;"> Sent
                         </div>
                         {% endif %}
                     </div>
@@ -1875,7 +1875,7 @@
         <!-- No Jobs Message -->
         {% if not job_posts %}
         <div class="text-center py-5">
-            <i class="bi bi-inbox" style="font-size: 4rem; color: #cbd5e0;"></i>
+            <img src="https://img.icons8.com/fluency/96/000000/inbox.png" alt="" style="width: 80px; height: 80px;">
             <h4 class="mt-3 text-muted">No job posts found</h4>
             <p class="text-muted">Start automation to discover job opportunities</p>
         </div>
@@ -1906,7 +1906,7 @@
                             <div class="col-md-6">
                                 <div class="info-box" style="padding: 1.25rem; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 14px; border: 2px solid #93c5fd;">
                                     <div class="d-flex align-items-center gap-2 mb-2">
-                                        <i class="bi bi-building" style="color: #1e40af; font-size: 1.15rem;"></i>
+                                        <img src="https://img.icons8.com/fluency/48/000000/company.png" alt="" style="width: 20px; height: 20px;">
                                         <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #1e40af; letter-spacing: 0.5px;">Company</span>
                                     </div>
                                     <div id="modalCompany" style="font-size: 1.1rem; font-weight: 700; color: #1e293b;"></div>
@@ -1915,7 +1915,7 @@
                             <div class="col-md-6">
                                 <div class="info-box" style="padding: 1.25rem; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-radius: 14px; border: 2px solid #6ee7b7;">
                                     <div class="d-flex align-items-center gap-2 mb-2">
-                                        <i class="bi bi-envelope-at" style="color: #065f46; font-size: 1.15rem;"></i>
+                                        <img src="https://img.icons8.com/fluency/48/000000/email.png" alt="" style="width: 20px; height: 20px;">
                                         <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #065f46; letter-spacing: 0.5px;">Contact Email</span>
                                     </div>
                                     <a id="modalEmail" href="#" style="font-size: 0.95rem; font-weight: 600; color: #0f766e; text-decoration: none; word-break: break-all;"></a>
@@ -1926,7 +1926,7 @@
                         <!-- Posted Date -->
                         <div class="detail-section mb-4">
                             <div class="d-flex align-items-center gap-2 mb-2">
-                                <i class="bi bi-calendar-event" style="color: #667eea; font-size: 1.1rem;"></i>
+                                <img src="https://img.icons8.com/fluency/48/000000/calendar.png" alt="" style="width: 20px; height: 20px;">
                                 <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #667eea; letter-spacing: 0.8px;">Posted Date</span>
                             </div>
                             <div id="modalDate" style="font-size: 0.95rem; color: #475569; font-weight: 500;"></div>
@@ -1935,7 +1935,7 @@
                         <!-- Job Description -->
                         <div class="detail-section mb-4">
                             <div class="d-flex align-items-center gap-2 mb-3">
-                                <i class="bi bi-file-earmark-text" style="color: #667eea; font-size: 1.1rem;"></i>
+                                <img src="https://img.icons8.com/fluency/48/000000/document.png" alt="" style="width: 20px; height: 20px;">
                                 <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #667eea; letter-spacing: 0.8px;">Complete Job Description</span>
                             </div>
                             <div class="detail-description" id="modalDescription" style="background: linear-gradient(135deg, #f8f9ff 0%, #f0f9ff 100%); border-radius: 12px; padding: 1.25rem; font-size: 0.92rem; line-height: 1.8; color: #475569; white-space: pre-wrap; border: 1px solid #e8f3fe; max-height: 350px; overflow-y: auto;"></div>
@@ -1944,7 +1944,7 @@
                         <!-- Skills Section -->
                         <div class="detail-section mb-4" id="skillsContainer">
                             <div class="d-flex align-items-center gap-2 mb-3">
-                                <i class="bi bi-star-fill" style="color: #667eea; font-size: 1.1rem;"></i>
+                                <img src="https://img.icons8.com/fluency/48/000000/star.png" alt="" style="width: 20px; height: 20px;">
                                 <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #667eea; letter-spacing: 0.8px;">Required Skills</span>
                             </div>
                             <div class="detail-skills" id="modalSkills" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
@@ -1953,11 +1953,11 @@
                         <!-- LinkedIn Link -->
                         <div class="detail-section" id="linkContainer">
                             <div class="d-flex align-items-center gap-2 mb-3">
-                                <i class="bi bi-linkedin" style="color: #667eea; font-size: 1.1rem;"></i>
+                                <img src="https://img.icons8.com/fluency/48/000000/linkedin.png" alt="" style="width: 20px; height: 20px;">
                                 <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #667eea; letter-spacing: 0.8px;">View Original Post</span>
                             </div>
                             <a id="modalLink" href="#" target="_blank" class="linkedin-link" style="display: inline-flex; align-items: center; background: linear-gradient(135deg, #0077b5 0%, #005885 100%); color: white; padding: 0.9rem 2rem; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 119, 181, 0.3);">
-                                <i class="bi bi-box-arrow-up-right me-2"></i>Open LinkedIn Post
+                                <img src="https://img.icons8.com/fluency/48/000000/external-link.png" alt="" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle;">Open LinkedIn Post
                             </a>
                         </div>
                         

@@ -90,7 +90,7 @@
                 <button type="button" id="landingIntroGetStartedBtn" class="btn flex-fill" style="padding: 0.875rem 1.5rem; border-radius: 14px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); color: white; border: none; font-size: 1rem; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35);"
                         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 28px rgba(102, 126, 234, 0.45)';"
                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.35)';">
-                  <i class="bi bi-person-plus me-2"></i>Get Started
+                  <img src="https://img.icons8.com/fluency/48/000000/add-user-male.png" alt="" style="width:18px; height:18px; vertical-align:middle; margin-right:8px;">Get Started
                 </button>
                 <button type="button" class="btn" data-bs-dismiss="modal" style="padding: 0.875rem 1.5rem; border-radius: 14px; font-weight: 600; background: white; color: #64748b; border: 2px solid #e2e8f0; font-size: 1rem; transition: all 0.3s ease;"
                         onmouseover="this.style.borderColor='#cbd5e1'; this.style.color='#475569';"
@@ -2171,7 +2171,7 @@
   <div class="notification-modal" id="notificationModal">
     <div class="notification-content">
       <div class="notification-icon" id="notificationIcon">
-        <i class="bi bi-check-circle-fill" id="notificationIconSymbol"></i>
+        <img src="https://img.icons8.com/fluency/48/000000/checkmark.png" alt="" id="notificationIconSymbol" style="width:48px; height:48px;">
       </div>
       <h3 class="notification-title" id="notificationTitle">Success!</h3>
       <p class="notification-message" id="notificationMessage">Operation completed successfully.</p>
@@ -2183,7 +2183,7 @@
   <div class="confirm-modal" id="confirmModal">
     <div class="confirm-content">
       <div class="confirm-icon">
-        <i class="bi bi-question-circle-fill"></i>
+        <img src="https://img.icons8.com/fluency/48/000000/help.png" alt="" style="width:48px; height:48px;">
       </div>
       <h3 class="confirm-title" id="confirmTitle">Confirm Action</h3>
       <p class="confirm-message" id="confirmMessage">Are you sure?</p>
@@ -2210,7 +2210,7 @@
   <!-- Email Collection Modal (for Facebook users without email) -->
   <div class="email-collection-modal" id="emailCollectionModal">
     <div class="email-collection-content">
-      <h2>📧 Email Required</h2>
+      <h2><img src="https://img.icons8.com/fluency/48/000000/email.png" alt="" style="width:28px; height:28px; vertical-align:middle; margin-right:6px;">Email Required</h2>
       <p>We need your email address to continue. Please enter a valid email to use our service.</p>
       <form id="emailCollectionForm" onsubmit="handleEmailCollection(event)">
         <input type="email" class="form-control" id="facebookUserEmail" placeholder="Enter your email address" required>
@@ -2227,7 +2227,7 @@
   <div class="login-modal" id="loginModal">
     <div class="login-modal-content">
       <button class="modal-close" onclick="closeLoginModal()">
-        <i class="bi bi-x-lg"></i>
+        <img src="https://img.icons8.com/fluency/48/000000/cancel.png" alt="" style="width:20px; height:20px;">
       </button>
       
       <!-- Left Side - Hero -->
@@ -2243,7 +2243,7 @@
           </p>
           <div class="modal-feature-box">
             <div class="modal-feature-title">
-              <i class="bi bi-robot"></i>
+              <img src="https://img.icons8.com/fluency/48/000000/bot.png" alt="" style="width:24px; height:24px; vertical-align:middle; margin-right:6px;">
               AI-Powered Email Sending
             </div>
             <p class="modal-feature-text">
@@ -2315,12 +2315,12 @@
         
         <!-- Social Login -->
         <button class="btn-social btn-google" onclick="handleGoogleAuth()">
-          <i class="bi bi-google"></i>
+          <img src="https://img.icons8.com/fluency/48/000000/google-logo.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">
           Continue with Google
         </button>
         
         <button class="btn-social btn-facebook" onclick="handleFacebookAuth()">
-          <i class="bi bi-facebook"></i>
+          <img src="https://img.icons8.com/fluency/48/000000/facebook.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">
           Continue with Facebook
         </button>
         
@@ -2343,13 +2343,13 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarMain">
         <ul class="navbar-nav mx-auto">
-          <li class="nav-item"><a class="nav-link" href="/" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-house-fill"></i> Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><img src="https://img.icons8.com/fluency/48/000000/home.png" alt="" style="width:16px; height:16px; vertical-align:middle; margin-right:4px;"> Home</a></li>
           <li class="nav-item"><a class="nav-link" href="/about" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-info-circle-fill"></i> About</a></li>
           <li class="nav-item"><a class="nav-link" href="/privacy" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-shield-check"></i> Privacy</a></li>
           <li class="nav-item"><a class="nav-link" href="mailto:mail@justmailit.in" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-envelope-fill"></i> Contact</a></li>
         </ul>
         <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" href="#" onclick="openLoginModal('signin'); return false;" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="openLoginModal('signin'); return false;" style="color:#6b7280;font-weight:500;padding:0.8rem 1.2rem;"><img src="https://img.icons8.com/fluency/48/000000/login-rounded-right.png" alt="" style="width:16px; height:16px; vertical-align:middle; margin-right:4px;"> Login</a></li>
           <li class="nav-item"><a class="nav-link btn" href="#" onclick="openLoginModal('signup'); return false;" style="background:linear-gradient(135deg,#a8e6cf,#8b9fff);color:white;font-weight:600;padding:0.8rem 1.5rem;border-radius:10px;margin-left:0.5rem;"><i class="bi bi-person-plus-fill"></i> Sign Up</a></li>
         </ul>
       </div>
@@ -2362,17 +2362,17 @@
     <div class="container">
       <div class="d-flex flex-wrap justify-content-center align-items-center gap-3" style="font-size: 0.9rem; color: #1f2937;">
         <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-shield-lock-fill" style="color: #16a34a; font-size: 1.1rem;"></i>
+          <img src="https://img.icons8.com/fluency/48/000000/lock.png" alt="" style="width:18px; height:18px;">
           <span><strong>SSL Encrypted</strong> - Your data is secure</span>
         </div>
         <span style="color: #cbd5e1;">|</span>
         <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-shield-check-fill" style="color: #2563eb; font-size: 1.1rem;"></i>
+          <img src="https://img.icons8.com/fluency/48/000000/security-checked.png" alt="" style="width:18px; height:18px;">
           <span><strong>Firebase Authentication</strong> - Trusted login</span>
         </div>
         <span style="color: #cbd5e1;">|</span>
         <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-file-text-fill" style="color: #7c3aed; font-size: 1.1rem;"></i>
+          <img src="https://img.icons8.com/fluency/48/000000/document.png" alt="" style="width:18px; height:18px;">
           <span><a href="/privacy" style="color: #1f2937; text-decoration: none; font-weight: 600;">Privacy Policy</a> & <a href="/terms" style="color: #1f2937; text-decoration: none; font-weight: 600;">Terms</a></span>
         </div>
       </div>
@@ -2412,10 +2412,10 @@
       </style>
       <div class="hero-cta">
         <button class="btn-primary-hero" onclick="openLoginModal()">
-          <i class="bi bi-rocket-takeoff me-2"></i>Start Free Today
+          <img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">Start Free Today
         </button>
         <a href="#how-it-works" class="btn-secondary-hero">
-          <i class="bi bi-play-circle me-2"></i>See How It Works
+          <img src="https://img.icons8.com/fluency/48/000000/play.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">See How It Works
         </a>
       </div>
       <div style="text-align:center;color:#64748b;font-size:0.9rem;margin-top:-0.75rem;">
@@ -2453,7 +2453,7 @@
     <div class="container">
       <div class="text-center mb-5">
         <div style="display: inline-block; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 8px 20px; border-radius: 24px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; letter-spacing: 0.5px;">
-          <i class="bi bi-play-circle-fill me-2"></i>VIDEO TUTORIAL
+          <img src="https://img.icons8.com/fluency/48/000000/play.png" alt="" style="width:16px; height:16px; vertical-align:middle; margin-right:6px;">VIDEO TUTORIAL
         </div>
         <h2 style="font-size: 2.5rem; font-weight: 700; color: #1f2937; margin-bottom: 1rem;">
           See JustMailIt In Action

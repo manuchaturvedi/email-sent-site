@@ -353,8 +353,7 @@ If an Icons8 icon doesn't exist:
 | File | Status | Icons Replaced | Emojis Replaced | Last Updated |
 |------|--------|----------------|-----------------|--------------|
 | job_posts.html | ✅ COMPLETE | 25+ | 0 | Already done |
-| landing.html | 🔄 IN PROGRESS | 20/70+ | 1/4 | Now |
-| home.html | 🔄 IN PROGRESS | 20/80+ | 5/5 | Now ✅ Emojis Complete |
+| landing.html | ⏳ PENDING | 0/70+ | 0/4 | - |
 | home.html | ⏳ PENDING | 0/80+ | 0/5 | - |
 | index_live.html | ⏳ PENDING | 0/100+ | 0/13 | - |
 | admin.html | ⏳ PENDING | 0/50+ | 0/5 | - |

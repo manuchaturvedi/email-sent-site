@@ -473,23 +473,23 @@
   <!-- Hero Section -->
   <div class="hero-section">
     <div class="hero-content">
-      <h1><img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:32px; height:32px; vertical-align:middle; margin-right:8px;">Simplify Your Job Search</h1>
+      <h1>🚀 Simplify Your Job Search</h1>
       <p>Automate your job search and streamline email outreach with AI-powered tools</p>
       
       <!-- Subscription Badge -->
       {% if subscription and subscription.plan != 'free' %}
       <div class="mb-3">
         <span class="badge bg-success" style="font-size: 1rem; padding: 0.5rem 1rem;">
-          <img src="https://img.icons8.com/fluency/48/000000/star.png" alt="" style="width:18px; height:18px; vertical-align:middle; margin-right:6px;">{{ subscription.plan|upper }} Plan - Unlimited Emails
+          <i class="bi bi-star-fill me-2"></i>{{ subscription.plan|upper }} Plan - Unlimited Emails
         </span>
       </div>
       {% else %}
       <div class="mb-3">
         <span class="badge bg-warning text-dark" style="font-size: 1rem; padding: 0.5rem 1rem;">
-          <img src="https://img.icons8.com/fluency/48/000000/gift.png" alt="" style="width:18px; height:18px; vertical-align:middle; margin-right:6px;">FREE Plan - 10 Emails/Day
+          <i class="bi bi-gift-fill me-2"></i>FREE Plan - 10 Emails/Day
         </span>
         <a href="/pricing" class="badge bg-primary ms-2" style="font-size: 1rem; padding: 0.5rem 1rem; text-decoration: none;">
-          <img src="https://img.icons8.com/fluency/48/000000/up.png" alt="" style="width:18px; height:18px; vertical-align:middle; margin-right:6px;">Upgrade to Pro
+          <i class="bi bi-arrow-up-circle-fill me-2"></i>Upgrade to Pro
         </a>
       </div>
       {% endif %}
@@ -518,7 +518,7 @@
         <div class="card-body p-4">
           <div class="text-center">
             <div class="icon-circle-lg mb-3">
-              <img src="https://img.icons8.com/fluency/48/000000/bot.png" alt="" style="width:64px; height:64px;">
+              <i class="bi bi-robot display-5"></i>
             </div>
             <h1 class="display-5 fw-bold mb-2">Welcome, {{ user }}! 👋</h1>
             <p class="lead text-muted mb-4">
@@ -529,18 +529,18 @@
             <div class="alert mb-4" style="background: linear-gradient(135deg, rgba(102,126,234,0.15), rgba(118,75,162,0.15)); border: 2px solid #667eea; border-radius: 16px; max-width: 600px; margin: 0 auto 2rem;">
               <div class="text-center">
                 <h5 class="mb-2">
-                  <img src="https://img.icons8.com/fluency/48/000000/sparkles.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:4px;">
+                  <i class="bi bi-stars" style="color: #667eea;"></i>
                   <strong style="color: #667eea;">Not sure what to write?</strong>
                 </h5>
                 <p class="text-muted small mb-3">Upload your resume and let AI generate a professional email template for you!</p>
                 <a href="/send#template-generator" id="generateEmailTemplateBtn" class="btn btn-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 10px; font-weight: 600; text-decoration: none;">
-                  <img src="https://img.icons8.com/fluency/48/000000/magic-wand.png" alt="" style="width:18px; height:18px; vertical-align:middle; margin-right:6px;">Generate Email Template with AI
+                  <i class="bi bi-magic me-2"></i>Generate Email Template with AI
                 </a>
               </div>
             </div>
             
             <button type="button" id="runNewAutomationBtn" class="btn btn-primary campaign-button" style="--gradient-start: #a8e6cf; --gradient-end: #8b9fff" data-bs-toggle="modal" data-bs-target="#gamifiedQuickStartModal">
-              <img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">
+              <i class="bi bi-rocket-takeoff me-2"></i>
               Start New Automation
             </button>
           </div>
@@ -557,12 +557,12 @@
           <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
               <h3 class="fw-bold mb-1" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                <img src="https://img.icons8.com/fluency/48/000000/briefcase.png" alt="" style="width:24px; height:24px; vertical-align:middle; margin-right:6px;">Recent Job Posts
+                <i class="bi bi-briefcase-fill me-2"></i>Recent Job Posts
               </h3>
               <p class="text-muted mb-0 small">Explore latest opportunities - Scroll right for more</p>
             </div>
             <a href="/jobs" class="btn btn-sm" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; border-radius: 10px; padding: 0.5rem 1rem; font-weight: 600; text-decoration: none;">
-              <img src="https://img.icons8.com/fluency/48/000000/forward.png" alt="" style="width:16px; height:16px; vertical-align:middle; margin-right:4px;">View All
+              <i class="bi bi-arrow-right-circle me-1"></i>View All
             </a>
           </div>
           
@@ -577,7 +577,7 @@
                       <h5 class="fw-bold mb-1" style="font-size: 0.95rem; color: #2d3748; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ post.title[:40] if post.title else 'No Title' }}{% if post.title and post.title|length > 40 %}...{% endif %}</h5>
                       <div class="d-flex align-items-center gap-2 mb-2">
                         <span class="badge" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; font-size: 0.75rem; padding: 0.25rem 0.6rem;">
-                          <img src="https://img.icons8.com/fluency/48/000000/company.png" alt="" style="width:12px; height:12px; vertical-align:middle; margin-right:3px;"> {{ post.company if post.company else 'Company' }}
+                          <i class="bi bi-building"></i> {{ post.company if post.company else 'Company' }}
                         </span>
                       </div>
                     </div>
@@ -585,13 +585,13 @@
                   
                   {% if post.location %}
                   <div class="mb-2 small text-muted">
-                    <img src="https://img.icons8.com/fluency/48/000000/marker.png" alt="" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;"> {{ post.location[:30] }}{% if post.location|length > 30 %}...{% endif %}
+                    <i class="bi bi-geo-alt-fill"></i> {{ post.location[:30] }}{% if post.location|length > 30 %}...{% endif %}
                   </div>
                   {% endif %}
                   
                   {% if post.recruiter_email or post.email %}
                   <div class="mb-2 small text-muted" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    <img src="https://img.icons8.com/fluency/48/000000/email.png" alt="" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;"> {{ post.recruiter_email if post.recruiter_email else post.email }}
+                    <i class="bi bi-envelope-fill"></i> {{ post.recruiter_email if post.recruiter_email else post.email }}
                   </div>
                   {% endif %}
                   
@@ -621,7 +621,7 @@
                             data-date="{{ post.created_at[:10] if post.created_at else 'N/A' }}"
                             data-url="{{ post.job_url if post.job_url else '' }}"
                             data-skills='{{ post.skills|tojson if post.skills else "[]" }}'>
-                      <img src="https://img.icons8.com/fluency/48/000000/info.png" alt="" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;"> Details
+                      <i class="bi bi-info-circle"></i> Details
                     </button>
                     {% if post.job_url and not post.already_sent %}
                     <button class="btn btn-sm send-mail-btn" style="flex: 1; background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; border-radius: 8px; font-size: 0.85rem; padding: 0.5rem 0.75rem; border: none; height: 38px; line-height: 1.5;"
@@ -630,17 +630,17 @@
                             data-title="{{ post.title if post.title else '' }}"
                             data-company="{{ post.company if post.company else '' }}"
                             data-url="{{ post.job_url if post.job_url else '' }}">
-                      <img src="https://img.icons8.com/fluency/48/000000/sent.png" alt="" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;"> Apply
+                      <i class="bi bi-send"></i> Apply
                     </button>
                     {% elif post.already_sent %}
                     <button class="btn btn-sm btn-success" style="flex: 1; border-radius: 8px; font-size: 0.85rem; padding: 0.5rem 0.75rem; height: 38px; line-height: 1.5;" disabled>
-                      <img src="https://img.icons8.com/fluency/48/000000/checkmark.png" alt="" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;"> Sent
+                      <i class="bi bi-check-circle"></i> Sent
                     </button>
                     {% endif %}
                   </div>
                   
                   <div class="small text-muted mt-2" style="font-size: 0.75rem;">
-                    <img src="https://img.icons8.com/fluency/48/000000/clock.png" alt="" style="width:12px; height:12px; vertical-align:middle; margin-right:4px;"> {{ post.created_at[:10] if post.created_at else 'N/A' }}
+                    <i class="bi bi-clock"></i> {{ post.created_at[:10] if post.created_at else 'N/A' }}
                   </div>
                 </div>
                 {% endfor %}
@@ -648,23 +648,23 @@
                 <!-- Show More Card -->
                 <div class="job-post-card" style="min-width: 320px; max-width: 320px; background: linear-gradient(135deg, rgba(168,230,207,0.1), rgba(139,159,255,0.1)); border: 2px dashed #a8e6cf; border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer;" onclick="window.location.href='/jobs'">
                   <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #a8e6cf, #8b9fff); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 8px 20px rgba(168,230,207,0.3);">
-                    <img src="https://img.icons8.com/fluency/48/000000/plus.png" alt="" style="width:48px; height:48px;">
+                    <i class="bi bi-plus-lg" style="font-size: 2.5rem; color: white;"></i>
                   </div>
                   <h5 class="fw-bold mb-2" style="color: #2d3748;">Show More</h5>
                   <p class="text-muted mb-3 small">View all {{ job_posts|length }} job posts</p>
                   <span class="badge" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; padding: 0.5rem 1rem; font-size: 0.9rem;">
-                    <img src="https://img.icons8.com/fluency/48/000000/forward.png" alt="" style="width:16px; height:16px; vertical-align:middle; margin-right:4px;"> Go to Job Posts
+                    <i class="bi bi-arrow-right"></i> Go to Job Posts
                   </span>
                 </div>
               {% else %}
                 <div class="text-center py-5" style="width: 100%;">
                   <div style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;">
-                    <img src="https://img.icons8.com/fluency/48/000000/inbox.png" alt="" style="width:64px; height:64px; opacity:0.5;">
+                    <i class="bi bi-inbox"></i>
                   </div>
                   <h5 class="text-muted mb-3">No Job Posts Yet</h5>
                   <p class="text-muted mb-4">Run your first automation to discover job opportunities</p>
                   <a href="/send" class="btn" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; border-radius: 12px; padding: 0.75rem 1.5rem; font-weight: 600; text-decoration: none;">
-                    <img src="https://img.icons8.com/fluency/48/000000/play.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:6px;">Start Automation
+                    <i class="bi bi-play-circle me-2"></i>Start Automation
                   </a>
                 </div>
               {% endif %}
@@ -711,7 +711,7 @@
                   <div class="card-body p-4 text-center" style="position: relative;">
                     <div class="position-absolute top-0 start-0 m-3" style="background: linear-gradient(135deg, #a8e6cf, #8b9fff); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(139, 159, 255, 0.4);">1</div>
                     <div class="icon-circle mx-auto mb-3" style="background: linear-gradient(135deg, rgba(168,230,207,0.1), rgba(168,230,207,0.2)); width: 64px; height: 64px;">
-                      <img src="https://img.icons8.com/fluency/48/000000/user.png" alt="" style="width:40px; height:40px;">
+                      <i class="bi bi-person-circle text-primary" style="font-size: 2rem;"></i>
                     </div>
                     <h5 class="fw-bold mb-2">Profile Setup</h5>
                     <p class="text-muted small mb-0">Configure your email credentials, upload resume, and create email templates</p>
@@ -1035,7 +1035,7 @@
 
           <div class="alert mb-0" style="background: linear-gradient(135deg, rgba(168,230,207,0.15), rgba(139,159,255,0.15)); border: 2px solid rgba(139,159,255,0.3); border-radius: 16px;">
             <div class="d-flex align-items-start">
-              <div class="me-3" style="font-size: 2rem;"><img src="https://img.icons8.com/fluency/48/000000/idea.png" alt="" style="width:40px; height:40px;"></div>
+              <div class="me-3" style="font-size: 2rem;">💡</div>
               <div>
                 <h6 class="fw-bold mb-2">Why Personal Email Beats Job Portals?</h6>
                 <p class="mb-2 small text-muted">
@@ -1452,7 +1452,7 @@
                 </div>
               </div>
               <p style="text-align: center; margin-top: 0.75rem; font-size: 0.9rem; color: #667eea; font-weight: 600;">
-                <img src="https://img.icons8.com/fluency/48/000000/search.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:4px;">Analyzing... <span id="uploadPercent">0%</span>
+                🔍 Analyzing... <span id="uploadPercent">0%</span>
               </p>
             </div>
           </div>
@@ -1574,9 +1574,9 @@
                       onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';"
                       onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
                 <option value="0-1">🌱 Fresher (0-1 years)</option>
-                <option value="1-3"><img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:16px; height:16px; vertical-align:middle;"> Junior (1-3 years)</option>
-                <option value="3-5"><img src="https://img.icons8.com/fluency/48/000000/star.png" alt="" style="width:16px; height:16px; vertical-align:middle;"> Mid-Level (3-5 years)</option>
-                <option value="5-8"><img src="https://img.icons8.com/fluency/48/000000/trophy.png" alt="" style="width:16px; height:16px; vertical-align:middle;"> Senior (5-8 years)</option>
+                <option value="1-3">🚀 Junior (1-3 years)</option>
+                <option value="3-5">⭐ Mid-Level (3-5 years)</option>
+                <option value="5-8">🏆 Senior (5-8 years)</option>
                 <option value="8+">👑 Expert (8+ years)</option>
               </select>
             </div>
@@ -1669,7 +1669,7 @@
 
           <!-- Info Alert -->
           <div class="alert" style="padding: 1rem; border-radius: 12px; font-size: 0.9rem; background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%); border: 2px solid #c7d2fe; color: #4c51bf; font-weight: 600; margin-bottom: 1.5rem;">
-            <img src="https://img.icons8.com/fluency/48/000000/idea.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:4px;">AI will find recruiters on LinkedIn and send customized emails with your resume
+            💡 AI will find recruiters on LinkedIn and send customized emails with your resume
           </div>
 
           <!-- Auto-start Countdown Overlay (Hidden by default) -->
@@ -1700,7 +1700,7 @@
                     style="padding: 0.9rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 1rem; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); color: white; border: none; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35); transition: all 0.3s ease;"
                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 28px rgba(102, 126, 234, 0.45)';"
                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.35)';">
-              <img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:6px;">Launch Automation
+              🚀 Launch Automation
             </button>
           </div>
         </div>

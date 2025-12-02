@@ -651,7 +651,7 @@
     <div class="col-lg-11 mx-auto">
       <div class="campaign-header">
         <div class="campaign-icon" style="--gradient-start: #a8e6cf; --gradient-end: #c8f5e0">
-          <img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:28px; height:28px; vertical-align:middle;">
+          <i class="bi bi-rocket"></i>
         </div>
         <h1 class="display-5 fw-bold mb-3">AI-Powered Job Search & Email Automation</h1>
         <p class="lead text-muted mb-5">
@@ -735,10 +735,10 @@
           </h5>
           <p class="text-muted mb-3">Upload your resume and we'll generate a professional email for you. Just review and customize!</p>
           <button type="button" class="btn btn-primary btn-lg" onclick="showTemplateHelper()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 0.75rem 2rem;">
-            <img src="https://img.icons8.com/fluency/48/000000/magic-wand.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">Generate Email Template Using Your Resume
+            <i class="bi bi-magic me-2"></i>Generate Email Template Using Your Resume
           </button>
           <p class="text-muted small mt-3 mb-0">
-            <img src="https://img.icons8.com/fluency/48/000000/idea.png" alt="" style="width:18px; height:18px; vertical-align:middle; margin-right:4px;">
+            <i class="bi bi-lightbulb text-warning me-1"></i>
             <strong>Pro Tip:</strong> Always include your phone number and email in the email body so recruiters can easily reach you!
           </p>
         </div>
@@ -755,7 +755,7 @@
         <div class="me-3" style="font-size: 2.5rem;">🚀</div>
         <div class="flex-grow-1">
           <h5 class="mb-2" style="color: #065f46; font-weight: 800;">
-            <img src="https://img.icons8.com/fluency/48/000000/checkmark.png" alt="" style="width:24px; height:24px; vertical-align:middle; margin-right:6px;">Profile Saved Successfully!
+            <i class="bi bi-check-circle-fill me-2"></i>Profile Saved Successfully!
           </h5>
           <p class="mb-0 text-muted">
             Your details have been saved. Starting automation in <span id="autostartCountdown">3</span> seconds...
@@ -763,7 +763,7 @@
         </div>
         <div>
           <button type="button" class="btn btn-sm btn-outline-success" onclick="skipAutostart()">
-            <img src="https://img.icons8.com/fluency/48/000000/hand.png" alt="" style="width:16px; height:16px; vertical-align:middle; margin-right:4px;">Wait, Let Me Review
+            <i class="bi bi-hand-stop me-1"></i>Wait, Let Me Review
           </button>
         </div>
       </div>
@@ -876,7 +876,7 @@
             </a>
             <span class="text-muted mx-2">•</span>
             <a href="/email_templates" target="_blank" class="text-primary text-decoration-none small">
-              <img src="https://img.icons8.com/fluency/48/000000/sparkles.png" alt="" style="width:16px; height:16px; vertical-align:middle; margin-right:4px;">Browse professional templates
+              <i class="bi bi-stars me-1"></i>Browse professional templates
             </a>
             <span class="text-muted mx-2">•</span>
             <span class="text-muted small">Use {company} placeholder for company name</span>
@@ -916,7 +916,7 @@
         <!-- Submit Button -->
         <div class="d-grid gap-2 mt-5">
           <button type="submit" id="runBtn" class="btn btn-primary btn-lg">
-            <img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">Start Email Automation
+            <i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation
           </button>
           <button type="button" id="stopBtn" class="btn btn-danger btn-lg" style="display: none;" onclick="stopAutomation()">
             <i class="bi bi-stop-circle me-2"></i>Stop Automation
@@ -1171,7 +1171,7 @@ async function resetStuckAutomation() {
     
     // Reset UI
     runBtn.disabled = false;
-    runBtn.innerHTML = '<img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">Start Email Automation';
+    runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
     stopBtn.style.display = 'none';
     resetBtn.style.display = 'none';
     
@@ -1189,7 +1189,7 @@ async function resetStuckAutomation() {
     console.error('Error resetting automation:', error);
     alert('Failed to reset session. Please refresh the page.');
     resetBtn.disabled = false;
-    resetBtn.innerHTML = '<img src="https://img.icons8.com/fluency/48/000000/synchronize.png" alt="" style="width:16px; height:16px; vertical-align:middle; margin-right:4px;">Reset Stuck Session';
+    resetBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Reset Stuck Session';
   }
 }
 
@@ -1450,7 +1450,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const resetBtn = document.getElementById('resetBtn');
         if (runBtn) {
           runBtn.disabled = false;
-          runBtn.innerHTML = '<img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">Start Email Automation';
+          runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
         }
         if (stopBtn) {
           stopBtn.style.display = 'none';
@@ -1579,15 +1579,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </h5>
                 <p class="text-muted mb-2">Never miss an opportunity again!</p>
                 <ul class="text-start" style="color: #666; font-size: 0.95rem; list-style: none; padding-left: 0;">
-                  <li><img src="https://img.icons8.com/fluency/48/000000/checkmark.png" alt="" style="width:18px; height:18px; vertical-align:middle; margin-right:8px;">Unlimited daily emails</li>
-                  <li><img src="https://img.icons8.com/fluency/48/000000/checkmark.png" alt="" style="width:18px; height:18px; vertical-align:middle; margin-right:8px;">Priority email delivery</li>
-                  <li><img src="https://img.icons8.com/fluency/48/000000/checkmark.png" alt="" style="width:18px; height:18px; vertical-align:middle; margin-right:8px;">Advanced analytics</li>
+                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited daily emails</li>
+                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Priority email delivery</li>
+                  <li><i class="bi bi-check-circle-fill text-success me-2"></i>Advanced analytics</li>
                 </ul>
               </div>
 
               <div class="d-grid gap-2">
                 <a href="/pricing" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; font-weight: bold; padding: 1rem;">
-                  <img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">Upgrade to Pro Now
+                  <i class="bi bi-rocket-takeoff me-2"></i>Upgrade to Pro Now
                 </a>
                 <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('upgradeModalPopup').remove()">
                   Maybe Later
@@ -1855,7 +1855,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <!-- Buttons -->
             <div class="d-grid gap-2">
               <a href="/pricing" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-weight: 700; padding: 1.25rem; box-shadow: 0 8px 20px rgba(102,126,234,0.4); transition: all 0.3s ease; text-decoration: none; display: block;">
-                <img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">Upgrade to Pro Now
+                <i class="bi bi-rocket-takeoff-fill me-2"></i>Upgrade to Pro Now
               </a>
               <button class="btn btn-outline-secondary btn-lg" onclick="this.closest('.modal').remove()" style="border-radius: 12px; font-weight: 600; padding: 1rem; border-width: 2px;">
                 Maybe Later
@@ -1881,7 +1881,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     if (runBtn) {
       runBtn.disabled = false;
-      runBtn.innerHTML = '<img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">Start Email Automation';
+      runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
       runBtn.style.display = 'block';
     }
     
@@ -1936,9 +1936,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
           <div class="modal-footer" style="background:#fafafa;">
             <button class="btn btn-outline-secondary" onclick="document.getElementById('completionSummaryModal').remove()">Close</button>
-            ${skipped > 0 ? `<a class="btn btn-primary" href="/pricing"><img src="https://img.icons8.com/fluency/48/000000/rocket.png" alt="" style="width:16px; height:16px; vertical-align:middle; margin-right:4px;">Upgrade</a>` : ''}
+            ${skipped > 0 ? `<a class="btn btn-primary" href="/pricing"><i class="bi bi-rocket-takeoff me-2"></i>Upgrade</a>` : ''}
             <button class="btn btn-success" onclick="document.getElementById('completionSummaryModal').remove(); document.getElementById('automationForm').reset();">
-              <img src="https://img.icons8.com/fluency/48/000000/synchronize.png" alt="" style="width:16px; height:16px; vertical-align:middle; margin-right:4px;">New Run
+              <i class="bi bi-arrow-repeat me-2"></i>New Run
             </button>
           </div>
         </div>
@@ -2106,7 +2106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const strengthsList = topStrengths.length ?
         `<div class="mb-3" style="background: linear-gradient(135deg, rgba(102,126,234,0.08) 0%, rgba(139,159,255,0.08) 100%); border-radius: 14px; padding: 1.25rem; border: 2px solid rgba(102,126,234,0.2);">
           <h6 style="color: #667eea; font-weight: 700; margin-bottom: 0.75rem; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
-            <img src="https://img.icons8.com/fluency/48/000000/checkmark.png" alt="" style="width:20px; height:20px; vertical-align:middle;">Strengths
+            <i class="bi bi-check-circle-fill"></i>Strengths
           </h6>
           <ul style="margin: 0; padding-left: 1.5rem; color: #334155; font-size: 0.875rem; line-height: 1.7;">
             ${topStrengths.map(s => `<li style="margin-bottom: 0.5rem;">${s}</li>`).join('')}
@@ -2116,7 +2116,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const issuesList = topIssues.length ?
         `<div class="mb-3" style="background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(248,113,113,0.08) 100%); border-radius: 14px; padding: 1.25rem; border: 2px solid rgba(239,68,68,0.2);">
           <h6 style="color: #ef4444; font-weight: 700; margin-bottom: 0.75rem; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
-            <img src="https://img.icons8.com/fluency/48/000000/error.png" alt="" style="width:20px; height:20px; vertical-align:middle;">Areas to Improve
+            <i class="bi bi-exclamation-circle-fill"></i>Areas to Improve
           </h6>
           <ul style="margin: 0; padding-left: 1.5rem; color: #334155; font-size: 0.875rem; line-height: 1.7;">
             ${topIssues.map(i => `<li style="margin-bottom: 0.5rem;">${i}</li>`).join('')}

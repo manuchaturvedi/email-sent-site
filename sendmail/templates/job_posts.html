@@ -764,13 +764,13 @@
     background: linear-gradient(135deg, #f0f9ff 0%, #f8f9ff 100%);
     border: 3px solid #e8f3fe;
     border-radius: 18px;
-    padding: 8px 12px;
+    padding: 6px 10px;
     margin-bottom: 30px;
     transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     height: 100%;
     position: relative;
     overflow: hidden;
@@ -841,7 +841,7 @@
     font-size: 0.9rem;
     font-weight: 700;
     color: #1a1a1a;
-    margin: 0 0 3px 0;
+    margin: 0 0 2px 0;
     line-height: 1.25;
     transition: color 0.3s ease;
     display: -webkit-box;
@@ -859,7 +859,7 @@
     font-size: 0.78rem;
     font-weight: 600;
     color: #4a5568;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -874,9 +874,9 @@
 .naukri-job-info {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 8px;
-    padding-bottom: 8px;
+    gap: 6px;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
     border-bottom: 1px solid #e8f3fe;
 }
 
@@ -907,11 +907,11 @@
     color: #64748b;
     font-size: 0.75rem;
     line-height: 1.35;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
 }
 
 .naukri-job-description p {
-    margin: 4px 0;
+    margin: 3px 0;
 }
 
 .naukri-job-description .description-text {
@@ -937,8 +937,8 @@
 .naukri-skills {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    margin-bottom: 6px;
+    gap: 4px;
+    margin-bottom: 5px;
 }
 
 .naukri-skills .skill-tag {
@@ -964,10 +964,10 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     color: #64748b;
     font-size: 0.7rem;
-    padding: 4px 8px;
+    padding: 3px 7px;
     background: white;
     border-radius: 10px;
     border: 2px solid #e8f3fe;
@@ -1003,7 +1003,7 @@
     display: flex;
     gap: 6px;
     margin-top: auto;
-    padding-top: 8px;
+    padding-top: 5px;
 }
 
 .btn-naukri-apply {
@@ -1868,9 +1868,9 @@
                 <div class="modal-header" style="background: transparent; border: none; padding: 1.5rem 2rem 0.5rem;">
                     <div style="width: 100%;">
                         <div class="d-flex align-items-center gap-2">
-                            <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                <i class="bi bi-briefcase-fill" style="color: white; font-size: 1.1rem;"></i>
-                            </div>
+                            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #8b9fff 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <img src="{{ url_for('static', filename='images/justmailit-logo.png') }}" alt="JustMailIt" style="width: 24px; height: 24px; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: white; font-weight: 800; font-size: 0.9rem;\'>AI</span>'">
+                  </div>
                             <h5 class="modal-title" id="jobDetailsModalLabel" style="font-weight: 800; color: #1a202c; font-size: 1.5rem; margin: 0;">Job Details</h5>
                         </div>
                     </div>

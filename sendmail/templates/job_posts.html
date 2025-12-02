@@ -206,8 +206,8 @@
 }
 
 .stat-tab .stat-icon img {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
     object-fit: contain;
     transition: all 0.3s ease;
 }
@@ -217,7 +217,11 @@
 }
 
 .stat-tab:hover .stat-icon {
-    transform: scale(1.2) rotate(5deg);
+    transform: scale(1.15) rotate(5deg);
+}
+
+.stat-tab:hover .stat-icon img {
+    filter: brightness(1.1);
 }
 
 .stat-tab:hover .stat-icon i {
@@ -225,8 +229,12 @@
 }
 
 .stat-tab.active .stat-icon {
-    transform: scale(1.15);
-    filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.5));
+    transform: scale(1.1);
+    filter: drop-shadow(0 6px 16px rgba(102, 126, 234, 0.4));
+}
+
+.stat-tab.active .stat-icon img {
+    filter: brightness(1.15) drop-shadow(0 4px 8px rgba(255, 255, 255, 0.3));
 }
 
 .stat-tab.active .stat-icon i {
@@ -1625,21 +1633,21 @@
         <div class="stats-tabs">
             <div class="stat-tab active" data-filter="all" id="statAll">
                 <div class="stat-icon">
-                    <img src="https://img.icons8.com/fluency/96/000000/total.png" alt="Total" style="width: 48px; height: 48px;">
+                    <img src="https://img.icons8.com/fluency/96/000000/bar-chart.png" alt="Total">
                 </div>
                 <div class="stat-number" id="countAll">{{ job_posts|length }}</div>
                 <div class="stat-label">Total Posts</div>
             </div>
             <div class="stat-tab" data-filter="sent" id="statSent">
                 <div class="stat-icon">
-                    <img src="https://img.icons8.com/fluency/96/000000/sent.png" alt="Sent" style="width: 48px; height: 48px;">
+                    <img src="https://img.icons8.com/fluency/96/000000/email-send.png" alt="Sent">
                 </div>
                 <div class="stat-number" id="countSent">0</div>
                 <div class="stat-label">Already Sent</div>
             </div>
             <div class="stat-tab" data-filter="remaining" id="statRemaining">
                 <div class="stat-icon">
-                    <img src="https://img.icons8.com/fluency/96/000000/clock.png" alt="Remaining" style="width: 48px; height: 48px;">
+                    <img src="https://img.icons8.com/fluency/96/000000/alarm-clock.png" alt="Remaining">
                 </div>
                 <div class="stat-number" id="countRemaining">0</div>
                 <div class="stat-label">Remaining</div>

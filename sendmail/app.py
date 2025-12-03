@@ -66,6 +66,16 @@ def log_response(response):
     """Log response status"""
     user = session.get('user', 'anonymous')
     activity_logger.info(f"[{request.method}] {request.path} | Status: {response.status_code} | User: {user}")
+    # Add X-Robots-Tag for authenticated/private areas to prevent indexing
+    try:
+        private_paths = (
+            '/dashboard', '/send', '/jobs', '/sent_emails', '/profile',
+            '/email_templates', '/preferences'
+        )
+        if any(request.path.startswith(p) for p in private_paths):
+            response.headers['X-Robots-Tag'] = 'noindex, nofollow'
+    except Exception:
+        pass
     return response
 
 # Initialize SQLite database with absolute path
@@ -697,6 +707,17 @@ firebase_initialized = initialize_firebase()
 
 print("[OK] Using SQLite database for data storage")
 print("[OK] Firebase is used for authentication only")
+
+# --- SEO/Analytics globals injected into all templates ---
+@app.context_processor
+def inject_seo_globals():
+    try:
+        return {
+            'GA_MEASUREMENT_ID': os.environ.get('GA_MEASUREMENT_ID'),
+            'GOOGLE_SITE_VERIFICATION': os.environ.get('GOOGLE_SITE_VERIFICATION')
+        }
+    except Exception:
+        return {}
 
 
 # --- LOGIN CONTROL (Moved to utils/decorators.py) ---
@@ -1356,6 +1377,16 @@ def blog_post():
         author_bio="Helping job seekers land their dream jobs with smart automation."
     )
 
+@app.route("/blog/linkedin-job-search-automation")
+def blog_linkedin_job_search_automation():
+    """SEO post targeting LinkedIn job search automation keywords"""
+    return render_template("blog_linkedin_job_search_automation.html")
+
+@app.route("/blog/ai-linkedin-bot-automation")
+def blog_ai_linkedin_bot_automation():
+    """SEO post targeting AI bot for LinkedIn job applications"""
+    return render_template("blog_ai_linkedin_bot_automation.html")
+
 @app.route("/contact")
 def contact():
     """Contact page"""
@@ -1480,15 +1511,24 @@ def sitemap():
     pages = [
         {'loc': '/', 'priority': '1.0', 'changefreq': 'daily'},
         {'loc': '/pricing', 'priority': '0.9', 'changefreq': 'weekly'},
-        {'loc': '/login', 'priority': '0.8', 'changefreq': 'monthly'},
-        {'loc': '/signup', 'priority': '0.8', 'changefreq': 'monthly'},
         {'loc': '/about', 'priority': '0.7', 'changefreq': 'monthly'},
         {'loc': '/blog', 'priority': '0.7', 'changefreq': 'weekly'},
+        {'loc': '/blog/priya-success-story', 'priority': '0.6', 'changefreq': 'monthly'},
+        {'loc': '/blog/rahul-success-story', 'priority': '0.6', 'changefreq': 'monthly'},
+        {'loc': '/blog/email-subject-lines', 'priority': '0.6', 'changefreq': 'monthly'},
+        {'loc': '/blog/email-personalization-guide', 'priority': '0.6', 'changefreq': 'monthly'},
+        {'loc': '/blog/best-time-to-send', 'priority': '0.6', 'changefreq': 'monthly'},
+        {'loc': '/blog/avoiding-spam-filters', 'priority': '0.6', 'changefreq': 'monthly'},
+        {'loc': '/blog/linkedin-job-search-automation', 'priority': '0.7', 'changefreq': 'monthly'},
+        {'loc': '/blog/ai-linkedin-bot-automation', 'priority': '0.7', 'changefreq': 'monthly'},
         {'loc': '/contact', 'priority': '0.6', 'changefreq': 'monthly'},
         {'loc': '/documentation', 'priority': '0.6', 'changefreq': 'weekly'},
+        {'loc': '/api', 'priority': '0.5', 'changefreq': 'monthly'},
         {'loc': '/help', 'priority': '0.6', 'changefreq': 'monthly'},
         {'loc': '/privacy', 'priority': '0.5', 'changefreq': 'yearly'},
         {'loc': '/terms', 'priority': '0.5', 'changefreq': 'yearly'},
+        {'loc': '/cookies', 'priority': '0.4', 'changefreq': 'yearly'},
+        {'loc': '/gdpr', 'priority': '0.4', 'changefreq': 'yearly'},
         {'loc': '/careers', 'priority': '0.5', 'changefreq': 'monthly'},
     ]
     
@@ -1510,6 +1550,22 @@ def sitemap():
     response = make_response(xml)
     response.headers['Content-Type'] = 'application/xml'
     return response
+
+@app.route('/robots.txt')
+def robots_txt():
+    """Serve robots.txt with sitemap reference and protected areas disallowed"""
+    lines = [
+        'User-agent: *',
+        'Allow: /',
+        'Disallow: /dashboard',
+        'Disallow: /send',
+        'Disallow: /jobs',
+        'Disallow: /sent_emails',
+        'Disallow: /profile',
+        'Sitemap: https://justmailit.in/sitemap.xml',
+        ''
+    ]
+    return Response('\n'.join(lines), mimetype='text/plain')
 
 @app.route("/dashboard")
 @login_required

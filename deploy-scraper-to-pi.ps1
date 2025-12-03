@@ -75,5 +75,5 @@ Write-Host "`n3. Restart app to see new jobs:" -ForegroundColor White
 Write-Host "   docker restart justmailit-app" -ForegroundColor Gray
 
 Write-Host "`n4. Or run test script:" -ForegroundColor White
-Write-Host "   ./test-pi-scraper.ps1" -ForegroundColor Gray
-Write-Host ""
+Write-Host "   .\test-pi-scraper.ps1" -ForegroundColor Gray
+Write-Host " "

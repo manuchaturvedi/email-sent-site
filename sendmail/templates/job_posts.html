@@ -2,6 +2,8 @@
 
 {% block title %}Job Posts{% endblock %}
 
+{% block robots %}noindex, nofollow{% endblock %}
+
 {% block additional_styles %}
 /* Page animations */
 @keyframes fadeInUp {
@@ -254,7 +256,7 @@
 .input-group .skill-search-input {
     border-left: none;
     border: 2px solid #e8f3fe;
-    width: auto;
+    width: auto; /* This line is unchanged, but kept for context */
 }
 
 .input-group:focus-within .input-group-text {
@@ -1489,6 +1491,36 @@
     .stats-badge {
         font-size: 0.8rem;
         padding: 6px 12px;
+    }
+    /* Improve mobile input usability: full-width, larger tap targets */
+    .input-group {
+        flex-wrap: nowrap;
+    }
+    .input-group-text {
+        padding: 0.6rem 0.75rem;
+        font-size: 1.1rem;
+        border-radius: 10px 0 0 10px;
+    }
+    .input-group .form-control,
+    .input-group .skill-search-input {
+        width: 100% !important;
+        min-height: 44px; /* comfortable touch size */
+        font-size: 1rem;
+        padding: 0.6rem 0.75rem;
+        border-radius: 0 10px 10px 0;
+    }
+    /* Ensure filter cards don't constrain inputs */
+    .filter-card .form-control,
+    .filter-card .skill-search-input {
+        display: block;
+    }
+    /* Allow the input to take the remaining width when icons present */
+    .input-group > .form-control {
+        flex: 1 1 auto;
+    }
+    /* Increase clickable area for skill filter toggle */
+    .skill-search-input::placeholder {
+        font-size: 0.95rem;
     }
 }
 

@@ -11,6 +11,11 @@ dist/
 downloads/
 eggs/
 .eggs/
+.DS_Store
+
+# Local SQLite database should not be tracked
+justmailit.db
+*.db
 lib/
 lib64/
 parts/

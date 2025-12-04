@@ -3357,6 +3357,8 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     log(f"[WARN] Could not send admin alert: {str(alert_error)}")
                 
                 return
+            
+            log(f"[DEBUG] Processing {len(job_posts)} posts to extract emails...")
                 
             for post in job_posts:
                 # Check stop flag
@@ -3411,6 +3413,10 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                     
                     # Find mailto links in the post
                     mailtos = post.find_elements(By.XPATH, ".//a[contains(@href, 'mailto:')]")
+                    
+                    if len(mailtos) > 0:
+                        log(f"[EMAIL] Found {len(mailtos)} mailto link(s) in post: {title[:50]}...")
+                    
                     for m in mailtos:
                         email = m.get_attribute("href").replace("mailto:", "")
                         all_emails.add(email)
@@ -3432,10 +3438,20 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                         save_job_post(job_post, user_email)
                         
                 except Exception as e:
-                    log(f"Error extracting job post: {e}")
+                    log(f"[ERROR] Error extracting job post: {e}")
+                    import traceback
+                    log(f"[DEBUG] Traceback: {traceback.format_exc()}")
                     continue
 
         log(f"[EMAIL] Found {len(all_emails)} email(s).")
+        
+        # If no emails found, explain why and stop
+        if len(all_emails) == 0:
+            log("[WARN] No email addresses found in any posts")
+            log("[INFO] Posts may not contain mailto: links or email addresses")
+            log("[INFO] Try different search keywords or check LinkedIn manually")
+            send_event("[WARN] No emails found in LinkedIn posts. Posts may not contain contact information.")
+            return
 
         # CHECK EMAIL LIMIT FOR FREE USERS BEFORE SENDING
         skipped_emails = []

@@ -2587,13 +2587,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Check for upgrade prompt modal and show it as a popup
-    if (msg.includes('upgrade-prompt-modal') || msg.includes('Daily Limit Reached') || msg.includes("emails couldn't be sent")) {
+    if (msg.includes('upgrade-prompt-modal') || msg.includes('Daily Limit Reached') || msg.includes("emails couldn't be sent") || msg.includes('[LIMIT]')) {
       showUpgradeModal(msg);
+      progressStatus.textContent = 'Limit Reached';
+      progressStatus.className = 'badge bg-warning';
     }
 
     // Update progress status badge
-    if (msg.includes('Starting automation')) {
-      progressStatus.textContent = 'Searching...';
+    if (msg.includes('Starting automation') || msg.startsWith('[*] Starting') || msg.includes('Initializing automation')) {
+      progressStatus.textContent = 'Running';
       progressStatus.className = 'badge bg-primary';
     }
     else if (msg.includes('📧 Found')) {
@@ -2626,11 +2628,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.stats.emailsSent++;
       }
     }
-    else if (msg.includes('📧 Sending email to') || msg.includes('[EMAIL] Sending email to')) {
+    else if (msg.includes('📧 Sending email to') || msg.includes('[EMAIL] Sending email to') || msg.startsWith('[→] Sending to')) {
       progressStatus.textContent = 'Sending...';
       progressStatus.className = 'badge bg-info';
     }
-    else if ((msg.includes('✅ Email sent to') && msg.includes('successfully!')) || (msg.includes('[OK] Email sent to') && msg.includes('successfully'))) {
+    else if ((msg.includes('✅ Email sent to') && msg.includes('successfully!')) || (msg.includes('[OK] Email sent to') && msg.includes('successfully')) || msg.startsWith('[✓] Email sent to')) {
       progressStatus.textContent = 'Processing...';
       progressStatus.className = 'badge bg-primary';
       window.stats.emailsSent++;
@@ -2649,11 +2651,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         progressStatus.className = 'badge bg-warning';
       }
     }
+    else if (msg.startsWith('[*] Starting automation') || msg.includes('Initializing automation')) {
+      progressStatus.textContent = 'Running';
+      progressStatus.className = 'badge bg-info';
+    }
     else if (msg.includes('🎉 Automation completed') || msg.includes('✅ Automation completed') || msg.includes('[OK] Automation completed')) {
       progressStatus.textContent = 'Completed';
       progressStatus.className = 'badge bg-success';
       
       // Extract sent count from completion message
+      const match = msg.match(/Sent (\d+) emails/);
+      if (match) {
+        window.stats.emailsSent = parseInt(match[1]);
+      }
+    }
+    else if (msg.includes('[STOP] Automation stopped')) {
+      progressStatus.textContent = 'Stopped';
+      progressStatus.className = 'badge bg-warning';
+      
+      // Extract sent count from stop message
       const match = msg.match(/Sent (\d+) emails/);
       if (match) {
         window.stats.emailsSent = parseInt(match[1]);

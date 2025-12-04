@@ -4818,7 +4818,7 @@ def scrape_and_save_jobs(search_role, search_time='past-week', user_email=None, 
         chrome_options.binary_location = os.environ.get('CHROME_BIN', '/usr/bin/chromium')
         print(f"[SCRAPER] Using Chromium: {chrome_options.binary_location}")
         
-        # Headless mode
+        # Headless mode with Docker-compatible flags
         chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
@@ -4830,6 +4830,24 @@ def scrape_and_save_jobs(search_role, search_time='past-week', user_email=None, 
         chrome_options.add_argument("--window-size=1920,1080")
         chrome_options.add_argument("--start-maximized")
         chrome_options.add_argument("--remote-debugging-port=9222")
+        # Critical Docker compatibility flags
+        chrome_options.add_argument("--disable-background-networking")
+        chrome_options.add_argument("--disable-background-timer-throttling")
+        chrome_options.add_argument("--disable-backgrounding-occluded-windows")
+        chrome_options.add_argument("--disable-breakpad")
+        chrome_options.add_argument("--disable-client-side-phishing-detection")
+        chrome_options.add_argument("--disable-default-apps")
+        chrome_options.add_argument("--disable-hang-monitor")
+        chrome_options.add_argument("--disable-popup-blocking")
+        chrome_options.add_argument("--disable-prompt-on-repost")
+        chrome_options.add_argument("--disable-sync")
+        chrome_options.add_argument("--metrics-recording-only")
+        chrome_options.add_argument("--no-first-run")
+        chrome_options.add_argument("--safebrowsing-disable-auto-update")
+        chrome_options.add_argument("--enable-automation")
+        chrome_options.add_argument("--password-store=basic")
+        chrome_options.add_argument("--use-mock-keychain")
+        chrome_options.add_argument("--single-process")  # Critical for low-memory Docker environments
         
         # Use SAME profile directory as run_automation to share authenticated session
         if os.environ.get('CHROME_BIN'):  # Docker/Cloud environment
@@ -5097,6 +5115,24 @@ def admin_scrape_jobs():
                 chrome_options.add_argument("--disable-extensions")
                 chrome_options.add_argument("--dns-prefetch-disable")
                 chrome_options.add_argument("--disable-features=VizDisplayCompositor")
+                # Critical Docker compatibility flags
+                chrome_options.add_argument("--disable-background-networking")
+                chrome_options.add_argument("--disable-background-timer-throttling")
+                chrome_options.add_argument("--disable-backgrounding-occluded-windows")
+                chrome_options.add_argument("--disable-breakpad")
+                chrome_options.add_argument("--disable-client-side-phishing-detection")
+                chrome_options.add_argument("--disable-default-apps")
+                chrome_options.add_argument("--disable-hang-monitor")
+                chrome_options.add_argument("--disable-popup-blocking")
+                chrome_options.add_argument("--disable-prompt-on-repost")
+                chrome_options.add_argument("--disable-sync")
+                chrome_options.add_argument("--metrics-recording-only")
+                chrome_options.add_argument("--no-first-run")
+                chrome_options.add_argument("--safebrowsing-disable-auto-update")
+                chrome_options.add_argument("--enable-automation")
+                chrome_options.add_argument("--password-store=basic")
+                chrome_options.add_argument("--use-mock-keychain")
+                chrome_options.add_argument("--single-process")  # Critical for low-memory Docker
                 
                 # Use appropriate profile directory based on environment
                 if os.environ.get('CHROME_BIN'):  # Docker/Cloud environment

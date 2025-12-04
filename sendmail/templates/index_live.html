@@ -1049,10 +1049,21 @@
           display: block !important;
         }
         
+        /* Keep all row elements visible by default */
+        .automation-running .row {
+          display: flex !important;
+        }
+        
+        /* Hide specific sections */
         .automation-running #benefitsSection,
         .automation-running #templateGeneratorSection,
         .automation-running #automationFormCard {
           display: none !important;
+        }
+        
+        /* Keep campaign header row visible */
+        .automation-running .row.mb-5:first-child {
+          display: flex !important;
         }
         
         /* Keep campaign header visible */
@@ -1061,6 +1072,7 @@
           margin-bottom: 2rem;
         }
         
+        /* Ensure progress section is visible */
         .automation-running #automationProgressSection {
           display: block !important;
           margin-top: 2rem;

@@ -2639,13 +2639,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
       console.error('Error:', error);
+      const progressBox = document.getElementById('progressBox');
+      const progressStatus = document.getElementById('progressStatus');
+      
       progressBox.innerHTML += `\n❌ Error: ${error.message}`;
+      
+      // Reset UI completely on error
       runBtn.disabled = false;
-      runBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Run Automation';
+      runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
+      runBtn.style.display = 'block';
+      
+      // Update status badge to show error
+      if (progressStatus) {
+        progressStatus.textContent = 'Error';
+        progressStatus.className = 'badge bg-danger';
+      }
       
       // Hide stop button on error
       const stopBtn = document.getElementById('stopBtn');
-      stopBtn.style.display = 'none';
+      if (stopBtn) {
+        stopBtn.style.display = 'none';
+      }
+      
+      // Remove automation-running class
+      document.body.classList.remove('automation-running');
+      
+      // Save error state
+      saveProgressState();
     }
   }
 
@@ -2675,6 +2695,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       progressStatus.textContent = 'Stopped';
       progressStatus.className = 'badge bg-warning';
+      
+      // Remove automation-running class
+      document.body.classList.remove('automation-running');
+      
+      // Save state
+      saveProgressState();
+      
+      return;
+    }
+
+    // Check for error messages
+    if (msg.includes('❌ Error:') || msg.includes('[ERROR]') || msg.includes('Network response was not ok')) {
+      const runBtn = document.getElementById('runBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      
+      // Reset UI on error
+      runBtn.disabled = false;
+      runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
+      runBtn.style.display = 'block';
+      
+      stopBtn.style.display = 'none';
+      
+      progressStatus.textContent = 'Error';
+      progressStatus.className = 'badge bg-danger';
       
       // Remove automation-running class
       document.body.classList.remove('automation-running');

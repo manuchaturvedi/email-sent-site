@@ -1667,6 +1667,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('emailsSent').textContent = window.stats.emailsSent;
     document.getElementById('emailsFailed').textContent = window.stats.emailsFailed;
     
+    // Update progress bar based on emails sent vs found
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar && window.stats.emailsFound > 0) {
+      const totalProcessed = window.stats.emailsSent + window.stats.emailsFailed;
+      const percent = Math.min(100, Math.round((totalProcessed / window.stats.emailsFound) * 100));
+      progressBar.style.width = percent + '%';
+      
+      // Change color based on success rate
+      if (window.stats.emailsFailed > 0 && window.stats.emailsSent > 0) {
+        progressBar.style.backgroundColor = '#ffc107'; // Warning yellow if some failures
+      } else if (window.stats.emailsFailed > 0 && window.stats.emailsSent === 0) {
+        progressBar.style.backgroundColor = '#dc3545'; // Red if all failed
+      } else {
+        progressBar.style.backgroundColor = '#28a745'; // Green for success
+      }
+    }
+    
     // Save state to sessionStorage
     saveProgressState();
     
@@ -2587,8 +2604,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Check for upgrade prompt modal and show it as a popup
-    if (msg.includes('upgrade-prompt-modal') || msg.includes('Daily Limit Reached') || msg.includes("emails couldn't be sent") || msg.includes('[LIMIT]')) {
+    if (msg.includes('upgrade-prompt-modal') || msg.includes('Daily Limit Reached') || msg.includes("emails couldn't be sent")) {
       showUpgradeModal(msg);
+      progressStatus.textContent = 'Limit Reached';
+      progressStatus.className = 'badge bg-warning';
+    }
+    // Only show "Limit Reached" badge if limit is actually reached (not just info about limit)
+    else if (msg.includes('[LIMIT] Daily email limit reached')) {
       progressStatus.textContent = 'Limit Reached';
       progressStatus.className = 'badge bg-warning';
     }

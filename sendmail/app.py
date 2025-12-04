@@ -134,34 +134,287 @@ def run_scheduler():
                             print(f"[AUTO-SCHEDULER] Found {len(skills)} active skills to scrape")
                             
                             def run_auto_scheduler():
-                                for skill in skills:
-                                    try:
-                                        print(f"[AUTO-SCHEDULER] Scraping: {skill['skill_keyword']}")
-                                        result = scrape_and_save_jobs(
-                                            search_role=skill['skill_keyword'],
-                                            search_time='past-week',
-                                            user_email='all_users',
-                                            scrolls=skill['scroll_count']
-                                        )
-                                        
-                                        if 'error' in result:
-                                            db.log_auto_scheduler_run('automatic', skill['skill_keyword'], 
-                                                                     0, 0, 'failed', result['error'])
-                                        else:
-                                            db.log_auto_scheduler_run('automatic', skill['skill_keyword'], 
-                                                                     result.get('jobs_found', 0), 
-                                                                     result.get('jobs_saved', 0), 
-                                                                     'success')
-                                        
-                                        # Wait 10 seconds between skills to avoid overloading
-                                        time.sleep(10)
-                                        
-                                    except Exception as e:
-                                        print(f"[AUTO-SCHEDULER ERROR] Failed to scrape {skill['skill_keyword']}: {str(e)}")
-                                        db.log_auto_scheduler_run('automatic', skill['skill_keyword'], 
-                                                                 0, 0, 'failed', str(e))
+                                """Auto-scheduler using SAME Chrome initialization as admin scraper"""
+                                from selenium import webdriver
+                                from selenium.webdriver.chrome.options import Options
+                                from selenium.webdriver.common.by import By
+                                from selenium.webdriver.support.ui import WebDriverWait
+                                from selenium.webdriver.support import expected_conditions as EC
+                                from urllib.parse import urlencode
                                 
-                                print(f"[AUTO-SCHEDULER] Completed auto-scheduler run")
+                                driver = None
+                                
+                                try:
+                                    # SAME Chrome initialization as admin scraper
+                                    chrome_options = Options()
+                                    
+                                    if os.environ.get('CHROME_BIN'):
+                                        chrome_options.binary_location = os.environ.get('CHROME_BIN', '/usr/bin/chromium')
+                                        print(f"[AUTO-SCHEDULER] Using Chromium: {chrome_options.binary_location}")
+                                    
+                                    if os.environ.get('HEADLESS', 'true').lower() != 'false':
+                                        chrome_options.add_argument("--headless=new")
+                                    
+                                    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+                                    chrome_options.add_argument("--no-sandbox")
+                                    chrome_options.add_argument("--disable-dev-shm-usage")
+                                    chrome_options.add_argument("--disable-gpu")
+                                    chrome_options.add_argument("--window-size=1920,1080")
+                                    chrome_options.add_argument("--disable-extensions")
+                                    chrome_options.add_argument("--dns-prefetch-disable")
+                                    chrome_options.add_argument("--disable-features=VizDisplayCompositor")
+                                    
+                                    # SAME profile directory as admin scraper
+                                    if os.environ.get('CHROME_BIN'):
+                                        profile_dir = "/tmp/chrome-profile"
+                                    else:
+                                        profile_dir = r"D:\Profile"
+                                    
+                                    os.makedirs(profile_dir, exist_ok=True)
+                                    chrome_options.add_argument(f"--user-data-dir={profile_dir}")
+                                    print(f"[AUTO-SCHEDULER] Profile: {profile_dir}")
+                                    
+                                    chrome_options.page_load_strategy = 'normal'
+                                    
+                                    # Launch Chrome
+                                    if os.environ.get('CHROMEDRIVER_PATH'):
+                                        from selenium.webdriver.chrome.service import Service
+                                        service = Service(os.environ.get('CHROMEDRIVER_PATH'))
+                                        driver = webdriver.Chrome(service=service, options=chrome_options)
+                                    else:
+                                        from webdriver_manager.chrome import ChromeDriverManager
+                                        from selenium.webdriver.chrome.service import Service
+                                        service = Service(ChromeDriverManager().install())
+                                        driver = webdriver.Chrome(service=service, options=chrome_options)
+                                    
+                                    print("[AUTO-SCHEDULER] Chrome launched successfully")
+                                    
+                                    # SAME LinkedIn login logic as admin scraper
+                                    print("[AUTO-SCHEDULER] Checking LinkedIn login status...")
+                                    driver.get("https://www.linkedin.com/feed/")
+                                    time.sleep(5)
+                                    
+                                    login_indicators = [
+                                        ".global-nav__me",
+                                        ".feed-identity-module",
+                                        "[data-control-name='nav.settings_and_privacy']",
+                                        ".nav-item__profile-member-photo"
+                                    ]
+                                    
+                                    logged_in = False
+                                    for indicator in login_indicators:
+                                        try:
+                                            elements = driver.find_elements(By.CSS_SELECTOR, indicator)
+                                            if elements:
+                                                logged_in = True
+                                                print(f"[AUTO-SCHEDULER] Login confirmed via: {indicator}")
+                                                break
+                                        except:
+                                            continue
+                                    
+                                    current_url = driver.current_url
+                                    if "login" in current_url or "authwall" in current_url:
+                                        logged_in = False
+                                    
+                                    if not logged_in:
+                                        print("[AUTO-SCHEDULER] Not logged in, attempting login...")
+                                        
+                                        linkedin_email = os.environ.get('LINKEDIN_EMAIL')
+                                        linkedin_password = os.environ.get('LINKEDIN_PASSWORD')
+                                        
+                                        if linkedin_email and linkedin_password:
+                                            driver.get("https://www.linkedin.com/login")
+                                            time.sleep(2)
+                                            
+                                            email_field = driver.find_element(By.ID, "username")
+                                            email_field.send_keys(linkedin_email)
+                                            
+                                            password_field = driver.find_element(By.ID, "password")
+                                            password_field.send_keys(linkedin_password)
+                                            
+                                            login_btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
+                                            login_btn.click()
+                                            
+                                            time.sleep(8)
+                                            print("[AUTO-SCHEDULER] Login completed")
+                                        else:
+                                            print("[AUTO-SCHEDULER] No LinkedIn credentials found")
+                                    else:
+                                        print("[AUTO-SCHEDULER] Already logged in to LinkedIn")
+                                    
+                                    # Process each skill with SAME scraping logic as admin
+                                    for skill in skills:
+                                        skill_keyword = skill['skill_keyword']
+                                        scroll_count = skill.get('scroll_count', 10)
+                                        
+                                        print(f"[AUTO-SCHEDULER] Scraping: {skill_keyword} (scrolls: {scroll_count})")
+                                        
+                                        try:
+                                            # Build search URL SAME as admin scraper
+                                            skill_list = parse_skills(skill_keyword)
+                                            search_keywords = ' OR '.join(f'{s.strip()} hiring' for s in skill_list)
+                                            base_url = "https://www.linkedin.com/search/results/content/?"
+                                            params = {
+                                                'datePosted': '"past-week"',
+                                                'keywords': search_keywords
+                                            }
+                                            url = base_url + urlencode(params)
+                                            
+                                            driver.get(url)
+                                            time.sleep(5)
+                                            
+                                            # Scroll SAME as admin scraper
+                                            last_height = driver.execute_script("return document.body.scrollHeight")
+                                            no_change_count = 0
+                                            
+                                            for i in range(scroll_count):
+                                                try:
+                                                    current_scroll = driver.execute_script("return window.pageYOffset")
+                                                    driver.execute_script(f"window.scrollTo(0, {current_scroll - 100});")
+                                                    time.sleep(0.5)
+                                                    
+                                                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                                                    time.sleep(4)
+                                                    
+                                                    new_height = driver.execute_script("return document.body.scrollHeight")
+                                                    
+                                                    if new_height == last_height:
+                                                        no_change_count += 1
+                                                        if no_change_count >= 3:
+                                                            break
+                                                        time.sleep(2)
+                                                    else:
+                                                        no_change_count = 0
+                                                        last_height = new_height
+                                                except:
+                                                    break
+                                            
+                                            # Extract posts SAME as admin scraper
+                                            wait = WebDriverWait(driver, 20)
+                                            selectors = [
+                                                ".feed-shared-update-v2",
+                                                "article.ember-view",
+                                                ".update-components-actor",
+                                                ".social-details-social-activity"
+                                            ]
+                                            
+                                            job_posts = []
+                                            for selector in selectors:
+                                                try:
+                                                    elements = wait.until(
+                                                        EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector))
+                                                    )
+                                                    if elements:
+                                                        job_posts = elements
+                                                        break
+                                                except:
+                                                    continue
+                                            
+                                            jobs_found = 0
+                                            jobs_saved = 0
+                                            
+                                            # Process each post SAME as admin scraper
+                                            for post in job_posts:
+                                                try:
+                                                    # Extract title
+                                                    title_selectors = [
+                                                        ".feed-shared-text",
+                                                        ".feed-shared-text-view",
+                                                        ".update-components-text",
+                                                        ".share-update-card__update-text",
+                                                        ".feed-shared-update-v2__description",
+                                                        "span.break-words"
+                                                    ]
+                                                    
+                                                    title_elem = None
+                                                    for selector in title_selectors:
+                                                        try:
+                                                            title_elem = post.find_element(By.CSS_SELECTOR, selector)
+                                                            if title_elem:
+                                                                break
+                                                        except:
+                                                            continue
+                                                    
+                                                    if not title_elem:
+                                                        continue
+                                                    
+                                                    title = title_elem.text
+                                                    full_text = title
+                                                    
+                                                    # Extract company
+                                                    company_selectors = [
+                                                        ".feed-shared-actor__name",
+                                                        ".update-components-actor__name",
+                                                        ".share-update-card__actor-name",
+                                                        ".feed-shared-actor__sub-description"
+                                                    ]
+                                                    
+                                                    company_elem = None
+                                                    for selector in company_selectors:
+                                                        try:
+                                                            company_elem = post.find_element(By.CSS_SELECTOR, selector)
+                                                            if company_elem:
+                                                                break
+                                                        except:
+                                                            continue
+                                                    
+                                                    company = company_elem.text if company_elem else "Company Not Found"
+                                                    
+                                                    # Find mailto links
+                                                    mailtos = post.find_elements(By.XPATH, ".//a[contains(@href, 'mailto:')]")
+                                                    
+                                                    for m in mailtos:
+                                                        jobs_found += 1
+                                                        email = m.get_attribute("href").replace("mailto:", "")
+                                                        
+                                                        job_post = {
+                                                            "title": title,
+                                                            "company": company,
+                                                            "description": full_text[:200],
+                                                            "full_text": full_text,
+                                                            "email": email,
+                                                            "location": "Remote/On-site",
+                                                            "job_type": "Full-time",
+                                                            "posted_date": datetime.now().strftime("%Y-%m-%d"),
+                                                            "url": url,
+                                                            "job_url": url,
+                                                            "skills": skill_list
+                                                        }
+                                                        
+                                                        # Save for all users
+                                                        if save_job_post(job_post, 'all_users'):
+                                                            jobs_saved += 1
+                                                            print(f"[AUTO-SCHEDULER] Saved: {company} - {email}")
+                                                except:
+                                                    continue
+                                            
+                                            # Log results
+                                            db.log_auto_scheduler_run('automatic', skill_keyword, 
+                                                                     jobs_found, jobs_saved, 'success')
+                                            print(f"[AUTO-SCHEDULER] {skill_keyword}: {jobs_found} found, {jobs_saved} saved")
+                                            
+                                            # Wait between skills
+                                            time.sleep(10)
+                                            
+                                        except Exception as e:
+                                            print(f"[AUTO-SCHEDULER] Error for {skill_keyword}: {str(e)}")
+                                            db.log_auto_scheduler_run('automatic', skill_keyword, 
+                                                                     0, 0, 'failed', str(e))
+                                    
+                                    print("[AUTO-SCHEDULER] Completed auto-scheduler run")
+                                    
+                                except Exception as e:
+                                    print(f"[AUTO-SCHEDULER] Critical error: {str(e)}")
+                                    import traceback
+                                    traceback.print_exc()
+                                
+                                finally:
+                                    if driver:
+                                        try:
+                                            driver.quit()
+                                            print("[AUTO-SCHEDULER] Chrome closed")
+                                        except:
+                                            pass
                             
                             # Run in background thread
                             auto_thread = threading.Thread(target=run_auto_scheduler, daemon=True)
@@ -5737,30 +5990,286 @@ def run_auto_scheduler_now():
         print(f"[MANUAL] Starting manual auto-scheduler run for {len(skills)} skills")
         
         def run_all_skills():
-            for skill in skills:
-                try:
-                    print(f"[AUTO-SCHEDULER] Scraping: {skill['skill_keyword']}")
-                    result = scrape_and_save_jobs(
-                        search_role=skill['skill_keyword'],
-                        search_time='past-week',
-                        user_email='all_users',
-                        scrolls=skill['scroll_count']
-                    )
+            """Run all skills using SAME Chrome logic as admin scraper"""
+            from selenium import webdriver
+            from selenium.webdriver.chrome.options import Options
+            from selenium.webdriver.common.by import By
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+            from urllib.parse import urlencode
+            
+            driver = None
+            
+            try:
+                # SAME Chrome initialization as admin scraper
+                chrome_options = Options()
+                
+                if os.environ.get('CHROME_BIN'):
+                    chrome_options.binary_location = os.environ.get('CHROME_BIN', '/usr/bin/chromium')
+                    print(f"[MANUAL] Using Chromium: {chrome_options.binary_location}")
+                
+                if os.environ.get('HEADLESS', 'true').lower() != 'false':
+                    chrome_options.add_argument("--headless=new")
+                
+                chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+                chrome_options.add_argument("--no-sandbox")
+                chrome_options.add_argument("--disable-dev-shm-usage")
+                chrome_options.add_argument("--disable-gpu")
+                chrome_options.add_argument("--window-size=1920,1080")
+                chrome_options.add_argument("--disable-extensions")
+                chrome_options.add_argument("--dns-prefetch-disable")
+                chrome_options.add_argument("--disable-features=VizDisplayCompositor")
+                
+                # SAME profile directory as admin scraper
+                if os.environ.get('CHROME_BIN'):
+                    profile_dir = "/tmp/chrome-profile"
+                else:
+                    profile_dir = r"D:\Profile"
+                
+                os.makedirs(profile_dir, exist_ok=True)
+                chrome_options.add_argument(f"--user-data-dir={profile_dir}")
+                print(f"[MANUAL] Profile: {profile_dir}")
+                
+                chrome_options.page_load_strategy = 'normal'
+                
+                # Launch Chrome
+                if os.environ.get('CHROMEDRIVER_PATH'):
+                    from selenium.webdriver.chrome.service import Service
+                    service = Service(os.environ.get('CHROMEDRIVER_PATH'))
+                    driver = webdriver.Chrome(service=service, options=chrome_options)
+                else:
+                    from webdriver_manager.chrome import ChromeDriverManager
+                    from selenium.webdriver.chrome.service import Service
+                    service = Service(ChromeDriverManager().install())
+                    driver = webdriver.Chrome(service=service, options=chrome_options)
+                
+                print("[MANUAL] Chrome launched successfully")
+                
+                # SAME LinkedIn login logic as admin scraper
+                print("[MANUAL] Checking LinkedIn login status...")
+                driver.get("https://www.linkedin.com/feed/")
+                time.sleep(5)
+                
+                login_indicators = [
+                    ".global-nav__me",
+                    ".feed-identity-module",
+                    "[data-control-name='nav.settings_and_privacy']",
+                    ".nav-item__profile-member-photo"
+                ]
+                
+                logged_in = False
+                for indicator in login_indicators:
+                    try:
+                        elements = driver.find_elements(By.CSS_SELECTOR, indicator)
+                        if elements:
+                            logged_in = True
+                            print(f"[MANUAL] Login confirmed via: {indicator}")
+                            break
+                    except:
+                        continue
+                
+                current_url = driver.current_url
+                if "login" in current_url or "authwall" in current_url:
+                    logged_in = False
+                
+                if not logged_in:
+                    print("[MANUAL] Not logged in, attempting login...")
                     
-                    if 'error' in result:
-                        db.log_auto_scheduler_run('manual', skill['skill_keyword'], 0, 0, 'failed', result['error'])
+                    linkedin_email = os.environ.get('LINKEDIN_EMAIL')
+                    linkedin_password = os.environ.get('LINKEDIN_PASSWORD')
+                    
+                    if linkedin_email and linkedin_password:
+                        driver.get("https://www.linkedin.com/login")
+                        time.sleep(2)
+                        
+                        email_field = driver.find_element(By.ID, "username")
+                        email_field.send_keys(linkedin_email)
+                        
+                        password_field = driver.find_element(By.ID, "password")
+                        password_field.send_keys(linkedin_password)
+                        
+                        login_btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
+                        login_btn.click()
+                        
+                        time.sleep(8)
+                        print("[MANUAL] Login completed")
                     else:
-                        db.log_auto_scheduler_run('manual', skill['skill_keyword'], 
-                                                 result.get('jobs_found', 0), 
-                                                 result.get('jobs_saved', 0), 
-                                                 'success')
+                        print("[MANUAL] No LinkedIn credentials found")
+                else:
+                    print("[MANUAL] Already logged in to LinkedIn")
+                
+                # Process each skill with SAME scraping logic as admin
+                for skill in skills:
+                    skill_keyword = skill['skill_keyword']
+                    scroll_count = skill.get('scroll_count', 10)
                     
-                    # Wait between skills to avoid overloading
-                    time.sleep(5)
+                    print(f"[MANUAL] Scraping: {skill_keyword} (scrolls: {scroll_count})")
                     
-                except Exception as e:
-                    print(f"[ERROR] Failed to scrape {skill['skill_keyword']}: {str(e)}")
-                    db.log_auto_scheduler_run('manual', skill['skill_keyword'], 0, 0, 'failed', str(e))
+                    try:
+                        # Build search URL SAME as admin scraper
+                        skill_list = parse_skills(skill_keyword)
+                        search_keywords = ' OR '.join(f'{s.strip()} hiring' for s in skill_list)
+                        base_url = "https://www.linkedin.com/search/results/content/?"
+                        params = {
+                            'datePosted': '"past-week"',
+                            'keywords': search_keywords
+                        }
+                        url = base_url + urlencode(params)
+                        
+                        driver.get(url)
+                        time.sleep(5)
+                        
+                        # Scroll SAME as admin scraper
+                        last_height = driver.execute_script("return document.body.scrollHeight")
+                        no_change_count = 0
+                        
+                        for i in range(scroll_count):
+                            try:
+                                current_scroll = driver.execute_script("return window.pageYOffset")
+                                driver.execute_script(f"window.scrollTo(0, {current_scroll - 100});")
+                                time.sleep(0.5)
+                                
+                                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                                time.sleep(4)
+                                
+                                new_height = driver.execute_script("return document.body.scrollHeight")
+                                
+                                if new_height == last_height:
+                                    no_change_count += 1
+                                    if no_change_count >= 3:
+                                        break
+                                    time.sleep(2)
+                                else:
+                                    no_change_count = 0
+                                    last_height = new_height
+                            except:
+                                break
+                        
+                        # Extract posts SAME as admin scraper
+                        wait = WebDriverWait(driver, 20)
+                        selectors = [
+                            ".feed-shared-update-v2",
+                            "article.ember-view",
+                            ".update-components-actor",
+                            ".social-details-social-activity"
+                        ]
+                        
+                        job_posts = []
+                        for selector in selectors:
+                            try:
+                                elements = wait.until(
+                                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector))
+                                )
+                                if elements:
+                                    job_posts = elements
+                                    break
+                            except:
+                                continue
+                        
+                        jobs_found = 0
+                        jobs_saved = 0
+                        
+                        # Process each post SAME as admin scraper
+                        for post in job_posts:
+                            try:
+                                # Extract title
+                                title_selectors = [
+                                    ".feed-shared-text",
+                                    ".feed-shared-text-view",
+                                    ".update-components-text",
+                                    ".share-update-card__update-text",
+                                    ".feed-shared-update-v2__description",
+                                    "span.break-words"
+                                ]
+                                
+                                title_elem = None
+                                for selector in title_selectors:
+                                    try:
+                                        title_elem = post.find_element(By.CSS_SELECTOR, selector)
+                                        if title_elem:
+                                            break
+                                    except:
+                                        continue
+                                
+                                if not title_elem:
+                                    continue
+                                
+                                title = title_elem.text
+                                full_text = title
+                                
+                                # Extract company
+                                company_selectors = [
+                                    ".feed-shared-actor__name",
+                                    ".update-components-actor__name",
+                                    ".share-update-card__actor-name",
+                                    ".feed-shared-actor__sub-description"
+                                ]
+                                
+                                company_elem = None
+                                for selector in company_selectors:
+                                    try:
+                                        company_elem = post.find_element(By.CSS_SELECTOR, selector)
+                                        if company_elem:
+                                            break
+                                    except:
+                                        continue
+                                
+                                company = company_elem.text if company_elem else "Company Not Found"
+                                
+                                # Find mailto links
+                                mailtos = post.find_elements(By.XPATH, ".//a[contains(@href, 'mailto:')]")
+                                
+                                for m in mailtos:
+                                    jobs_found += 1
+                                    email = m.get_attribute("href").replace("mailto:", "")
+                                    
+                                    job_post = {
+                                        "title": title,
+                                        "company": company,
+                                        "description": full_text[:200],
+                                        "full_text": full_text,
+                                        "email": email,
+                                        "location": "Remote/On-site",
+                                        "job_type": "Full-time",
+                                        "posted_date": datetime.now().strftime("%Y-%m-%d"),
+                                        "url": url,
+                                        "job_url": url,
+                                        "skills": skill_list
+                                    }
+                                    
+                                    # Save for all users
+                                    if save_job_post(job_post, 'all_users'):
+                                        jobs_saved += 1
+                                        print(f"[MANUAL] Saved: {company} - {email}")
+                            except:
+                                continue
+                        
+                        # Log results
+                        db.log_auto_scheduler_run('manual', skill_keyword, 
+                                                 jobs_found, jobs_saved, 'success')
+                        print(f"[MANUAL] {skill_keyword}: {jobs_found} found, {jobs_saved} saved")
+                        
+                        # Wait between skills
+                        time.sleep(5)
+                        
+                    except Exception as e:
+                        print(f"[MANUAL] Error for {skill_keyword}: {str(e)}")
+                        db.log_auto_scheduler_run('manual', skill_keyword, 0, 0, 'failed', str(e))
+                
+                print("[MANUAL] Completed all skills")
+                
+            except Exception as e:
+                print(f"[MANUAL] Critical error: {str(e)}")
+                import traceback
+                traceback.print_exc()
+            
+            finally:
+                if driver:
+                    try:
+                        driver.quit()
+                        print("[MANUAL] Chrome closed")
+                    except:
+                        pass
         
         thread = threading.Thread(target=run_all_skills)
         thread.daemon = True

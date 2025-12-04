@@ -1052,7 +1052,10 @@
         }
         
         .automation-running #automationProgressSection {
+          display: block !important;
           margin-top: 2rem;
+          visibility: visible !important;
+          opacity: 1 !important;
         }
         
         .automation-running #automationProgressSection h5 {
@@ -1077,9 +1080,16 @@
         
         /* Keep stop button visible and prominent */
         .automation-running #stopBtn {
+          display: block !important;
+          visibility: visible !important;
           font-size: 1.2rem;
           padding: 1rem 2rem;
           box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+        }
+        
+        /* Ensure buttons container is visible */
+        .automation-running .d-flex.gap-2 {
+          display: flex !important;
         }
       </style>
     </div>

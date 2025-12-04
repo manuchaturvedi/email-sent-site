@@ -2929,19 +2929,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Handle connection errors
     evtSource.onerror = function(err) {
       console.warn('EventSource error:', err);
-      // Check if automation is still running
+      
+      // Don't reset - preserve the current state
       const runBtn = document.getElementById('runBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const progressStatus = document.getElementById('progressStatus');
+      
+      // Check if automation is still running (button is disabled)
       if (runBtn && runBtn.disabled) {
-        // Automation might still be running, try to reconnect after delay
-        console.log('Will retry connection in 5 seconds...');
+        // Show connection lost status but don't reset
+        if (progressStatus) {
+          progressStatus.textContent = 'Reconnecting...';
+          progressStatus.className = 'badge bg-warning';
+        }
+        
+        console.log('Connection lost, will retry in 5 seconds...');
+        
+        // Try to reconnect after delay
         setTimeout(function() {
+          // Only reconnect if automation is still marked as running
           if (runBtn.disabled) {
+            console.log('Attempting to reconnect...');
             evtSource.close();
             window.progressEventSource = null;
-            listenProgress();  // Reconnect
+            
+            // Check if automation is actually still running on server
+            fetch('/check_automation_status')
+              .then(r => r.json())
+              .then(data => {
+                if (data.is_running) {
+                  // Automation still running, reconnect
+                  if (progressStatus) {
+                    progressStatus.textContent = 'Running';
+                    progressStatus.className = 'badge bg-primary';
+                  }
+                  listenProgress();
+                } else {
+                  // Automation finished while disconnected
+                  if (progressStatus) {
+                    progressStatus.textContent = 'Completed';
+                    progressStatus.className = 'badge bg-success';
+                  }
+                  runBtn.disabled = false;
+                  runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
+                  runBtn.style.display = 'block';
+                  if (stopBtn) stopBtn.style.display = 'none';
+                  document.body.classList.remove('automation-running');
+                  saveProgressState();
+                }
+              })
+              .catch(err => {
+                console.error('Failed to check automation status:', err);
+                // Keep trying to reconnect
+                listenProgress();
+              });
           }
         }, 5000);
       } else {
+        // Automation not running, just close the connection
         evtSource.close();
         window.progressEventSource = null;
       }

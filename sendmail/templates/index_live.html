@@ -1322,6 +1322,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Save progress state to sessionStorage (called frequently)
   function saveProgressState() {
     try {
+      const stopBtn = document.getElementById('stopBtn');
       const state = {
         stats: {
           emailsFound: window.stats.emailsFound,
@@ -1337,6 +1338,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         progressStatusClass: document.getElementById('progressStatus')?.className || 'badge bg-secondary',
         isRunning: document.getElementById('runBtn')?.disabled || false,
         buttonText: document.getElementById('runBtn')?.innerHTML || '',
+        stopButtonVisible: stopBtn ? (stopBtn.style.display !== 'none') : false,
         timestamp: Date.now()
       };
       sessionStorage.setItem('emailAutomationState', JSON.stringify(state));
@@ -1412,16 +1414,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Restore button state
       const runBtn = document.getElementById('runBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      
       if (runBtn) {
         runBtn.disabled = state.isRunning;
         if (state.buttonText) {
           runBtn.innerHTML = state.buttonText;
         }
+        // Show/hide run button based on state
+        runBtn.style.display = state.isRunning ? 'none' : 'block';
+      }
+      
+      // Restore stop button visibility
+      if (stopBtn) {
+        stopBtn.style.display = state.stopButtonVisible ? 'block' : 'none';
       }
 
       // If automation was running, reconnect to progress stream
       if (state.isRunning) {
         console.log('Reconnecting to progress stream...');
+        document.body.classList.add('automation-running');
         listenProgress();
       }
 

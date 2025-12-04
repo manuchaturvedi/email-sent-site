@@ -2541,6 +2541,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveProgressState();
 
     try {
+      // Save search preferences to profile first
+      const searchRole = document.getElementById('searchRole')?.value;
+      const searchTimePeriod = document.getElementById('searchTimePeriod')?.value;
+      
+      if (searchRole || searchTimePeriod) {
+        try {
+          await fetch('/update-profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              searchRole: searchRole,
+              searchTimePeriod: searchTimePeriod
+            })
+          });
+          console.log('Profile preferences updated:', { searchRole, searchTimePeriod });
+        } catch (err) {
+          console.warn('Failed to update profile preferences:', err);
+          // Don't block automation if profile update fails
+        }
+      }
+      
       const formData = new FormData(e.target);
       // Add the useSavedResume flag
       const useSavedResume = document.getElementById('useSavedResume')?.checked || false;

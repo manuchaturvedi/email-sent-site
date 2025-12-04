@@ -1631,6 +1631,46 @@ def save_profile():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
+@app.route("/update-profile", methods=["POST"])
+@login_required
+def update_profile():
+    """Update user profile preferences (JSON endpoint)."""
+    user_email = session.get("user")
+    
+    try:
+        data = request.get_json()
+        search_role = data.get("searchRole")
+        search_time_period = data.get("searchTimePeriod")
+        
+        # Get existing profile
+        profile = db.get_profile(user_email) or {}
+        
+        # Update only the provided fields
+        db.create_or_update_profile(
+            email=user_email,
+            display_name=profile.get('display_name'),
+            photo_url=profile.get('photo_url'),
+            email_subject=profile.get('email_subject'),
+            email_content=profile.get('email_content'),
+            search_role=search_role if search_role is not None else profile.get('searchRole'),
+            search_time_period=search_time_period if search_time_period is not None else profile.get('searchTimePeriod'),
+            resume_data=profile.get('resume_data'),
+            resume_filename=profile.get('resume_filename'),
+            user_name=profile.get('user_name'),
+            user_phone=profile.get('user_phone')
+        )
+        
+        print(f"[OK] Profile preferences updated for {user_email}")
+        if search_role:
+            print(f"   - Search Role: {search_role}")
+        if search_time_period:
+            print(f"   - Time Period: {search_time_period}")
+        
+        return jsonify({"status": "success", "message": "Profile updated"})
+    except Exception as e:
+        print(f"[ERROR] Error updating profile: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/")
 def landing():
     """Public landing page showcasing the platform."""

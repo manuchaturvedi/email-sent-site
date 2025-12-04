@@ -3,7 +3,7 @@
 {% block title %}Email Automation - JustMailIt{% endblock %}
 
 {% block additional_styles %}
-<style>
+ <style>
   /* Main container styles */
   .email-composer {
     max-width: 1200px;
@@ -645,7 +645,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
+ <div class="container py-4">
   <!-- Campaign Header -->
   <div class="row mb-5">
     <div class="col-lg-11 mx-auto">
@@ -2628,7 +2628,27 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        // Try to get error details from response
+        let errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          } else if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch (e) {
+          // If response isn't JSON, try text
+          try {
+            const errorText = await response.text();
+            if (errorText) {
+              errorMessage = errorText.substring(0, 200); // Limit error message length
+            }
+          } catch (e2) {
+            // Use default error message
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       // Show relaxing message popup only after successful start

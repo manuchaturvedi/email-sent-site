@@ -2314,8 +2314,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       const missingFields = [];
       
-      // Check required fields
-      if (!profile.emailSubject || profile.emailSubject.trim() === '') {
+      // Check form values first, fall back to profile
+      const formEmailSubject = document.getElementById('emailSubject')?.value?.trim();
+      const formEmailContent = document.getElementById('emailContent')?.value?.trim();
+      const formSearchRole = document.getElementById('searchRole')?.value?.trim();
+      const formResumeFile = document.getElementById('resumeFile')?.files?.length > 0;
+      const useSavedResume = document.getElementById('useSavedResume')?.checked;
+      
+      // Check required fields - prioritize form values over profile
+      if (!formEmailSubject && (!profile.emailSubject || profile.emailSubject.trim() === '')) {
         missingFields.push({
           field: 'Email Subject',
           id: 'emailSubject',
@@ -2323,7 +2330,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
       
-      if (!profile.emailContent || profile.emailContent.trim() === '') {
+      if (!formEmailContent && (!profile.emailContent || profile.emailContent.trim() === '')) {
         missingFields.push({
           field: 'Email Content',
           id: 'emailContent',
@@ -2331,7 +2338,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
       
-      if (!profile.searchRole || profile.searchRole.trim() === '') {
+      if (!formSearchRole && (!profile.searchRole || profile.searchRole.trim() === '')) {
         missingFields.push({
           field: 'Job Role',
           id: 'searchRole',
@@ -2339,7 +2346,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
       
-      if (!profile.hasResume) {
+      // Check resume - either uploaded now, using saved, or exists in profile
+      if (!formResumeFile && !useSavedResume && !profile.hasResume) {
         missingFields.push({
           field: 'Resume',
           id: 'resumeFile',

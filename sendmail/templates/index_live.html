@@ -1045,10 +1045,20 @@
         }
         
         /* Automation running state - hide everything except progress and stop button */
+        .automation-running .container {
+          display: block !important;
+        }
+        
         .automation-running #benefitsSection,
         .automation-running #templateGeneratorSection,
         .automation-running #automationFormCard {
           display: none !important;
+        }
+        
+        /* Keep campaign header visible */
+        .automation-running .campaign-header {
+          display: block !important;
+          margin-bottom: 2rem;
         }
         
         .automation-running #automationProgressSection {

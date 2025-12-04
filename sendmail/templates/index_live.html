@@ -1112,6 +1112,7 @@ async function stopAutomation() {
   
   const stopBtn = document.getElementById('stopBtn');
   const runBtn = document.getElementById('runBtn');
+  const progressStatus = document.getElementById('progressStatus');
   
   stopBtn.disabled = true;
   stopBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Stopping...';
@@ -1127,9 +1128,17 @@ async function stopAutomation() {
       const progressBox = document.getElementById('progressBox');
       progressBox.innerHTML += '\n[STOP] Automation stopped by user\n';
       
-      // Reset buttons
+      // Update status badge
+      if (progressStatus) {
+        progressStatus.textContent = 'Stopped';
+        progressStatus.className = 'badge bg-warning';
+      }
+      
+      // Reset buttons - show run button, hide stop button
       runBtn.disabled = false;
       runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
+      runBtn.style.display = 'block';
+      
       stopBtn.style.display = 'none';
       stopBtn.disabled = false;
       stopBtn.innerHTML = '<i class="bi bi-stop-circle me-2"></i>Stop Automation';
@@ -1142,6 +1151,9 @@ async function stopAutomation() {
         window.progressEventSource.close();
         window.progressEventSource = null;
       }
+      
+      // Save final state
+      saveProgressState();
     }
   } catch (error) {
     console.error('Error stopping automation:', error);
@@ -2653,11 +2665,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (msg.includes('[STOP]') || msg.includes('Automation stopped')) {
       const runBtn = document.getElementById('runBtn');
       const stopBtn = document.getElementById('stopBtn');
+      
+      // Reset UI completely
       runBtn.disabled = false;
       runBtn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation';
+      runBtn.style.display = 'block';
+      
       stopBtn.style.display = 'none';
+      
       progressStatus.textContent = 'Stopped';
       progressStatus.className = 'badge bg-warning';
+      
+      // Remove automation-running class
+      document.body.classList.remove('automation-running');
+      
+      // Save state
+      saveProgressState();
+      
       return;
     }
 

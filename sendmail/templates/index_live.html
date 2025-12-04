@@ -1044,35 +1044,7 @@
           overflow-y: auto;
         }
         
-        /* Automation running state - hide everything except progress and stop button */
-        .automation-running .container {
-          display: block !important;
-        }
-        
-        /* Keep all row elements visible by default */
-        .automation-running .row {
-          display: flex !important;
-        }
-        
-        /* Hide specific sections */
-        .automation-running #benefitsSection,
-        .automation-running #templateGeneratorSection,
-        .automation-running #automationFormCard {
-          display: none !important;
-        }
-        
-        /* Keep campaign header row visible */
-        .automation-running .row.mb-5:first-child {
-          display: flex !important;
-        }
-        
-        /* Keep campaign header visible */
-        .automation-running .campaign-header {
-          display: block !important;
-          margin-bottom: 2rem;
-        }
-        
-        /* Ensure progress section is visible */
+        /* Automation running state - enhance progress visibility */
         .automation-running #automationProgressSection {
           display: block !important;
           margin-top: 2rem;
@@ -1107,11 +1079,6 @@
           font-size: 1.2rem;
           padding: 1rem 2rem;
           box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
-        }
-        
-        /* Ensure buttons container is visible */
-        .automation-running .d-flex.gap-2 {
-          display: flex !important;
         }
       </style>
     </div>

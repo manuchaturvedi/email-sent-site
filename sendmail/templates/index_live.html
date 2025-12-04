@@ -2495,6 +2495,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     progressBar.style.width = '0%';
     progressBar.style.backgroundColor = '#8b9fff';
 
+    // Update status badge to "Running" immediately
+    const progressStatus = document.getElementById('progressStatus');
+    if (progressStatus) {
+      progressStatus.textContent = 'Running';
+      progressStatus.className = 'badge bg-primary';
+    }
+
     // Show loading state
     runBtn.disabled = true;
     runBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Running...';
@@ -2513,6 +2520,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Add automation-running class to shrink form and enlarge progress
     document.body.classList.add('automation-running');
+    
+    // Show initial progress (indeterminate animation)
+    setTimeout(() => {
+      if (progressBar.style.width === '0%') {
+        progressBar.style.width = '5%';
+        progressBar.style.transition = 'width 0.5s ease';
+      }
+    }, 500);
     
     // Scroll to progress section
     setTimeout(() => {
@@ -2632,12 +2647,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       progressStatus.textContent = 'Running';
       progressStatus.className = 'badge bg-primary';
     }
-    else if (msg.includes('📧 Found')) {
-      progressStatus.textContent = 'Sending Emails...';
+    else if (msg.includes('📧 Found') || msg.includes('[EMAIL] Found')) {
+      progressStatus.textContent = 'Preparing...';
       progressStatus.className = 'badge bg-info';
       const match = msg.match(/Found (\d+) email/);
       if (match) {
         window.stats.emailsFound = parseInt(match[1]);
+        updateStats(); // Update progress bar immediately when emails are found
       }
     }
     else if (msg.startsWith('EMAIL_PENDING:')) {

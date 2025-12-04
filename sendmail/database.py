@@ -207,6 +207,34 @@ class Database:
             )
         ''')
         
+        # Auto-scheduler configuration table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS auto_scheduler_config (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                skill_keyword TEXT NOT NULL,
+                scroll_count INTEGER DEFAULT 10,
+                is_active BOOLEAN DEFAULT 1,
+                priority INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Auto-scheduler runs log
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS auto_scheduler_runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_type TEXT NOT NULL,
+                skill_keyword TEXT NOT NULL,
+                jobs_found INTEGER DEFAULT 0,
+                jobs_saved INTEGER DEFAULT 0,
+                status TEXT NOT NULL,
+                error_message TEXT,
+                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP
+            )
+        ''')
+        
         conn.commit()
         conn.close()
         print("✅ SQLite database initialized successfully")
@@ -764,6 +792,140 @@ class Database:
         cursor = conn.cursor()
         
         cursor.execute('DELETE FROM scheduled_jobs WHERE id = ?', (job_id,))
+        
+        conn.commit()
+        conn.close()
+        return True
+    
+    # Auto-scheduler methods
+    def get_all_auto_scheduler_skills(self):
+        """Get all auto-scheduler skills"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT * FROM auto_scheduler_config 
+            ORDER BY priority DESC, skill_keyword ASC
+        ''')
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [dict(row) for row in rows]
+    
+    def get_active_auto_scheduler_skills(self):
+        """Get active auto-scheduler skills"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT * FROM auto_scheduler_config 
+            WHERE is_active = 1
+            ORDER BY priority DESC, skill_keyword ASC
+        ''')
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [dict(row) for row in rows]
+    
+    def add_auto_scheduler_skill(self, skill_keyword: str, scroll_count: int = 10, priority: int = 0):
+        """Add a new skill to auto-scheduler"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            INSERT INTO auto_scheduler_config (skill_keyword, scroll_count, priority)
+            VALUES (?, ?, ?)
+        ''', (skill_keyword, scroll_count, priority))
+        
+        conn.commit()
+        skill_id = cursor.lastrowid
+        conn.close()
+        
+        return skill_id
+    
+    def update_auto_scheduler_skill(self, skill_id: int, skill_keyword: str = None, 
+                                   scroll_count: int = None, is_active: bool = None, priority: int = None):
+        """Update an auto-scheduler skill"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        updates = []
+        params = []
+        
+        if skill_keyword is not None:
+            updates.append("skill_keyword = ?")
+            params.append(skill_keyword)
+        if scroll_count is not None:
+            updates.append("scroll_count = ?")
+            params.append(scroll_count)
+        if is_active is not None:
+            updates.append("is_active = ?")
+            params.append(1 if is_active else 0)
+        if priority is not None:
+            updates.append("priority = ?")
+            params.append(priority)
+        
+        if updates:
+            updates.append("updated_at = CURRENT_TIMESTAMP")
+            params.append(skill_id)
+            
+            cursor.execute(f'''
+                UPDATE auto_scheduler_config 
+                SET {", ".join(updates)}
+                WHERE id = ?
+            ''', params)
+            
+            conn.commit()
+        
+        conn.close()
+        return True
+    
+    def delete_auto_scheduler_skill(self, skill_id: int):
+        """Delete an auto-scheduler skill"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM auto_scheduler_config WHERE id = ?', (skill_id,))
+        
+        conn.commit()
+        conn.close()
+        return True
+    
+    def log_auto_scheduler_run(self, run_type: str, skill_keyword: str, jobs_found: int = 0, 
+                              jobs_saved: int = 0, status: str = 'success', error_message: str = None):
+        """Log an auto-scheduler run"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            INSERT INTO auto_scheduler_runs 
+            (run_type, skill_keyword, jobs_found, jobs_saved, status, error_message, completed_at)
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ''', (run_type, skill_keyword, jobs_found, jobs_saved, status, error_message))
+        
+        conn.commit()
+        run_id = cursor.lastrowid
+        conn.close()
+        
+        return run_id
+    
+    def get_auto_scheduler_run_history(self, limit: int = 100):
+        """Get auto-scheduler run history"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT * FROM auto_scheduler_runs 
+            ORDER BY started_at DESC 
+            LIMIT ?
+        ''', (limit,))
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [dict(row) for row in rows]
         
         conn.commit()
         conn.close()

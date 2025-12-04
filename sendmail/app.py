@@ -92,11 +92,15 @@ scheduler_thread = None
 
 def run_scheduler():
     """Background thread that checks and runs scheduled jobs"""
-    global scheduler_running
+    global scheduler_running, automation_sessions
     from croniter import croniter
     
     print("[SCHEDULER] Starting job scheduler...")
     scheduler_running = True
+    
+    # Auto-scheduler state - runs twice daily at 2 AM and 2 PM IST when no users are active
+    last_auto_run_date = None
+    auto_run_hours = [2, 14]  # 2 AM and 2 PM IST
     
     while scheduler_running:
         try:
@@ -107,6 +111,69 @@ def run_scheduler():
             if jobs:
                 print(f"[SCHEDULER] Checking {len(jobs)} active job(s) at {now.strftime('%H:%M:%S')}", flush=True)
             
+            # === AUTO-SCHEDULER: Run twice daily when no users are active ===
+            current_date = now.date()
+            current_hour = now.hour
+            
+            # Check if it's time to run auto-scheduler (2 AM or 2 PM IST)
+            if current_hour in auto_run_hours:
+                # Only run once per time slot per day
+                run_key = f"{current_date}_{current_hour}"
+                
+                if last_auto_run_date != run_key:
+                    # Check if any users have active automation
+                    users_active = any(session_data.get('running') for session_data in automation_sessions.values())
+                    
+                    if not users_active:
+                        print(f"[AUTO-SCHEDULER] Starting auto-scheduler at {now.strftime('%Y-%m-%d %H:%M:%S')}")
+                        
+                        # Get active skills
+                        skills = db.get_active_auto_scheduler_skills()
+                        
+                        if skills:
+                            print(f"[AUTO-SCHEDULER] Found {len(skills)} active skills to scrape")
+                            
+                            def run_auto_scheduler():
+                                for skill in skills:
+                                    try:
+                                        print(f"[AUTO-SCHEDULER] Scraping: {skill['skill_keyword']}")
+                                        result = scrape_and_save_jobs(
+                                            search_role=skill['skill_keyword'],
+                                            search_time='past-week',
+                                            user_email='all_users',
+                                            scrolls=skill['scroll_count']
+                                        )
+                                        
+                                        if 'error' in result:
+                                            db.log_auto_scheduler_run('automatic', skill['skill_keyword'], 
+                                                                     0, 0, 'failed', result['error'])
+                                        else:
+                                            db.log_auto_scheduler_run('automatic', skill['skill_keyword'], 
+                                                                     result.get('jobs_found', 0), 
+                                                                     result.get('jobs_saved', 0), 
+                                                                     'success')
+                                        
+                                        # Wait 10 seconds between skills to avoid overloading
+                                        time.sleep(10)
+                                        
+                                    except Exception as e:
+                                        print(f"[AUTO-SCHEDULER ERROR] Failed to scrape {skill['skill_keyword']}: {str(e)}")
+                                        db.log_auto_scheduler_run('automatic', skill['skill_keyword'], 
+                                                                 0, 0, 'failed', str(e))
+                                
+                                print(f"[AUTO-SCHEDULER] Completed auto-scheduler run")
+                            
+                            # Run in background thread
+                            auto_thread = threading.Thread(target=run_auto_scheduler, daemon=True)
+                            auto_thread.start()
+                            
+                            last_auto_run_date = run_key
+                        else:
+                            print(f"[AUTO-SCHEDULER] No active skills configured")
+                    else:
+                        print(f"[AUTO-SCHEDULER] Skipping - users are currently active")
+            
+            # === Regular scheduled jobs ===
             for job in jobs:
                 try:
                     # Calculate next run time if not set
@@ -5578,6 +5645,131 @@ def run_scheduled_job_now(job_id):
         
     except Exception as e:
         print(f"[ERROR] Failed to run scheduled job: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+# ========== AUTO-SCHEDULER ROUTES ==========
+
+@app.route('/admin/auto_scheduler')
+@admin_required
+def admin_auto_scheduler():
+    """Admin page to manage auto-scheduler configuration"""
+    try:
+        skills = db.get_all_auto_scheduler_skills()
+        run_history = db.get_auto_scheduler_run_history(limit=50)
+        return render_template('admin_auto_scheduler.html', skills=skills, run_history=run_history)
+    except Exception as e:
+        print(f"[ERROR] Failed to load auto-scheduler: {str(e)}")
+        flash(f"Error loading auto-scheduler: {str(e)}", "danger")
+        return redirect(url_for('admin_panel'))
+
+@app.route('/admin/auto_scheduler/add', methods=['POST'])
+@admin_required
+def add_auto_scheduler_skill():
+    """Add a new skill to auto-scheduler"""
+    try:
+        data = request.get_json()
+        skill_keyword = data.get('skill_keyword', '').strip()
+        scroll_count = int(data.get('scroll_count', 10))
+        priority = int(data.get('priority', 0))
+        
+        if not skill_keyword:
+            return jsonify({'success': False, 'message': 'Skill/keyword is required'}), 400
+        
+        skill_id = db.add_auto_scheduler_skill(skill_keyword, scroll_count, priority)
+        
+        print(f"[OK] Added auto-scheduler skill: {skill_keyword}")
+        return jsonify({'success': True, 'message': 'Skill added successfully', 'skill_id': skill_id})
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to add skill: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/auto_scheduler/<int:skill_id>/update', methods=['POST'])
+@admin_required
+def update_auto_scheduler_skill_route(skill_id):
+    """Update an auto-scheduler skill"""
+    try:
+        data = request.get_json()
+        skill_keyword = data.get('skill_keyword')
+        scroll_count = data.get('scroll_count')
+        is_active = data.get('is_active')
+        priority = data.get('priority')
+        
+        if scroll_count is not None:
+            scroll_count = int(scroll_count)
+        if priority is not None:
+            priority = int(priority)
+        
+        db.update_auto_scheduler_skill(skill_id, skill_keyword, scroll_count, is_active, priority)
+        
+        print(f"[OK] Updated auto-scheduler skill #{skill_id}")
+        return jsonify({'success': True, 'message': 'Skill updated successfully'})
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to update skill: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/auto_scheduler/<int:skill_id>/delete', methods=['DELETE'])
+@admin_required
+def delete_auto_scheduler_skill_route(skill_id):
+    """Delete an auto-scheduler skill"""
+    try:
+        db.delete_auto_scheduler_skill(skill_id)
+        
+        print(f"[OK] Deleted auto-scheduler skill #{skill_id}")
+        return jsonify({'success': True, 'message': 'Skill deleted successfully'})
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to delete skill: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/auto_scheduler/run_now', methods=['POST'])
+@admin_required
+def run_auto_scheduler_now():
+    """Manually trigger auto-scheduler for all active skills"""
+    try:
+        skills = db.get_active_auto_scheduler_skills()
+        
+        if not skills:
+            return jsonify({'success': False, 'message': 'No active skills configured'}), 400
+        
+        print(f"[MANUAL] Starting manual auto-scheduler run for {len(skills)} skills")
+        
+        def run_all_skills():
+            for skill in skills:
+                try:
+                    print(f"[AUTO-SCHEDULER] Scraping: {skill['skill_keyword']}")
+                    result = scrape_and_save_jobs(
+                        search_role=skill['skill_keyword'],
+                        search_time='past-week',
+                        user_email='all_users',
+                        scrolls=skill['scroll_count']
+                    )
+                    
+                    if 'error' in result:
+                        db.log_auto_scheduler_run('manual', skill['skill_keyword'], 0, 0, 'failed', result['error'])
+                    else:
+                        db.log_auto_scheduler_run('manual', skill['skill_keyword'], 
+                                                 result.get('jobs_found', 0), 
+                                                 result.get('jobs_saved', 0), 
+                                                 'success')
+                    
+                    # Wait between skills to avoid overloading
+                    time.sleep(5)
+                    
+                except Exception as e:
+                    print(f"[ERROR] Failed to scrape {skill['skill_keyword']}: {str(e)}")
+                    db.log_auto_scheduler_run('manual', skill['skill_keyword'], 0, 0, 'failed', str(e))
+        
+        thread = threading.Thread(target=run_all_skills)
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({'success': True, 'message': f'Started scraping {len(skills)} skills in background'})
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to run auto-scheduler: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 

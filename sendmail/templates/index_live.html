@@ -980,11 +980,11 @@
                   <div class="icon-circle bg-warning bg-opacity-10 me-3">
                     <i class="bi bi-exclamation-diamond-fill text-warning"></i>
                   </div>
-                  <h6 class="mb-0">Failed Attempts</h6>
+                  <h6 class="mb-0">Missed Opportunities</h6>
                 </div>
                 <div class="d-flex align-items-baseline">
                   <h2 id="emailsFailed" class="display-6 mb-0 me-2">0</h2>
-                  <span class="text-muted small">errors</span>
+                  <span class="text-muted small">opportunities</span>
                 </div>
               </div>
             </div>
@@ -1691,20 +1691,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   function updateStats() {
     document.getElementById('emailsFound').textContent = window.stats.emailsFound;
     document.getElementById('emailsSent').textContent = window.stats.emailsSent;
-    document.getElementById('emailsFailed').textContent = window.stats.emailsFailed;
+    
+    // Calculate missed opportunities = found - sent
+    const missed = Math.max(0, window.stats.emailsFound - window.stats.emailsSent);
+    document.getElementById('emailsFailed').textContent = missed;
     
     // Update progress bar based on emails sent vs found
     const progressBar = document.getElementById('progressBar');
     if (progressBar && window.stats.emailsFound > 0) {
       const totalProcessed = window.stats.emailsSent + window.stats.emailsFailed;
-      const percent = Math.min(100, Math.round((totalProcessed / window.stats.emailsFound) * 100));
+      const percent = Math.min(100, Math.round((window.stats.emailsSent / window.stats.emailsFound) * 100));
       progressBar.style.width = percent + '%';
       
       // Change color based on success rate
-      if (window.stats.emailsFailed > 0 && window.stats.emailsSent > 0) {
-        progressBar.style.backgroundColor = '#ffc107'; // Warning yellow if some failures
-      } else if (window.stats.emailsFailed > 0 && window.stats.emailsSent === 0) {
-        progressBar.style.backgroundColor = '#dc3545'; // Red if all failed
+      if (missed > 0 && window.stats.emailsSent > 0) {
+        progressBar.style.backgroundColor = '#ffc107'; // Warning yellow if some missed
+      } else if (missed > 0 && window.stats.emailsSent === 0) {
+        progressBar.style.backgroundColor = '#dc3545'; // Red if all missed
       } else {
         progressBar.style.backgroundColor = '#28a745'; // Green for success
       }
@@ -1954,8 +1957,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Show automation complete success modal
   function showAutomationCompleteModal() {
     const sent = window.stats?.emailsSent || 0;
-    const failed = window.stats?.emailsFailed || 0;
     const found = window.stats?.emailsFound || 0;
+    const missed = Math.max(0, found - sent);
     
     const modal = document.createElement('div');
     modal.className = 'modal fade show';
@@ -1971,7 +1974,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
             <h2 class="text-white fw-bold mb-3">Automation Complete!</h2>
             <p class="text-white opacity-90 mb-4" style="font-size: 1.1rem;">
-              Your emails have been sent successfully
+              Successfully sent ${sent} email${sent !== 1 ? 's' : ''}
             </p>
             <div class="row g-3 mb-4">
               <div class="col-4">
@@ -1988,13 +1991,13 @@ document.addEventListener('DOMContentLoaded', async () => {
               </div>
               <div class="col-4">
                 <div class="p-3" style="background: rgba(255,255,255,0.2); border-radius: 12px; backdrop-filter: blur(10px);">
-                  <div class="text-white opacity-75 small">Failed</div>
-                  <div class="text-white fs-2 fw-bold">${failed}</div>
+                  <div class="text-white opacity-75 small">Missed</div>
+                  <div class="text-white fs-2 fw-bold">${missed}</div>
                 </div>
               </div>
             </div>
             <button type="button" class="btn btn-light btn-lg" onclick="this.closest('.modal').remove();" style="border-radius: 12px; padding: 0.75rem 2rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-              <i class="bi bi-check-lg me-2"></i>Got it!
+              <i class="bi bi-check-lg me-2"></i>View Details
             </button>
           </div>
         </div>
@@ -2967,7 +2970,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveProgressState();
 
     // Check for completion message (both formats)
-    if (msg.includes("🎉 Automation completed") || msg.includes("✅ Automation completed")) {
+    if (msg.includes("🎉 Automation completed") || msg.includes("✅ Automation completed") || msg.includes("[OK] Automation completed")) {
       const runBtn = document.getElementById('runBtn');
       const stopBtn = document.getElementById('stopBtn');
       const progressBar = document.getElementById('progressBar');
@@ -3003,6 +3006,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       // Show success popup
       showAutomationCompleteModal();
+      
+      // Auto-expand email detail list
+      setTimeout(() => {
+        const emailListSection = document.getElementById('emailList');
+        if (emailListSection && !emailListSection.classList.contains('show')) {
+          emailListSection.classList.add('show');
+          // Scroll to email list
+          emailListSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 1000);
 
       // Create completion toast
       const toastContainer = document.createElement('div');

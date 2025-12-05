@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /logout
+Disallow: /delete_account
+Disallow: /run_automation
+Disallow: /stop_automation
+
+Sitemap: https://justmailit.in/sitemap.xml

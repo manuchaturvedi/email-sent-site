@@ -31,6 +31,10 @@ Disallow: /
 
 User-agent: *
 Allow: /
+Allow: /static/
+Allow: /static/images/
+Allow: /static/css/
+Allow: /static/js/
 Disallow: /dashboard
 Disallow: /send
 Disallow: /jobs

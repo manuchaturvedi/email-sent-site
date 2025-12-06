@@ -836,7 +836,39 @@ def extract_resume_info(resume_path):
             'phone': ''
         }
 
-def generate_email_templates(role, resume_info):
+def get_personalized_greeting(recruiter_email):
+    """Extract recruiter name from email and create personalized greeting"""
+    try:
+        if not recruiter_email or '@' not in recruiter_email:
+            return "Dear Hiring Manager"
+        
+        # Extract name part from email (before @)
+        email_prefix = recruiter_email.split('@')[0]
+        
+        # Remove common separators and numbers
+        name_parts = email_prefix.replace('.', ' ').replace('_', ' ').replace('-', ' ')
+        name_parts = ''.join(char for char in name_parts if not char.isdigit())
+        
+        # Split into words and capitalize
+        words = name_parts.split()
+        if not words:
+            return "Dear Hiring Manager"
+        
+        # If we have recognizable name parts, use them
+        if len(words) >= 1:
+            # Capitalize first letter of each word
+            formatted_name = ' '.join(word.capitalize() for word in words if len(word) > 1)
+            if formatted_name:
+                return f"Dear {formatted_name}"
+        
+        # Fallback to email address if name extraction failed
+        return f"Dear {email_prefix.capitalize()}"
+    
+    except Exception as e:
+        print(f"[WARN] Error extracting recruiter name: {str(e)}")
+        return "Dear Hiring Manager"
+
+def generate_email_templates(role, resume_info, recruiter_email=None):
     """Generate professional email subject and body based on role and resume"""
     
     name = resume_info.get('name', 'Candidate')
@@ -869,7 +901,10 @@ def generate_email_templates(role, resume_info):
     
     contact_section = "\n".join(contact_info)
     
-    body = f"""Dear Hiring Manager,
+    # Personalized greeting based on recruiter email
+    greeting = get_personalized_greeting(recruiter_email)
+    
+    body = f"""{greeting},
 
 I am writing to express my interest in the {role} position at your esteemed organization. As an {experience} with expertise in {skills_text}, I am confident that I can contribute effectively to your team.
 
@@ -2201,6 +2236,10 @@ def send_job_email():
         smtp_user = "manudrive06@gmail.com"  # Gmail account for authentication
         sender_password = "ozds nrqo gduy mnwd"  # Gmail App Password
         
+        # Personalize email content with recruiter's name
+        personalized_greeting = get_personalized_greeting(job_email)
+        personalized_content = email_content.replace("Dear Hiring Manager", personalized_greeting)
+        
         try:
             msg = MIMEMultipart()
             msg["From"] = sender_email  # mail@justmailit.in
@@ -2209,8 +2248,8 @@ def send_job_email():
             msg["Reply-To"] = user_email  # Replies go to user
             msg["Subject"] = subject
             
-            # Attach email content
-            msg.attach(MIMEText(email_content, "plain", "utf-8"))
+            # Attach personalized email content
+            msg.attach(MIMEText(personalized_content, "plain", "utf-8"))
             
             # Attach resume
             if resume_path and os.path.exists(resume_path):
@@ -2850,8 +2889,10 @@ def send_emails_from_existing_jobs(subject, email_content, attachment_path, cc_e
                 log(f"[→] Sending to {company} ({receiver_email})...")
                 send_event(f"[→] Sending to {company}...")
                 
-                # Personalize email content
-                personalized_content = email_content.replace("{company}", company).replace("{Company}", company)
+                # Personalize email content with recruiter's name
+                personalized_greeting = get_personalized_greeting(receiver_email)
+                personalized_content = email_content.replace("Dear Hiring Manager", personalized_greeting)
+                personalized_content = personalized_content.replace("{company}", company).replace("{Company}", company)
                 
                 # Send email
                 msg = MIMEMultipart()
@@ -3564,12 +3605,17 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 msg["Cc"] = cc_email  # Add CC
                 msg["Subject"] = subject if subject else "Application"
                 
-                # Handle email content
+                # Handle email content and personalize greeting
                 if email_content is None:
                     email_content = "No content provided"
                 # Ensure content is string and properly encoded
                 email_content = str(email_content).encode('utf-8').decode('utf-8')
-                msg.attach(MIMEText(email_content, "plain", "utf-8"))
+                
+                # Personalize email content with recruiter's name
+                personalized_greeting = get_personalized_greeting(receiver_email)
+                personalized_email = email_content.replace("Dear Hiring Manager", personalized_greeting)
+                
+                msg.attach(MIMEText(personalized_email, "plain", "utf-8"))
 
                 # Handle attachment
                 if attachment_path and os.path.exists(attachment_path):

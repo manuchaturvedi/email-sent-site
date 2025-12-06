@@ -2153,9 +2153,13 @@ def job_posts():
             if email and '@' in email:
                 # Use our helper function for extraction
                 post['company'] = extract_company_from_email(email)
+        
+        # Ensure posted_date exists for sorting
+        if not post.get('posted_date'):
+            post['posted_date'] = post.get('created_at', datetime.now().strftime('%Y-%m-%d'))
     
-    # Sort posts by date, newest first
-    posts.sort(key=lambda x: x["posted_date"], reverse=True)
+    # Sort posts by date, newest first (with safe fallback)
+    posts.sort(key=lambda x: x.get("posted_date", "1970-01-01"), reverse=True)
     
     # Check if user is admin
     is_admin = (user_email == ADMIN_EMAIL)

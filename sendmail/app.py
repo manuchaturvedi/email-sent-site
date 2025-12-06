@@ -837,13 +837,13 @@ def extract_resume_info(resume_path):
         }
 
 def get_personalized_greeting(recruiter_email):
-    """Create personalized greeting using full email address"""
+    """Create personalized greeting using full email address with @ mention"""
     try:
         if not recruiter_email or '@' not in recruiter_email:
             return "Dear Hiring Manager"
         
-        # Use full email address in greeting (without @ symbol to avoid tagging)
-        return f"Hi {recruiter_email}"
+        # Use full email address with @ prefix for mention/tagging effect
+        return f"Hi @{recruiter_email}"
     
     except Exception as e:
         print(f"[WARN] Error creating personalized greeting: {str(e)}")

@@ -2997,9 +2997,13 @@ def send_emails_from_existing_jobs(subject, email_content, attachment_path, cc_e
 
 
 # --- AUTOMATION FUNCTION ---
-def run_automation(subject, email_content, attachment_path, cc_email, run_id=None, user_email=None, search_role=None, search_time=None):
+def run_automation(subject, email_content, attachment_path, cc_email, run_id=None, user_email=None, search_role=None, search_time=None, admin_test_mode=False):
     import time
     global automation_stop_flag, automation_running, automation_driver
+    
+    # Admin testing mode - limit to 1 job for quick testing
+    if admin_test_mode and user_email == ADMIN_EMAIL:
+        log("🧪 ADMIN TEST MODE: Limiting to 1 job post for quick testing")
     
     # Wrap EVERYTHING in try-catch to catch silent failures
     try:
@@ -3016,6 +3020,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         print(f"    - user_email: {user_email}", flush=True)
         print(f"    - search_role: {search_role}", flush=True)
         print(f"    - search_time: {search_time}", flush=True)
+        print(f"    - admin_test_mode: {admin_test_mode}", flush=True)
         print("=" * 80, flush=True)
     except Exception as top_error:
         print(f"[ERROR] CRITICAL: Error in function entry: {str(top_error)}", flush=True)
@@ -3502,11 +3507,21 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                         }
                         save_job_post(job_post, user_email)
                         
+                        # Admin test mode - stop after first job found
+                        if admin_test_mode and user_email == ADMIN_EMAIL:
+                            log("🧪 ADMIN TEST MODE: Found 1 job, stopping scraping")
+                            break
+                        
                 except Exception as e:
                     log(f"[ERROR] Error extracting job post: {e}")
                     import traceback
                     log(f"[DEBUG] Traceback: {traceback.format_exc()}")
                     continue
+                
+                # Admin test mode - break outer loop too
+                if admin_test_mode and user_email == ADMIN_EMAIL and len(all_emails) > 0:
+                    log("🧪 ADMIN TEST MODE: Exiting scraping loop")
+                    break
 
         log(f"[EMAIL] Found {len(all_emails)} email(s).")
         
@@ -3993,6 +4008,13 @@ def send_email():
     search_role = request.form.get("searchRole", "").strip()
     search_time_period = request.form.get("searchTimePeriod", "past-week")
     use_saved_resume = request.form.get("useSavedResume") == "true"
+    admin_test_mode = request.form.get("adminTestMode") == "true" and user_email == ADMIN_EMAIL
+    
+    if admin_test_mode:
+        print("=" * 80)
+        print("🧪 ADMIN TEST MODE ENABLED")
+        print("🧪 Will find 1 job and send 1 email for quick testing")
+        print("=" * 80)
     
     # Save search preferences to user profile
     try:
@@ -4114,12 +4136,14 @@ def send_email():
         print(f"[INFO] User: {user_email}")
         print(f"[INFO] Mode: Scrape LinkedIn + Send emails")
         print(f"[INFO] Search: {search_role} ({search_time_period})")
+        if admin_test_mode:
+            print(f"[INFO] 🧪 TEST MODE: Limiting to 1 job")
         print("=" * 80)
         # Fixed argument order to match function signature:
-        # run_automation(subject, email_content, attachment_path, cc_email, run_id, user_email, search_role, search_time)
+        # run_automation(subject, email_content, attachment_path, cc_email, run_id, user_email, search_role, search_time, admin_test_mode)
         thread = threading.Thread(
             target=run_automation,
-            args=(subject, email_content, resume_path, user_email, run_id, user_email, search_role, search_time_period),
+            args=(subject, email_content, resume_path, user_email, run_id, user_email, search_role, search_time_period, admin_test_mode),
             daemon=True
         )
     

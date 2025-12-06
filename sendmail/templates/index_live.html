@@ -911,6 +911,21 @@
               </label>
             </div>
           </div>
+          
+          <!-- Admin Test Mode (only visible for admin) -->
+          {% if user == 'manuchaturvedi28mc@gmail.com' %}
+          <div class="mt-3">
+            <div class="form-check" style="background: #fff3cd; padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107;">
+              <input class="form-check-input" type="checkbox" id="adminTestMode">
+              <label class="form-check-label" for="adminTestMode" style="font-weight: 500 !important;">
+                <i class="bi bi-flask me-2 text-warning"></i>🧪 Admin Test Mode (Find 1 job only)
+              </label>
+              <div style="font-size: 12px; color: #856404; margin-top: 4px; margin-left: 24px;">
+                Quick testing: Scrapes 1 job, sends 1 email, then completes immediately
+              </div>
+            </div>
+          </div>
+          {% endif %}
         </div>
 
         <!-- Submit Button -->
@@ -2707,6 +2722,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Add the useSavedResume flag
       const useSavedResume = document.getElementById('useSavedResume')?.checked || false;
       formData.append('useSavedResume', useSavedResume.toString());
+      
+      // Add admin test mode flag (only for admin)
+      const adminTestMode = document.getElementById('adminTestMode')?.checked || false;
+      formData.append('adminTestMode', adminTestMode.toString());
       
       const response = await fetch('/run_automation', {
         method: 'POST',

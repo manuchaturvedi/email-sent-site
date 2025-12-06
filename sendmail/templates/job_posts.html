@@ -1639,7 +1639,7 @@
                         </div>
                         <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Total</span>
                     </div>
-                    <div class="stat-number" id="countAll" style="font-size: 2.5rem; font-weight: 800; color: #1f2937; line-height: 1;">{{ job_posts|length }}</div>
+                    <div class="stat-number" id="countAll" style="font-size: 2.5rem; font-weight: 800; color: #1f2937; line-height: 1;">{{ job_posts|length if job_posts else 0 }}</div>
                     <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; text-transform: uppercase;">TOTAL JOBS</div>
                     <div style="margin-top: 0.75rem; color: #10b981; font-size: 0.875rem; font-weight: 600;">
                         <span style="color: #10b981;">↑ +12%</span> from last week
@@ -2179,18 +2179,21 @@
                 let remainingCount = 0;
                 
                 cards.forEach(card => {
-                    const isSent = card.querySelector('.btn-naukri-applied') || card.querySelector('.sent-badge');
+                    // Check if job has "Applied" button (disabled button with "Applied" text)
+                    const isSent = card.querySelector('button[disabled]')?.textContent.includes('Applied');
                     if (isSent) {
                         sentCount++;
                     } else {
-                        const hasEmail = card.querySelector('.naukri-contact-info a');
+                        // Check if has email for Quick Apply button
+                        const hasEmail = card.querySelector('.send-mail-btn');
                         if (hasEmail) remainingCount++;
                     }
                 });
                 
+                // Always show total count in countAll
                 countAll.textContent = cards.length;
                 countSent.textContent = sentCount;
-                countRemaining.textContent = remainingCount;
+                countRemaining.textContent = bookmarkedJobs.size;
             }
             
             updateStats();

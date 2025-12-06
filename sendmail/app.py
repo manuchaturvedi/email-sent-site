@@ -837,35 +837,16 @@ def extract_resume_info(resume_path):
         }
 
 def get_personalized_greeting(recruiter_email):
-    """Extract recruiter name from email and create personalized greeting"""
+    """Create personalized greeting using full email address"""
     try:
         if not recruiter_email or '@' not in recruiter_email:
             return "Dear Hiring Manager"
         
-        # Extract name part from email (before @)
-        email_prefix = recruiter_email.split('@')[0]
-        
-        # Remove common separators and numbers
-        name_parts = email_prefix.replace('.', ' ').replace('_', ' ').replace('-', ' ')
-        name_parts = ''.join(char for char in name_parts if not char.isdigit())
-        
-        # Split into words and capitalize
-        words = name_parts.split()
-        if not words:
-            return "Dear Hiring Manager"
-        
-        # If we have recognizable name parts, use them
-        if len(words) >= 1:
-            # Capitalize first letter of each word
-            formatted_name = ' '.join(word.capitalize() for word in words if len(word) > 1)
-            if formatted_name:
-                return f"Dear {formatted_name}"
-        
-        # Fallback to email address if name extraction failed
-        return f"Dear {email_prefix.capitalize()}"
+        # Use full email address in greeting
+        return f"Hi @{recruiter_email}"
     
     except Exception as e:
-        print(f"[WARN] Error extracting recruiter name: {str(e)}")
+        print(f"[WARN] Error creating personalized greeting: {str(e)}")
         return "Dear Hiring Manager"
 
 def generate_email_templates(role, resume_info, recruiter_email=None):

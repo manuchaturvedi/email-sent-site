@@ -892,10 +892,10 @@
     </div>
   </div>
 
-  <!-- Main Content - Full Width -->
+  <!-- Main Content - Two Column Layout -->
   <div class="row">
-    <!-- Main Column --
-    <div class="col-lg-11 mx-auto">
+    <!-- Left Column - Main Form -->
+    <div class="col-lg-8">
       <!-- Auto-start Notification Banner -->
       <div id="autostartBanner" class="alert alert-success mb-4 d-none">
         <div class="d-flex align-items-center">
@@ -917,7 +917,7 @@
       <div class="campaign-card" id="automationFormCard">
         <form id="automationForm" enctype="multipart/form-data">
           <!-- Page Section Header -->
-          <div class="mb-4">
+          <div class="mb-5">
             <div class="d-flex align-items-center gap-2 mb-3">
               <div style="width: 40px; height: 40px; background: #eff6ff; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
                 <i class="bi bi-search" style="color: #6366f1; font-size: 1.25rem;"></i>
@@ -1100,81 +1100,83 @@ I am writing to express my interest in the Software Developer position at {compa
             <i class="bi bi-arrow-clockwise me-2"></i>Reset Stuck Session
           </button>
         </div>
-
-        <!-- Info Cards Below Button -->
-        <div class="row g-3 mt-4">
-          <!-- Live Stats Card -->
-          <div class="col-md-4">
-            <div class="stats-card">
-              <h6>LIVE STATS</h6>
-              
-              <div class="stat-item">
-                <span class="stat-label">Emails Found</span>
-                <span class="stat-value">1</span>
-              </div>
-              <div class="stat-bar">
-                <div class="stat-bar-fill" style="width: 33%; background: #6366f1;"></div>
-              </div>
-
-              <div class="stat-item">
-                <span class="stat-label">Successfully Sent</span>
-                <span class="stat-value">0</span>
-              </div>
-              <div class="stat-bar">
-                <div class="stat-bar-fill" style="width: 0%; background: #10b981;"></div>
-              </div>
-
-              <div class="stat-item">
-                <span class="stat-label">Failed</span>
-                <span class="stat-value">1</span>
-              </div>
-              <div class="stat-bar">
-                <div class="stat-bar-fill" style="width: 33%; background: #ef4444;"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Pro Tips Card -->
-          <div class="col-md-4">
-            <div class="pro-tips-card">
-              <h6>
-                <i class="bi bi-stars"></i>
-                Pro Tips
-              </h6>
-              <ul>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  <span>Personalize subject lines with company names</span>
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  <span>Keep emails concise and professional</span>
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  <span>Include contact info in email body</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- Email Delivery Info Card -->
-          <div class="col-md-4">
-            <div class="info-card">
-              <div class="info-card-icon">
-                <i class="bi bi-envelope-check"></i>
-              </div>
-              <div>
-                <div class="info-card-title">Email Delivery</div>
-                <p class="info-card-text">All emails are sent via JustMailIt. You'll receive a copy for your records.</p>
-              </div>
-            </div>
-          </div>
-        </div>
       </form>
+      </div>
+    </div>
+    <!-- End Left Column -->
 
-      <!-- Automation Progress -->
-      <div class="mt-5" id="automationProgressSection">
+    <!-- Right Column - Sidebar -->
+    <div class="col-lg-4">
+      <!-- Live Stats Card -->
+      <div class="stats-card mb-4">
+        <h6>LIVE STATS</h6>
+        
+        <div class="stat-item">
+          <span class="stat-label">Emails Found</span>
+          <span class="stat-value">1</span>
+        </div>
+        <div class="stat-bar">
+          <div class="stat-bar-fill" style="width: 33%; background: #6366f1;"></div>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-label">Successfully Sent</span>
+          <span class="stat-value">0</span>
+        </div>
+        <div class="stat-bar">
+          <div class="stat-bar-fill" style="width: 0%; background: #10b981;"></div>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-label">Failed</span>
+          <span class="stat-value">1</span>
+        </div>
+        <div class="stat-bar">
+          <div class="stat-bar-fill" style="width: 33%; background: #ef4444;"></div>
+        </div>
+      </div>
+
+      <!-- Pro Tips Card -->
+      <div class="pro-tips-card mb-4">
+        <h6>
+          <i class="bi bi-stars"></i>
+          Pro Tips
+        </h6>
+        <ul>
+          <li>
+            <i class="bi bi-check-circle"></i>
+            <span>Personalize subject lines with company names</span>
+          </li>
+          <li>
+            <i class="bi bi-check-circle"></i>
+            <span>Keep emails concise and professional</span>
+          </li>
+          <li>
+            <i class="bi bi-check-circle"></i>
+            <span>Include contact info in email body</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Email Delivery Info Card -->
+      <div class="info-card">
+        <div class="info-card-icon">
+          <i class="bi bi-envelope-check"></i>
+        </div>
+        <div>
+          <div class="info-card-title">Email Delivery</div>
+          <p class="info-card-text">All emails are sent via JustMailIt. You'll receive a copy for your records.</p>
+        </div>
+      </div>
+    </div>
+    <!-- End Right Column -->
+  </div>
+  <!-- End Two Column Row -->
+
+  <!-- Automation Progress - Full Width Below -->
+  <div class="row mt-5">
+    <div class="col-12">
+      <div id="automationProgressSection">
         <h5 class="d-flex align-items-center mb-4" style="color: #1f2937; font-weight: 700;">
           <i class="bi bi-graph-up-arrow text-primary me-2"></i>
           Automation Progress
@@ -1269,66 +1271,65 @@ I am writing to express my interest in the Software Developer position at {compa
           </div>
         </div>
       </div>
-
-      <style>
-        .icon-circle {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .icon-circle i {
-          font-size: 1.25rem;
-        }
-        .progress-box {
-          max-height: 300px;
-          overflow-y: auto;
-        }
-        
-        /* Automation running state - enhance progress visibility */
-        .automation-running #automationProgressSection {
-          display: block !important;
-          margin-top: 2rem;
-          visibility: visible !important;
-          opacity: 1 !important;
-        }
-        
-        .automation-running #automationProgressSection h5 {
-          font-size: 2rem;
-          font-weight: 800;
-          color: #10b981;
-        }
-        
-        .automation-running #automationProgressSection .card {
-          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-          border: 2px solid #10b981;
-        }
-        
-        .automation-running #automationProgressSection .display-6 {
-          font-size: 4rem !important;
-          font-weight: 900 !important;
-        }
-        
-        .automation-running #automationProgressSection .card-body {
-          padding: 2rem !important;
-        }
-        
-        /* Keep stop button visible and prominent */
-        .automation-running #stopBtn {
-          display: block !important;
-          visibility: visible !important;
-          font-size: 1.2rem;
-          padding: 1rem 2rem;
-          box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
-        }
-      </style>
     </div>
-    </div>
-    <!-- End Main Column -->
+    <!-- End Automation Progress Full Width -->
   </div>
-  <!-- End Row -->
+  <!-- End Container -->
+
+  <style>
+    .icon-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon-circle i {
+      font-size: 1.25rem;
+    }
+    .progress-box {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    /* Automation running state - enhance progress visibility */
+    .automation-running #automationProgressSection {
+      display: block !important;
+      margin-top: 2rem;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
+    .automation-running #automationProgressSection h5 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #10b981;
+    }
+    
+    .automation-running #automationProgressSection .card {
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      border: 2px solid #10b981;
+    }
+    
+    .automation-running #automationProgressSection .display-6 {
+      font-size: 4rem !important;
+      font-weight: 900 !important;
+    }
+    
+    .automation-running #automationProgressSection .card-body {
+      padding: 2rem !important;
+    }
+    
+    /* Keep stop button visible and prominent */
+    .automation-running #stopBtn {
+      display: block !important;
+      visibility: visible !important;
+      font-size: 1.2rem;
+      padding: 1rem 2rem;
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+    }
+  </style>
 </div>
 {% endblock %}
 

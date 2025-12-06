@@ -2120,6 +2120,8 @@ def email_templates_page():
 @app.route("/jobs")
 @login_required
 def job_posts():
+    from datetime import datetime
+    
     user_email = session.get("user")
     posts = load_job_posts()
     
@@ -2165,7 +2167,6 @@ def job_posts():
     is_admin = (user_email == ADMIN_EMAIL)
     
     # Pass current date as formatted string to template
-    from datetime import datetime
     current_date = datetime.now().strftime('%b %d, %Y')
     return render_template("job_posts.html", job_posts=posts, current_date=current_date, is_admin=is_admin)
 

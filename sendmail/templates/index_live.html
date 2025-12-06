@@ -985,82 +985,89 @@
           <div class="form-text">More recent posts may have higher response rates</div>
         </div>
 
-        <!-- Email Subject -->
-        <div class="mb-4">
-          <label class="form-label" for="emailSubject">
-            <i class="bi bi-card-text me-2"></i>Email Subject
-            <span class="text-muted small ms-1">(Make it attention-grabbing)</span>
-          </label>
-          <div class="input-group input-group-lg">
+        <!-- Email Content Section -->
+        <div class="mb-5">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <div style="width: 40px; height: 40px; background: #eff6ff; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+              <i class="bi bi-envelope" style="color: #6366f1; font-size: 1.25rem;"></i>
+            </div>
+            <h5 class="mb-0" style="font-weight: 700; color: #1f2937;">Email Content</h5>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label" for="emailSubject">Subject Line</label>
+            <div class="form-text mb-2">Include your name for better visibility</div>
             <input 
               type="text" 
               id="emailSubject" 
               name="subject" 
               class="form-control" 
-              placeholder="e.g., Application for Senior DevOps Engineer Position - Your Name" 
-              required 
+              placeholder="Application for Software Developer Position - Your Name"
+              value="Application for Software Developer Position - Agrima Chaturvedi"
+              required
             />
           </div>
-          <div class="form-text">
-            <i class="bi bi-info-circle me-1"></i>
-            Include your name in the subject line. Recruiters get hundreds of emails daily!
-          </div>
-        </div>
 
-        <!-- Email Content -->
-        <div class="mb-4">
-          <label class="form-label" for="emailContent">
-            <i class="bi bi-chat-dots me-2"></i>Email Body
-            <span class="text-muted small ms-1">(Your pitch to the employer)</span>
-          </label>
-          <div class="input-group input-group-lg">
+          <div class="mb-3">
+            <label class="form-label" for="emailContent">Email Body</label>
             <textarea 
               id="emailContent" 
               name="content" 
               class="form-control" 
-              rows="6" 
-              placeholder="Introduce yourself and explain why you're a great fit for the role..." 
+              rows="10" 
+              placeholder="Dear Hiring Manager,
+
+I am writing to express my interest in the Software Developer position at {company}..."
               required
             ></textarea>
-          </div>
-          <div class="d-flex align-items-center mt-2">
-            <a href="/profile" class="text-primary text-decoration-none small">
-              <i class="bi bi-gear me-1"></i>Load template from profile
-            </a>
-            <span class="text-muted mx-2">•</span>
-            <a href="/email_templates" target="_blank" class="text-primary text-decoration-none small">
-              <i class="bi bi-stars me-1"></i>Browse professional templates
-            </a>
-            <span class="text-muted mx-2">•</span>
-            <span class="text-muted small">Use {company} placeholder for company name</span>
+            <div class="form-text mt-2">
+              Use {company} for dynamic company name
+              <a href="#" onclick="showTemplateHelper(); return false;" class="text-decoration-none ms-2">
+                <i class="bi bi-stars"></i> AI Generate
+              </a>
+            </div>
           </div>
         </div>
 
-        <!-- Resume Upload -->
-        <div class="mb-4">
-          <label class="form-label">
-            <i class="bi bi-file-earmark-pdf me-2"></i>Resume
-            <span class="text-muted small ms-1">(PDF format recommended)</span>
-          </label>
-          <div class="input-group input-group-lg">
-            <input 
-              type="file" 
-              id="resumeFile" 
-              name="resume" 
-              class="form-control" 
-              accept=".pdf,.doc,.docx" 
-              required 
-            />
+        <!-- Resume Attachment Section -->
+        <div class="mb-5">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <div style="width: 40px; height: 40px; background: #d1fae5; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+              <i class="bi bi-file-earmark-text" style="color: #10b981; font-size: 1.25rem;"></i>
+            </div>
+            <h5 class="mb-0" style="font-weight: 700; color: #1f2937;">Resume Attachment</h5>
           </div>
-          <div id="resumeFileName" class="form-text mt-2 d-none">
-            <i class="bi bi-file-earmark-check-fill me-1 text-success"></i>
-            <strong>Selected:</strong> <span id="resumeFileNameText"></span>
+
+          <!-- Saved Resume Display -->
+          <div id="savedResumeDisplay" style="background: #d1fae5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-3">
+                <div style="width: 48px; height: 48px; background: #10b981; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                  <i class="bi bi-file-earmark-pdf-fill" style="color: white; font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                  <div style="font-weight: 600; color: #065f46; font-size: 0.9375rem;">resume-8.pdf</div>
+                  <div style="color: #059669; font-size: 0.8125rem;">From your profile</div>
+                </div>
+              </div>
+              <a href="#" class="text-decoration-none" style="color: #6366f1; font-weight: 600; font-size: 0.875rem;">Change</a>
+            </div>
           </div>
-          <div id="savedResumeSection" class="mt-3 d-none">
-            <div class="form-check saved-resume-check">
+
+          <!-- Hidden file input for changing resume -->
+          <input 
+            type="file" 
+            id="resumeFile" 
+            name="resume" 
+            class="form-control d-none" 
+            accept=".pdf,.doc,.docx" 
+            required 
+          />
+          <div id="savedResumeSection" class="d-none">
+            <div class="form-check">
               <input class="form-check-input" type="checkbox" id="useSavedResume" onchange="toggleSavedResume(this.checked)">
-              <label class="form-check-label" for="useSavedResume" id="savedResumeLabel" style="font-weight: 500 !important;">
-                <i class="bi bi-file-earmark-check me-2 text-success"></i>Use saved resume from profile instead
+              <label class="form-check-label" for="useSavedResume" id="savedResumeLabel">
+                Use saved resume from profile
               </label>
             </div>
           </div>
@@ -1082,9 +1089,9 @@
         </div>
 
         <!-- Submit Button -->
-        <div class="d-grid gap-2 mt-5">
-          <button type="submit" id="runBtn" class="btn btn-primary btn-lg">
-            <i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation
+        <div class="d-grid gap-3 mt-5">
+          <button type="submit" id="runBtn" class="btn btn-lg" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border: none; padding: 1.125rem 2rem; font-size: 1.0625rem; font-weight: 600; border-radius: 12px; box-shadow: 0 4px 12px rgba(99,102,241,0.3);">
+            <i class="bi bi-play-fill me-2" style="font-size: 1.25rem;"></i>Start Automation
           </button>
           <button type="button" id="stopBtn" class="btn btn-danger btn-lg" style="display: none;" onclick="stopAutomation()">
             <i class="bi bi-stop-circle me-2"></i>Stop Automation
@@ -1092,9 +1099,6 @@
           <button type="button" id="resetBtn" class="btn btn-warning btn-sm" style="display: none;" onclick="resetStuckAutomation()">
             <i class="bi bi-arrow-clockwise me-2"></i>Reset Stuck Session
           </button>
-          <div class="text-center text-muted small mt-2">
-            The automation runs in the background and you'll see live progress below
-          </div>
         </div>
       </form>
 

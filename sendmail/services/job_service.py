@@ -88,19 +88,31 @@ def load_job_posts():
         conn.close()
         
         posts = []
+        skipped_count = 0
         for i, row in enumerate(rows):
-            post_data = dict(row)
-            post_data['skills'] = json.loads(post_data['skills']) if post_data.get('skills') else []
-            # Map recruiter_email to email for template compatibility
-            if 'recruiter_email' in post_data and post_data['recruiter_email']:
-                post_data['email'] = post_data['recruiter_email']
-            
-            print(f"[DEBUG] Analyzing post {i+1}/{len(rows)}: {post_data.get('description', '')[:50]}...")
-            analyzed = analyzer.analyze_post(post_data)
-            print(f"[DEBUG] Result location: {analyzed.get('location')}")
-            posts.append(analyzed)
+            try:
+                post_data = dict(row)
+                post_data['skills'] = json.loads(post_data['skills']) if post_data.get('skills') else []
+                # Map recruiter_email to email for template compatibility
+                if 'recruiter_email' in post_data and post_data['recruiter_email']:
+                    post_data['email'] = post_data['recruiter_email']
+                
+                # Set default posted_date if missing
+                if not post_data.get('posted_date'):
+                    post_data['posted_date'] = post_data.get('created_at', datetime.now().strftime('%Y-%m-%d'))
+                
+                analyzed = analyzer.analyze_post(post_data)
+                posts.append(analyzed)
+            except Exception as analyze_error:
+                skipped_count += 1
+                print(f"[WARN] Failed to analyze post {i+1}: {str(analyze_error)}")
+                # Add post without analysis if it fails
+                if post_data.get('recruiter_email'):
+                    posts.append(post_data)
         
-        print(f"[OK] Loaded {len(posts)} job posts from SQLite database")
+        if skipped_count > 0:
+            print(f"[WARN] Skipped analyzing {skipped_count} posts due to errors")
+        print(f"[OK] Loaded {len(posts)} job posts from SQLite database (total in DB: {len(rows)})")
         return posts
 
     except Exception as e:

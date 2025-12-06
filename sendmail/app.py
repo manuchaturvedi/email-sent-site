@@ -3835,8 +3835,8 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                         except Exception as alert_error:
                             log(f"[WARN] Could not send admin alert: {str(alert_error)}")
             
-            # Also send a success email if all emails were sent (no skips)
-            elif user_email and emails_sent_count > 0:
+            # Send success email if emails were sent (changed from elif to if)
+            if user_email and emails_sent_count > 0:
                 try:
                     print(f"[EMAIL] Sending success summary email to {user_email}")
                     
@@ -3868,6 +3868,57 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                         )
                     except Exception as alert_error:
                         log(f"[WARN] Could not send admin alert: {str(alert_error)}")
+            
+            # Send notification even if no emails were sent (automation completed but found nothing)
+            elif user_email and emails_sent_count == 0 and len(all_emails) == 0:
+                try:
+                    print(f"[EMAIL] Sending no-results notification to {user_email}")
+                    
+                    from services.email_service import send_html_email, get_html_template
+                    
+                    html_content = get_html_template(f'''
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">🔍</div>
+                            <h2 style="color: #2d3748; margin: 0 0 10px 0; font-size: 24px; font-weight: 700;">Automation Completed</h2>
+                            <p style="color: #718096; margin: 0; font-size: 16px;">No new job opportunities found this time</p>
+                        </div>
+                        
+                        <div style="background-color: #fffaf0; padding: 20px; border-radius: 8px; border-left: 4px solid #ed8936; margin: 25px 0;">
+                            <p style="color: #7c2d12; margin: 0; font-size: 14px; line-height: 1.6;">
+                                <strong>💡 Tips to find more opportunities:</strong><br>
+                                • Try different job titles or keywords<br>
+                                • Expand your location search<br>
+                                • Check back later - new jobs are posted daily
+                            </p>
+                        </div>
+                        
+                        <div style="text-align: center; margin: 35px 0;">
+                            <a href="https://justmailit.in/automation" style="display: inline-block; background: linear-gradient(135deg, #667eea, #764ba2); color: #ffffff; text-decoration: none; padding: 14px 35px; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.4);">
+                                Try Another Search
+                            </a>
+                        </div>
+                    ''', "Automation Complete")
+                    
+                    plain_text = f"""🔍 Automation Completed
+
+Your automation completed successfully, but no new job opportunities were found this time.
+
+💡 Tips to find more opportunities:
+• Try different job titles or keywords
+• Expand your location search
+• Check back later - new jobs are posted daily
+
+Try Another Search: https://justmailit.in/automation
+
+Best regards,
+JustMailIt Team"""
+                    
+                    send_html_email(user_email, "🔍 Automation Complete - No New Jobs Found", html_content, plain_text)
+                    print(f"[OK] No-results notification sent to {user_email}")
+                    
+                except Exception as email_error:
+                    print(f"[ERROR] Failed to send no-results notification: {str(email_error)}")
+                    log(f"[ERROR] Failed to send no-results email: {str(email_error)}")
 
             # Send completion status back to the frontend (AFTER upgrade prompt)
             if automation_stop_flag:

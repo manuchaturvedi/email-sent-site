@@ -13,8 +13,11 @@
 | **SYSTEM_DOCUMENTATION.md** | Complete system guide with architecture, routes, logic, and deployment | 1,334 lines | [Open →](./SYSTEM_DOCUMENTATION.md) |
 | **DATABASE_REFERENCE.md** | Database schemas, queries, examples, and maintenance | 633 lines | [Open →](./DATABASE_REFERENCE.md) |
 | **UI_BUTTON_REFERENCE.md** | Every button, form, and interactive element documented (165+ elements) | 1,147 lines | [Open →](./UI_BUTTON_REFERENCE.md) |
+| **API_KEYS_REFERENCE.md** | All API keys, credentials, and configuration (Firebase, SMTP, Razorpay) | 1,129 lines | [Open →](./API_KEYS_REFERENCE.md) |
 | **PRODUCTION_SUMMARY.md** | Current deployment status, changes, and quick reference | 530 lines | [Open →](./PRODUCTION_SUMMARY.md) |
 | **README.md** | Project overview and getting started guide | Standard | [Open →](./README.md) |
+
+**📊 Total Coverage:** 4,773+ lines of comprehensive documentation
 
 ---
 
@@ -24,7 +27,8 @@
 1. **Start here:** [PRODUCTION_SUMMARY.md](./PRODUCTION_SUMMARY.md) - Get current status
 2. **Then read:** [SYSTEM_DOCUMENTATION.md](./SYSTEM_DOCUMENTATION.md) - Understand architecture
 3. **Learn UI:** [UI_BUTTON_REFERENCE.md](./UI_BUTTON_REFERENCE.md) - Every button and action
-4. **Reference:** [DATABASE_REFERENCE.md](./DATABASE_REFERENCE.md) - Learn database structure
+4. **Setup APIs:** [API_KEYS_REFERENCE.md](./API_KEYS_REFERENCE.md) - Configure credentials
+5. **Reference:** [DATABASE_REFERENCE.md](./DATABASE_REFERENCE.md) - Learn database structure
 
 ### Need to Fix a Bug?
 → [SYSTEM_DOCUMENTATION.md](./SYSTEM_DOCUMENTATION.md) - Section: "Known Issues & Fixes"
@@ -37,6 +41,9 @@
 
 ### Understanding User Flow?
 → [SYSTEM_DOCUMENTATION.md](./SYSTEM_DOCUMENTATION.md) - Section: "Automation Flow"
+
+### Setting Up APIs?
+→ [API_KEYS_REFERENCE.md](./API_KEYS_REFERENCE.md) - All credentials and configuration
 
 ---
 
@@ -114,6 +121,28 @@
 
 ---
 
+### API_KEYS_REFERENCE.md
+
+**Table of Contents:**
+1. Firebase Configuration (Admin SDK & Web)
+2. Email SMTP Configuration (Gmail)
+3. Razorpay Payment Gateway (Live & Test keys)
+4. Database Configuration (SQLite)
+5. OAuth Providers (Google, Facebook)
+6. Application Settings (Flask, uploads)
+7. Environment Variables (Production & Dev)
+8. Security Best Practices
+9. Troubleshooting (Connection issues, auth failures)
+
+**Best For:**
+- Setting up new environments
+- Configuring API integrations
+- Troubleshooting connection issues
+- Understanding credential management
+- Security audit and key rotation
+
+---
+
 ### PRODUCTION_SUMMARY.md
 
 **Table of Contents:**
@@ -150,14 +179,18 @@
 | Add a new route? | SYSTEM_DOCUMENTATION.md | Routes & Endpoints |
 | Query the database? | DATABASE_REFERENCE.md | Common Queries |
 | What does this button do? | UI_BUTTON_REFERENCE.md | Button Actions |
+| Configure API keys? | API_KEYS_REFERENCE.md | Service Configuration |
 | Deploy changes? | PRODUCTION_SUMMARY.md | Deployment Commands |
 | Fix email issues? | SYSTEM_DOCUMENTATION.md | Email System |
+| Setup Razorpay? | API_KEYS_REFERENCE.md | Payment Gateway |
 | Understand automation? | SYSTEM_DOCUMENTATION.md | Automation Flow |
 | Check table structure? | DATABASE_REFERENCE.md | Table Schemas |
+| Firebase configuration? | API_KEYS_REFERENCE.md | Firebase Setup |
 | See button actions? | UI_BUTTON_REFERENCE.md | Any page section |
 | View deployment status? | PRODUCTION_SUMMARY.md | Current System Status |
 | Backup database? | DATABASE_REFERENCE.md | Security & Backups |
 | Monitor logs? | PRODUCTION_SUMMARY.md | Monitoring & Logs |
+| SMTP not working? | API_KEYS_REFERENCE.md | Email Troubleshooting |
 
 ---
 

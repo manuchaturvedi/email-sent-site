@@ -1803,6 +1803,8 @@ def contact():
 @app.route("/api/contact", methods=['POST'])
 def api_contact():
     """Handle contact form submissions"""
+    import re
+    
     try:
         # Get form data (supports both JSON and form-data)
         if request.is_json:
@@ -1828,7 +1830,7 @@ def api_contact():
             return jsonify({'success': False, 'message': 'Invalid email address'}), 400
         
         # Log the contact request
-        logger.info(f"Contact form submission from {first_name} {last_name} ({email}): {subject}")
+        app_logger.info(f"Contact form submission from {first_name} {last_name} ({email}): {subject}")
         
         # Send notification email to admin
         try:
@@ -1849,9 +1851,9 @@ Sent from JustMailIt Contact Form
             """
             
             send_email(admin_email, email_subject, email_body)
-            logger.info(f"Contact form notification sent to {admin_email}")
+            app_logger.info(f"Contact form notification sent to {admin_email}")
         except Exception as e:
-            logger.error(f"Failed to send contact form notification: {str(e)}")
+            app_logger.error(f"Failed to send contact form notification: {str(e)}")
             # Don't fail the request if email fails
         
         return jsonify({
@@ -1860,7 +1862,7 @@ Sent from JustMailIt Contact Form
         }), 200
         
     except Exception as e:
-        logger.error(f"Error processing contact form: {str(e)}")
+        app_logger.error(f"Error processing contact form: {str(e)}")
         return jsonify({
             'success': False,
             'message': 'An error occurred. Please try again or email us directly at mail@justmailit.in'
@@ -2120,10 +2122,17 @@ def email_templates_page():
 @app.route("/jobs")
 @login_required
 def job_posts():
-    from datetime import datetime
+    from datetime import datetime, timedelta
     
     user_email = session.get("user")
-    posts = load_job_posts()
+    
+    # Load job posts from database for this user
+    try:
+        posts = db.get_job_posts(user_email, limit=None)  # Get all posts
+        print(f"[OK] Loaded {len(posts)} job posts for user {user_email}")
+    except Exception as e:
+        print(f"[ERROR] Error loading job posts: {e}")
+        posts = []
     
     # Get list of emails already sent by this user from SQLite
     sent_emails = set()
@@ -2136,6 +2145,50 @@ def job_posts():
         print(f"[EMAIL] User {user_email} has sent to {len(sent_emails)} unique emails")
     except Exception as e:
         print(f"[WARN] Error loading sent emails: {str(e)}")
+    
+    # Helper function to format relative time
+    def format_relative_time(date_str):
+        try:
+            if not date_str:
+                return 'N/A'
+            
+            # Parse the date string
+            date_str = str(date_str)
+            if 'T' in date_str:
+                # ISO format with time (e.g., 2025-11-22T04:22:54)
+                post_date = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            elif ' ' in date_str:
+                # SQLite datetime format (e.g., 2025-11-22 04:22:54)
+                post_date = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
+            else:
+                # Just date (e.g., 2025-11-22)
+                post_date = datetime.strptime(date_str, '%Y-%m-%d')
+            
+            # Make both timezone-naive for comparison
+            if post_date.tzinfo is not None:
+                post_date = post_date.replace(tzinfo=None)
+            
+            now = datetime.now()
+            diff = now - post_date
+            
+            if diff.days == 0:
+                return 'Today'
+            elif diff.days == 1:
+                return 'Yesterday'
+            elif diff.days < 7:
+                return f'{diff.days} days ago'
+            elif diff.days < 30:
+                weeks = diff.days // 7
+                return f'{weeks} week{"s" if weeks > 1 else ""} ago'
+            elif diff.days < 365:
+                months = diff.days // 30
+                return f'{months} month{"s" if months > 1 else ""} ago'
+            else:
+                years = diff.days // 365
+                return f'{years} year{"s" if years > 1 else ""} ago'
+        except Exception as e:
+            print(f"[WARN] Error formatting date {date_str}: {e}")
+            return 'N/A'
     
     # Mark posts that were already sent and extract company from email
     for post in posts:
@@ -2159,6 +2212,9 @@ def job_posts():
         # Ensure posted_date exists for sorting
         if not post.get('posted_date'):
             post['posted_date'] = post.get('created_at', datetime.now().strftime('%Y-%m-%d'))
+        
+        # Add relative time
+        post['posted_date_relative'] = format_relative_time(post.get('posted_date'))
     
     # Sort posts by date, newest first (with safe fallback)
     posts.sort(key=lambda x: x.get("posted_date", "1970-01-01"), reverse=True)
@@ -2166,9 +2222,42 @@ def job_posts():
     # Check if user is admin
     is_admin = (user_email == ADMIN_EMAIL)
     
+    # Get bookmarked count
+    bookmark_count = db.get_bookmarked_count(user_email)
+    
     # Pass current date as formatted string to template
     current_date = datetime.now().strftime('%b %d, %Y')
-    return render_template("job_posts.html", job_posts=posts, current_date=current_date, is_admin=is_admin)
+    return render_template("job_posts.html", job_posts=posts, current_date=current_date, is_admin=is_admin, bookmark_count=bookmark_count)
+
+
+@app.route("/toggle_bookmark", methods=["POST"])
+@login_required
+def toggle_bookmark():
+    """Toggle bookmark status for a job"""
+    try:
+        user_email = session.get("user")
+        job_id = request.json.get("job_id")
+        
+        if not job_id:
+            return jsonify({"success": False, "message": "No job ID provided"}), 400
+        
+        # Toggle the bookmark in database
+        new_status = db.toggle_job_bookmark(int(job_id))
+        
+        # Get updated bookmark count
+        bookmark_count = db.get_bookmarked_count(user_email)
+        
+        return jsonify({
+            "success": True, 
+            "bookmarked": new_status == 1,
+            "bookmark_count": bookmark_count
+        })
+        
+    except Exception as e:
+        print(f"[ERROR] Error toggling bookmark: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 @app.route("/send_job_email", methods=["POST"])

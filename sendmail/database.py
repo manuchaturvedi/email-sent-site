@@ -40,7 +40,7 @@ class Database:
         # Migrate existing user_profiles table if needed
         cursor.execute("PRAGMA table_info(user_profiles)")
         existing_columns = [row[1] for row in cursor.fetchall()]
-        print(f"🔍 Existing columns in user_profiles: {existing_columns}")
+        print(f"[DEBUG] Existing columns in user_profiles: {existing_columns}")
         
         required_columns = {
             'email_subject': 'TEXT',
@@ -58,14 +58,14 @@ class Database:
         for col_name, col_type in required_columns.items():
             if col_name not in existing_columns:
                 try:
-                    print(f"🔧 Adding column {col_name}...")
+                    print(f"[INFO] Adding column {col_name}...")
                     cursor.execute(f'ALTER TABLE user_profiles ADD COLUMN {col_name} {col_type}')
                     conn.commit()
-                    print(f'✅ Added column {col_name} to user_profiles')
+                    print(f'[OK] Added column {col_name} to user_profiles')
                 except Exception as e:
-                    print(f'⚠️  Could not add column {col_name}: {e}')
+                    print(f'[WARN] Could not add column {col_name}: {e}')
             else:
-                print(f"✓ Column {col_name} already exists")
+                print(f"[OK] Column {col_name} already exists")
         
         # Add recruiter_email column to job_posts if missing
         cursor.execute("PRAGMA table_info(job_posts)")
@@ -74,9 +74,18 @@ class Database:
             try:
                 cursor.execute('ALTER TABLE job_posts ADD COLUMN recruiter_email TEXT')
                 conn.commit()
-                print('✅ Added recruiter_email column to job_posts')
+                print('[OK] Added recruiter_email column to job_posts')
             except Exception as e:
-                print(f'⚠️  Could not add recruiter_email column: {e}')
+                print(f'[WARN] Could not add recruiter_email column: {e}')
+        
+        # Add bookmarked column to job_posts if missing
+        if 'bookmarked' not in job_cols:
+            try:
+                cursor.execute('ALTER TABLE job_posts ADD COLUMN bookmarked INTEGER DEFAULT 0')
+                conn.commit()
+                print('[OK] Added bookmarked column to job_posts')
+            except Exception as e:
+                print(f'[WARN] Could not add bookmarked column: {e}')
         
         # Job posts table
         cursor.execute('''
@@ -237,7 +246,7 @@ class Database:
         
         conn.commit()
         conn.close()
-        print("✅ SQLite database initialized successfully")
+        print("[OK] SQLite database initialized successfully")
     
     # User Profile Methods
     def create_or_update_profile(self, email: str, display_name: str = None, photo_url: str = None, 
@@ -317,7 +326,7 @@ class Database:
         
         conn.commit()
         conn.close()
-        print(f"✅ Saved {saved_count}/{len(jobs)} job posts (only with recruiter emails)")
+        print(f"[OK] Saved {saved_count}/{len(jobs)} job posts (only with recruiter emails)")
         return True
     
     def get_job_posts(self, user_email: str = None, limit: int = 100) -> List[Dict]:
@@ -329,13 +338,20 @@ class Database:
         cursor.execute('SELECT COUNT(*) as total FROM job_posts')
         count_result = cursor.fetchone()
         total_posts = count_result['total'] if count_result else 0
-        print(f"📊 DB Query: Found {total_posts} total job posts (universal/shared)")
+        print(f"[INFO] DB Query: Found {total_posts} total job posts (universal/shared)")
         
-        cursor.execute('''
-            SELECT * FROM job_posts 
-            ORDER BY created_at DESC 
-            LIMIT ?
-        ''', (limit,))
+        # Build query with optional LIMIT
+        if limit is None:
+            cursor.execute('''
+                SELECT * FROM job_posts 
+                ORDER BY created_at DESC
+            ''')
+        else:
+            cursor.execute('''
+                SELECT * FROM job_posts 
+                ORDER BY created_at DESC 
+                LIMIT ?
+            ''', (limit,))
         
         rows = cursor.fetchall()
         conn.close()
@@ -349,7 +365,7 @@ class Database:
                 job['email'] = job['recruiter_email']
             jobs.append(job)
         
-        print(f"📋 Returning {len(jobs)} job posts (universal for all users)")
+        print(f"[INFO] Returning {len(jobs)} job posts (universal for all users)")
         return jobs
     
     def get_job_stats(self, user_email: str = None) -> Dict:
@@ -369,7 +385,7 @@ class Database:
         
         conn.close()
         
-        print(f"📊 Job Stats (Universal): {total} total jobs, {companies} companies, {locations} locations")
+        print(f"[INFO] Job Stats (Universal): {total} total jobs, {companies} companies, {locations} locations")
         
         return {
             'total_jobs': total,
@@ -423,7 +439,7 @@ class Database:
         
         conn.commit()
         conn.close()
-        print(f"✅ Saved sent email to database: {email_data.get('recipient_email')} - {email_data.get('subject')}")
+        print(f"[OK] Saved sent email to database: {email_data.get('recipient_email')} - {email_data.get('subject')}")
         return True
     
     def get_sent_emails(self, user_email: str, limit: int = 100) -> List[Dict]:
@@ -892,6 +908,46 @@ class Database:
         conn.commit()
         conn.close()
         return True
+    
+    def toggle_job_bookmark(self, job_id: int):
+        """Toggle bookmark status for a job post"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        # Get current bookmark status
+        cursor.execute('SELECT bookmarked FROM job_posts WHERE id = ?', (job_id,))
+        row = cursor.fetchone()
+        
+        if row is None:
+            conn.close()
+            return False
+        
+        current_status = row[0] if row[0] is not None else 0
+        new_status = 0 if current_status == 1 else 1
+        
+        # Update bookmark status
+        cursor.execute('UPDATE job_posts SET bookmarked = ? WHERE id = ?', (new_status, job_id))
+        conn.commit()
+        conn.close()
+        
+        return new_status
+    
+    def get_bookmarked_count(self, user_email: str = None):
+        """Get count of bookmarked jobs (universal/shared across all users)"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        # Count all bookmarked jobs regardless of user (universal/shared)
+        cursor.execute('''
+            SELECT COUNT(*) FROM job_posts 
+            WHERE bookmarked = 1
+        ''')
+        
+        count = cursor.fetchone()[0]
+        conn.close()
+        
+        print(f"[INFO] Bookmarked count: {count} (universal/shared)")
+        return count
     
     def log_auto_scheduler_run(self, run_type: str, skill_keyword: str, jobs_found: int = 0, 
                               jobs_saved: int = 0, status: str = 'success', error_message: str = None):

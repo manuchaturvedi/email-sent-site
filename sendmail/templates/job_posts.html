@@ -5,6 +5,20 @@
 {% block robots %}noindex, nofollow{% endblock %}
 
 {% block additional_styles %}
+/* Force small checkbox and radio button sizes */
+.filter-job-type,
+.filter-status {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+}
+
 /* Page animations */
 @keyframes fadeInUp {
     from {
@@ -1631,18 +1645,19 @@
         <!-- Stats Cards Row -->
         <div class="row g-4 mb-4">
             <!-- Available Jobs -->
-            <div class="col-md-3">
-                <div class="stat-tab active" data-filter="all" id="statAll" style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08); border: 2px solid #e5e7eb; transition: all 0.3s ease; cursor: pointer;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-briefcase" style="font-size: 1.5rem; color: #3b82f6;"></i>
+             <div class="col-md-3">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 1.5rem; box-shadow: 0 8px 24px rgba(102,126,234,0.3); color: white; position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; position: relative;">
+                        <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-briefcase" style="font-size: 1.5rem; color: white;"></i>
                         </div>
-                        <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Total</span>
+                        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">Total</span>
                     </div>
-                    <div class="stat-number" id="countAll" style="font-size: 2.5rem; font-weight: 800; color: #1f2937; line-height: 1;">{{ job_posts|length if job_posts else 0 }}</div>
-                    <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; text-transform: uppercase;">TOTAL JOBS</div>
-                    <div style="margin-top: 0.75rem; color: #10b981; font-size: 0.875rem; font-weight: 600;">
-                        <span style="color: #10b981;">↑ +12%</span> from last week
+                    <div class="stat-number" id="countAll" style="font-size: 2.5rem; font-weight: 800; line-height: 1; position: relative;">{{ job_posts|length if job_posts else 0 }}</div>
+                    <div style="font-size: 0.875rem; margin-top: 0.5rem; opacity: 0.95; position: relative;">TOTAL JOBS</div>
+                    <div style="margin-top: 0.75rem; font-size: 0.875rem; font-weight: 600; opacity: 0.95; position: relative;">
+                        Explore new opportunities
                     </div>
                 </div>
             </div>
@@ -1651,31 +1666,29 @@
             <div class="col-md-3">
                 <div class="stat-tab" data-filter="sent" id="statSent" style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08); border: 2px solid #e5e7eb; transition: all 0.3s ease; cursor: pointer;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-send-fill" style="font-size: 1.5rem; color: #ec4899;"></i>
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f7f5f4 0%, #f2f0ef 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-send-fill" style="font-size: 1.5rem; color: #5474a5;"></i>
                         </div>
                         <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Applied</span>
                     </div>
-                    <div class="stat-number" id="countSent" style="font-size: 2.5rem; font-weight: 800; color: #1f2937; line-height: 1;">0</div>
-                    <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; text-transform: uppercase;">APPLICATIONS SENT</div>
-                    <div style="margin-top: 0.75rem;">
-                        <div style="height: 4px; background: #f3f4f6; border-radius: 2px; overflow: hidden;">
-                            <div style="height: 100%; width: 40%; background: linear-gradient(90deg, #ec4899, #f472b6); border-radius: 2px;"></div>
-                        </div>
+                    <div class="stat-number" id="countSent" style="font-size: 2.5rem; font-weight: 800; color: #1f2937; line-height: 1;">{{ job_posts|selectattr('already_sent')|list|length if job_posts else 0 }}</div>
+                    <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; text-transform: uppercase;">APPLIED JOBS</div>
+                    <div style="margin-top: 0.75rem; color: #6b7280; font-size: 0.875rem;">
+                        Jobs you've applied to
                     </div>
                 </div>
             </div>
 
             <!-- Bookmarked Jobs -->
             <div class="col-md-3">
-                <div class="stat-tab" data-filter="remaining" id="statRemaining" style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08); border: 2px solid #e5e7eb; transition: all 0.3s ease; cursor: pointer;">
+                <div class="stat-tab" data-filter="bookmarked" id="statBookmarked" style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08); border: 2px solid #e5e7eb; transition: all 0.3s ease; cursor: pointer;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
                         <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                             <i class="bi bi-bookmark-fill" style="font-size: 1.5rem; color: #f97316;"></i>
                         </div>
                         <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Saved</span>
                     </div>
-                    <div class="stat-number" id="countRemaining" style="font-size: 2.5rem; font-weight: 800; color: #1f2937; line-height: 1;">0</div>
+                    <div class="stat-number" id="countBookmarked" style="font-size: 2.5rem; font-weight: 800; color: #1f2937; line-height: 1;">{{ bookmark_count if bookmark_count is defined else 0 }}</div>
                     <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; text-transform: uppercase;">BOOKMARKED JOBS</div>
                     <div style="margin-top: 0.75rem; color: #6b7280; font-size: 0.875rem;">
                         Review and apply later
@@ -1685,11 +1698,11 @@
 
             <!-- Still Available -->
             <div class="col-md-3">
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 1.5rem; box-shadow: 0 8px 24px rgba(102,126,234,0.3); color: white; position: relative; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #eaa866 0%, #ec1a0b 100%); border-radius: 16px; padding: 1.5rem; box-shadow: 0 8px 24px rgba(102,126,234,0.3); color: white; position: relative; overflow: hidden;">
                     <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; position: relative;">
                         <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-check-circle-fill" style="font-size: 1.5rem; color: white;"></i>
+                            <i class="bi bi-send-fill" style="font-size: 1.5rem; color: white;"></i>
                         </div>
                         <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">Remaining</span>
                     </div>
@@ -1713,19 +1726,19 @@
                     </h6>
                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.background='#f9fafb';" onmouseout="this.style.background='transparent';">
-                            <input type="checkbox" class="filter-job-type" data-type="intern" style="width: 18px; height: 18px; border-radius: 4px; border: 2px solid #d1d5db; cursor: pointer;">
+                            <input type="checkbox" class="filter-job-type" data-type="intern" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; border-radius: 3px; border: 2px solid #d1d5db; cursor: pointer; flex-shrink: 0;">
                             <span style="font-size: 0.875rem; color: #4b5563;">Intern</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.background='#f9fafb';" onmouseout="this.style.background='transparent';">
-                            <input type="checkbox" class="filter-job-type" data-type="junior" style="width: 18px; height: 18px; border-radius: 4px; border: 2px solid #d1d5db; cursor: pointer;">
+                            <input type="checkbox" class="filter-job-type" data-type="junior" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; border-radius: 3px; border: 2px solid #d1d5db; cursor: pointer; flex-shrink: 0;">
                             <span style="font-size: 0.875rem; color: #4b5563;">Junior</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.background='#f9fafb';" onmouseout="this.style.background='transparent';">
-                            <input type="checkbox" class="filter-job-type" data-type="mid-level" style="width: 18px; height: 18px; border-radius: 4px; border: 2px solid #d1d5db; cursor: pointer;">
+                            <input type="checkbox" class="filter-job-type" data-type="mid-level" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; border-radius: 3px; border: 2px solid #d1d5db; cursor: pointer; flex-shrink: 0;">
                             <span style="font-size: 0.875rem; color: #4b5563;">Mid-Level</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.background='#f9fafb';" onmouseout="this.style.background='transparent';">
-                            <input type="checkbox" class="filter-job-type" data-type="senior" style="width: 18px; height: 18px; border-radius: 4px; border: 2px solid #d1d5db; cursor: pointer;">
+                            <input type="checkbox" class="filter-job-type" data-type="senior" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; border-radius: 3px; border: 2px solid #d1d5db; cursor: pointer; flex-shrink: 0;">
                             <span style="font-size: 0.875rem; color: #4b5563;">Senior</span>
                         </label>
                     </div>
@@ -1734,23 +1747,23 @@
                 <!-- Status Filter -->
                 <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
                     <h6 style="font-size: 0.875rem; font-weight: 700; color: #1f2937; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="bi bi-circle-fill" style="color: #667eea; font-size: 0.5rem;"></i> Status
+                        <i class="bi bi-circle" style="color: #667eea; font-size: 0.5rem;"></i> Status
                     </h6>
                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.background='#f9fafb';" onmouseout="this.style.background='transparent';">
-                            <input type="radio" name="status-filter" value="all" class="filter-status" checked style="width: 18px; height: 18px; cursor: pointer;">
+                            <input type="radio" name="status-filter" value="all" class="filter-status" checked style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; cursor: pointer; flex-shrink: 0;">
                             <span style="font-size: 0.875rem; color: #4b5563;">All Jobs</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.background='#f9fafb';" onmouseout="this.style.background='transparent';">
-                            <input type="radio" name="status-filter" value="applied" class="filter-status" style="width: 18px; height: 18px; cursor: pointer;">
+                            <input type="radio" name="status-filter" value="applied" class="filter-status" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; cursor: pointer; flex-shrink: 0;">
                             <span style="font-size: 0.875rem; color: #4b5563;">Applied</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.background='#f9fafb';" onmouseout="this.style.background='transparent';">
-                            <input type="radio" name="status-filter" value="missing" class="filter-status" style="width: 18px; height: 18px; cursor: pointer;">
-                            <span style="font-size: 0.875rem; color: #4b5563;">Missing</span>
+                            <input type="radio" name="status-filter" value="Remaining" class="filter-status" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; cursor: pointer; flex-shrink: 0;">
+                            <span style="font-size: 0.875rem; color: #4b5563;">Remaining/span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.background='#f9fafb';" onmouseout="this.style.background='transparent';">
-                            <input type="radio" name="status-filter" value="bookmarked" class="filter-status" style="width: 18px; height: 18px; cursor: pointer;">
+                            <input type="radio" name="status-filter" value="bookmarked" class="filter-status" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; cursor: pointer; flex-shrink: 0;">
                             <span style="font-size: 0.875rem; color: #4b5563;">Bookmarked</span>
                         </label>
                     </div>
@@ -1791,26 +1804,39 @@
                 </div>
 
                 <!-- Results Counter and Sort -->
-                <div style="background: white; border-radius: 12px; padding: 1rem 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #f3f4f6; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
-                    <span style="font-size: 0.875rem; color: #6b7280;">
-                        <span style="font-weight: 700; color: #1f2937;" id="visibleCount">{{ job_posts|length }}</span> jobs found
-                    </span>
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="font-size: 0.875rem; color: #6b7280; font-weight: 500;">Sort by:</span>
-                        <select style="padding: 0.5rem 2rem 0.5rem 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem; font-weight: 600; color: #4b5563; background: white url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239CA3AF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E') no-repeat right 0.5rem center/10px 10px; appearance: none; cursor: pointer;">
-                            <option>Most Recent</option>
-                            <option>Salary: High to Low</option>
-                            <option>Salary: Low to High</option>
-                            <option>Relevance</option>
-                        </select>
+                <div style="background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%); border-radius: 16px; padding: 1.25rem 1.75rem; box-shadow: 0 4px 16px rgba(102,126,234,0.08); border: 2px solid #e8ecff; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                        <!-- Left: Results Info -->
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="bi bi-grid-3x3-gap-fill" style="color: #667eea; font-size: 1.25rem;"></i>
+                                <span style="font-size: 0.875rem; color: #6b7280;">
+                                    Showing 
+                                    <span style="font-weight: 700; color: #667eea;" id="visibleCount">{{ job_posts|length }}</span>
+                                    of 
+                                    <span style="font-weight: 700; color: #1f2937;" id="totalCount">{{ job_posts|length }}</span>
+                                    jobs
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Sort Dropdown -->
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="font-size: 0.875rem; color: #6b7280; font-weight: 600;">Sort by:</span>
+                            <select style="padding: 0.625rem 2.5rem 0.625rem 1rem; border: 2px solid #667eea; border-radius: 10px; font-size: 0.875rem; font-weight: 600; color: #667eea; background: white url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23667eea%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E') no-repeat right 0.75rem center/12px 12px; appearance: none; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; this.style.color='white';" onmouseout="this.style.background='white'; this.style.color='#667eea';">
+                                <option>Most Recent</option>
+                                <option>Oldest First</option>
+                                <option>Company A-Z</option>
+                                <option>Company Z-A</option>
+                            </select>
+                        </div>
                     </div>
-                    <span style="display: none;" id="totalCount">{{ job_posts|length }}</span>
                 </div>
 
                 <!-- Job Cards Grid -->
                 <div class="row row-cols-1 row-cols-md-2 g-4" id="jobPostsContainer">
             {% for post in job_posts %}
-            <div class="col job-post-item">
+            <div class="col job-post-item" data-bookmarked="{{ 'true' if post.get('bookmarked') else 'false' }}">
                 <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08); border: 2px solid #f3f4f6; transition: all 0.3s ease; height: 100%; display: flex; flex-direction: column; position: relative;" onmouseover="this.style.boxShadow='0 12px 24px rgba(102,126,234,0.15)'; this.style.borderColor='#667eea'; this.style.transform='translateY(-4px)';" onmouseout="this.style.boxShadow='0 2px 12px rgba(0,0,0,0.08)'; this.style.borderColor='#f3f4f6'; this.style.transform='translateY(0)';">
                     
                     <!-- Featured Badge (if urgent) -->
@@ -1865,8 +1891,8 @@
                                 {{ post.get('location', 'Remote') }}
                             </span>
                             <span style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; background: #f5f3ff; color: #8b5cf6; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
-                                <i class="bi bi-clock-fill" style="font-size: 0.75rem;"></i>
-                                {{ post.get('experience_level', '3+ years') }}
+                                <i class="bi bi-calendar-fill" style="font-size: 0.75rem;"></i>
+                                {{ post.get('posted_date_relative', 'N/A') }}
                             </span>
                         </div>
 
@@ -2076,17 +2102,15 @@
     </div>
 
     <script>
-        // Bookmark functionality
-        const bookmarkedJobs = new Set(JSON.parse(localStorage.getItem('bookmarkedJobs') || '[]'));
+        // Bookmark functionality - using database backend
         
         function updateBookmarkUI() {
             document.querySelectorAll('.bookmark-btn').forEach(btn => {
-                const jobId = btn.dataset.jobId;
-                const isBookmarked = bookmarkedJobs.has(jobId);
+                const jobCard = btn.closest('.job-post-item');
+                const isBookmarked = jobCard.dataset.bookmarked === 'true';
                 btn.dataset.bookmarked = isBookmarked ? 'true' : 'false';
                 const icon = btn.querySelector('i');
                 icon.className = isBookmarked ? 'bi bi-bookmark-fill' : 'bi bi-bookmark';
-                btn.closest('.job-post-item').dataset.bookmarked = isBookmarked ? 'true' : 'false';
             });
         }
         
@@ -2099,34 +2123,49 @@
                 const btn = e.target.closest('.bookmark-btn');
                 const jobId = btn.dataset.jobId;
                 
-                if (bookmarkedJobs.has(jobId)) {
-                    bookmarkedJobs.delete(jobId);
-                } else {
-                    bookmarkedJobs.add(jobId);
-                }
-                
-                localStorage.setItem('bookmarkedJobs', JSON.stringify([...bookmarkedJobs]));
-                updateBookmarkUI();
-                
-                // Reapply filters to update the view
-                if (typeof applyFilters === 'function') {
-                    applyFilters();
-                }
+                // Send bookmark toggle to backend
+                fetch('/toggle_bookmark', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ job_id: jobId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the job card's bookmarked state
+                        const jobCard = btn.closest('.job-post-item');
+                        jobCard.dataset.bookmarked = data.bookmarked ? 'true' : 'false';
+                        
+                        // Update UI
+                        updateBookmarkUI();
+                        
+                        // Update bookmark count in stats
+                        const countBookmarked = document.getElementById('countBookmarked');
+                        if (countBookmarked) {
+                            countBookmarked.textContent = data.bookmark_count;
+                        }
+                        
+                        // Reapply filters to update the view
+                        if (typeof applyFilters === 'function') {
+                            applyFilters();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error toggling bookmark:', error);
+                });
             }
         });
+
 
         // Modern multi-select skills filter for job posts cards with stats tabs and pagination
         (function(){
             const filterText = document.getElementById('filterText');
-            const filterSkillSearch = document.getElementById('filterSkillSearch');
-            const filterStatus = document.getElementById('filterStatus');
-            const filterLocation = document.getElementById('filterLocation');
             const resetBtn = document.getElementById('resetFilters');
             const visibleCount = document.getElementById('visibleCount');
             const totalCount = document.getElementById('totalCount');
-            const skillTagsContainer = document.getElementById('skillTagsContainer');
-            const selectedSkillsContainer = document.getElementById('selectedSkillsContainer');
-            const selectedSkillsTags = document.getElementById('selectedSkillsTags');
             
             // Job type filters
             const jobTypeFilters = document.querySelectorAll('.filter-job-type');
@@ -2136,12 +2175,12 @@
             const statTabs = document.querySelectorAll('.stat-tab');
             const countAll = document.getElementById('countAll');
             const countSent = document.getElementById('countSent');
-            const countRemaining = document.getElementById('countRemaining');
+            const countBookmarked = document.getElementById('countBookmarked');
             let currentTabFilter = 'all';
 
             // Pagination
             let currentPage = 1;
-            let itemsPerPage = 27; // Default for desktop
+            let itemsPerPage = 10; // Show 10 jobs per page
             const paginationElement = document.getElementById('pagination');
             const currentPageDisplay = document.getElementById('currentPageDisplay');
             const totalPagesDisplay = document.getElementById('totalPagesDisplay');
@@ -2153,7 +2192,7 @@
 
             // Update items per page based on screen size
             function updateItemsPerPage() {
-                itemsPerPage = isMobile() ? 15 : 27;
+                itemsPerPage = 10; // Always show 10 jobs per page
             }
 
             updateItemsPerPage();
@@ -2167,11 +2206,22 @@
             });
 
             const container = document.getElementById('jobPostsContainer');
-            if (!container) return;
+            if (!container) {
+                console.error('Job posts container not found');
+                return;
+            }
 
             const cards = Array.from(container.querySelectorAll('.job-post-item'));
-            totalCount.textContent = cards.length;
-            visibleCount.textContent = cards.length;
+            
+            if (!countAll || !countSent) {
+                console.error('Stats elements not found', {countAll, countSent, countBookmarked});
+                return;
+            }
+            
+            // Set initial counts
+            if (totalCount) totalCount.textContent = cards.length;
+            // visibleCount will be updated by applyFilters to show current page count
+            countAll.textContent = cards.length || '0';
 
             // Calculate initial stats
             function updateStats() {
@@ -2193,7 +2243,7 @@
                 // Always show total count in countAll
                 countAll.textContent = cards.length;
                 countSent.textContent = sentCount;
-                countRemaining.textContent = bookmarkedJobs.size;
+                // Bookmark count is managed by backend and updated via AJAX
             }
             
             updateStats();
@@ -2209,93 +2259,27 @@
                 });
             });
 
-            // Build skill list from all job posts
-            const allSkills = new Set();
-            const selectedSkills = new Set();
-            
-            cards.forEach(card => {
-                const badges = card.querySelectorAll('.naukri-skills .skill-tag');
-                badges.forEach(badge => {
-                    const skill = badge.textContent.trim();
-                    if (skill) allSkills.add(skill);
-                });
-            });
-
-            // Create skill tags
-            const sortedSkills = Array.from(allSkills).sort();
-            sortedSkills.forEach(skill => {
-                const tag = document.createElement('span');
-                tag.className = 'skill-tag';
-                tag.textContent = skill;
-                tag.dataset.skill = skill.toLowerCase();
-                tag.addEventListener('click', function() {
-                    toggleSkill(skill, tag);
-                });
-                skillTagsContainer.appendChild(tag);
-            });
-
-            function toggleSkill(skill, tagElement) {
-                if (selectedSkills.has(skill)) {
-                    selectedSkills.delete(skill);
-                    tagElement.classList.remove('selected');
-                } else {
-                    selectedSkills.add(skill);
-                    tagElement.classList.add('selected');
-                }
-                currentPage = 1; // Reset to first page on skill toggle
-                updateSelectedSkillsDisplay();
-                applyFilters();
-            }
-
-            function updateSelectedSkillsDisplay() {
-                if (selectedSkills.size > 0) {
-                    selectedSkillsContainer.style.display = 'flex';
-                    selectedSkillsTags.innerHTML = '';
-                    selectedSkills.forEach(skill => {
-                        const tag = document.createElement('span');
-                        tag.className = 'skill-tag selected';
-                        tag.innerHTML = `${skill} <span class="remove">×</span>`;
-                        tag.addEventListener('click', function() {
-                            selectedSkills.delete(skill);
-                            const mainTag = Array.from(skillTagsContainer.children).find(t => t.textContent === skill);
-                            if (mainTag) mainTag.classList.remove('selected');
-                            currentPage = 1; // Reset to first page on skill removal
-                            updateSelectedSkillsDisplay();
-                            applyFilters();
-                        });
-                        selectedSkillsTags.appendChild(tag);
-                    });
-                } else {
-                    selectedSkillsContainer.style.display = 'none';
-                }
-            }
-
-            // Skill search filter
-            filterSkillSearch.addEventListener('input', function() {
-                const search = this.value.toLowerCase();
-                Array.from(skillTagsContainer.children).forEach(tag => {
-                    if (tag.dataset.skill.includes(search) || search === '') {
-                        tag.style.display = '';
-                    } else {
-                        tag.style.display = 'none';
-                    }
-                });
-            });
-
             function matches(card){
-                const q = filterText.value.trim().toLowerCase();
-                const desc = card.querySelector('.naukri-job-title')?.textContent.trim().toLowerCase() || '';
-                const email = card.querySelector('.naukri-contact-info a')?.textContent.trim().toLowerCase() || '';
-                const company = card.querySelector('.naukri-company-name')?.textContent.trim().toLowerCase() || '';
-                const location = card.querySelector('.naukri-job-info .info-item .bi-geo-alt-fill')?.parentElement?.textContent.trim().toLowerCase() || '';
+                const q = filterText ? filterText.value.trim().toLowerCase() : '';
+                
+                // Get job title from h3
+                const titleElement = card.querySelector('h3');
+                const title = titleElement?.textContent.trim().toLowerCase() || '';
+                
+                // Get company name
+                const companyElement = card.querySelector('h3 + div');
+                const company = companyElement?.textContent.trim().toLowerCase() || '';
+                
+                // Get email from recruiter section
+                const emailElement = card.querySelector('p strong');
+                const email = emailElement?.parentElement?.textContent.trim().toLowerCase() || '';
 
                 // Check if job is applied (already sent)
-                const isSent = card.querySelector('.btn-naukri-applied') || card.querySelector('.sent-badge') || card.querySelector('button[disabled]')?.textContent.includes('Applied');
-                const hasEmail = card.querySelector('.naukri-contact-info a');
+                const isSent = card.querySelector('button[disabled]')?.textContent.includes('Applied');
+                const hasEmail = card.querySelector('.send-mail-btn');
                 
-                // Check if bookmarked
-                const jobId = card.querySelector('.bookmark-btn')?.dataset.jobId;
-                const isBookmarked = jobId && bookmarkedJobs.has(jobId);
+                // Check if bookmarked (from data attribute set by backend)
+                const isBookmarked = card.dataset.bookmarked === 'true';
                 
                 // Status filter (Applied/Missing/Bookmarked)
                 const statusFilter = document.querySelector('.filter-status:checked')?.value || 'all';
@@ -2329,21 +2313,8 @@
                 if (currentTabFilter === 'sent' && !isSent) return false;
                 if (currentTabFilter === 'remaining' && (isSent || !hasEmail)) return false;
 
-                // Text filter (search in description, email, or company)
-                if (q && !(desc.includes(q) || email.includes(q) || company.includes(q))) return false;
-                
-                // Skills filter - match if ANY selected skill is present
-                if (selectedSkills.size > 0) {
-                    const cardSkills = Array.from(card.querySelectorAll('.naukri-skills .skill-tag')).map(b => b.textContent.trim());
-                    const hasMatch = Array.from(selectedSkills).some(skill => cardSkills.includes(skill));
-                    if (!hasMatch) return false;
-                }
-
-                // Location filter
-                const locationQuery = filterLocation.value.trim().toLowerCase();
-                if (locationQuery && !location.includes(locationQuery)){
-                    return false;
-                }
+                // Text filter (search in title, email, or company)
+                if (q && !(title.includes(q) || email.includes(q) || company.includes(q))) return false;
 
                 return true;
             }
@@ -2372,10 +2343,10 @@
                 const totalVisible = visibleCards.length;
                 countAll.textContent = cards.length; // Always show total count
                 countSent.textContent = visibleSent;
-                countRemaining.textContent = bookmarkedJobs.size; // Show bookmarked count
+                // Bookmark count is managed by backend and updated via AJAX
                 
                 // Add pulse animation to stats
-                [countAll, countSent, countRemaining].forEach(el => {
+                [countAll, countSent].forEach(el => {
                     el.style.animation = 'none';
                     setTimeout(() => el.style.animation = 'pulse 0.5s ease', 10);
                 });
@@ -2408,8 +2379,10 @@
                 // Update pagination UI
                 renderPagination(totalPages, totalVisible);
                 
-                // Update visible count
-                visibleCount.textContent = pageCards.length;
+                // Update visible count - show number of jobs on current page
+                if (visibleCount) {
+                    visibleCount.textContent = pageCards.length;
+                }
                 
                 // Scroll to top of job posts
                 if (currentPage > 1) {
@@ -2520,16 +2493,13 @@
                 paginationElement.appendChild(nextLi);
             }
 
-            [filterText, filterStatus, filterLocation].forEach(el => {
-                if (el) el.addEventListener('input', function() {
-                    currentPage = 1; // Reset to first page on filter change
+            // Add event listeners only if elements exist
+            if (filterText) {
+                filterText.addEventListener('input', function() {
+                    currentPage = 1;
                     applyFilters();
                 });
-                if (el) el.addEventListener('change', function() {
-                    currentPage = 1; // Reset to first page on filter change
-                    applyFilters();
-                });
-            });
+            }
             
             // Job type filter listeners
             jobTypeFilters.forEach(filter => {
@@ -2549,13 +2519,9 @@
 
             if (resetBtn) resetBtn.addEventListener('click', (e)=>{
                 e.preventDefault();
-                filterText.value = '';
-                filterSkillSearch.value = '';
-                if (filterStatus) filterStatus.value = '';
-                if (filterLocation) filterLocation.value = '';
-                selectedSkills.clear();
+                if (filterText) filterText.value = '';
                 currentTabFilter = 'all';
-                currentPage = 1; // Reset to first page
+                currentPage = 1;
                 
                 // Reset job type filters
                 jobTypeFilters.forEach(filter => filter.checked = false);
@@ -2565,12 +2531,9 @@
                 if (allJobsRadio) allJobsRadio.checked = true;
                 
                 statTabs.forEach(t => t.classList.remove('active'));
-                document.getElementById('statAll').classList.add('active');
-                Array.from(skillTagsContainer.children).forEach(tag => {
-                    tag.classList.remove('selected');
-                    tag.style.display = '';
-                });
-                updateSelectedSkillsDisplay();
+                const statAll = document.getElementById('statAll');
+                if (statAll) statAll.classList.add('active');
+                
                 applyFilters();
             });
 

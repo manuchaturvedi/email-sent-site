@@ -1640,7 +1640,7 @@
                         <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Total</span>
                     </div>
                     <div class="stat-number" id="countAll" style="font-size: 2.5rem; font-weight: 800; color: #1f2937; line-height: 1;">{{ job_posts|length }}</div>
-                    <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">Available Jobs</div>
+                    <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">Total Jobs</div>
                     <div style="margin-top: 0.75rem; color: #10b981; font-size: 0.875rem; font-weight: 600;">
                         <span style="color: #10b981;">↑ +12%</span> from last week
                     </div>
@@ -1691,10 +1691,10 @@
                         <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                             <i class="bi bi-check-circle-fill" style="font-size: 1.5rem; color: white;"></i>
                         </div>
-                        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">Active</span>
+                        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">Remaining</span>
                     </div>
                     <div style="font-size: 2.5rem; font-weight: 800; line-height: 1; position: relative;">{{ job_posts|length }}</div>
-                    <div style="font-size: 0.875rem; margin-top: 0.5rem; opacity: 0.95; position: relative;">Still Available</div>
+                    <div style="font-size: 0.875rem; margin-top: 0.5rem; opacity: 0.95; position: relative;">Remaining to Apply</div>
                     <div style="margin-top: 0.75rem; font-size: 0.875rem; font-weight: 600; opacity: 0.95; position: relative;">
                         Apply now before they close
                     </div>
@@ -1755,20 +1755,6 @@
                             </div>
                             <span style="font-size: 0.875rem; color: #4b5563;">Saved</span>
                         </label>
-                    </div>
-                </div>
-
-                <!-- Salary Range Filter -->
-                <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
-                    <h6 style="font-size: 0.875rem; font-weight: 700; color: #1f2937; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="bi bi-currency-dollar" style="color: #667eea;"></i> Salary Range
-                    </h6>
-                    <div style="margin-bottom: 1rem;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span style="font-size: 0.75rem; color: #6b7280;">$0k</span>
-                            <span style="font-size: 0.75rem; color: #6b7280;">$200k+</span>
-                        </div>
-                        <input type="range" min="0" max="200" value="0" style="width: 100%; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #667eea 0%, #667eea 0%, #e5e7eb 0%, #e5e7eb 100%); outline: none; appearance: none; cursor: pointer;" />
                     </div>
                 </div>
 
@@ -1890,9 +1876,9 @@
                             </span>
                         </div>
 
-                        <!-- Description Preview -->
+                        <!-- Recruiter Email -->
                         <p style="font-size: 0.875rem; color: #6b7280; line-height: 1.6; margin-bottom: 1rem; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
-                            {{ post.get('description', 'No description available')[:150] }}{% if post.get('description', '')|length > 150 %}...{% endif %}
+                            <i class="bi bi-envelope-fill" style="color: #667eea; margin-right: 0.5rem;"></i><strong>Recruiter:</strong> {{ post.get('email', 'No email available') }}
                         </p>
 
                         <!-- Skills Tags -->

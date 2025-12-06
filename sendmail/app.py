@@ -849,6 +849,38 @@ def get_personalized_greeting(recruiter_email):
         print(f"[WARN] Error creating personalized greeting: {str(e)}")
         return "Dear Hiring Manager"
 
+def remove_common_greetings(email_content):
+    """Remove common greetings from email content"""
+    import re
+    
+    # List of common greeting patterns (case-insensitive)
+    greeting_patterns = [
+        r'^Dear Hiring Manager,?\s*\n*',
+        r'^Dear Sir/Madam,?\s*\n*',
+        r'^Dear Sir or Madam,?\s*\n*',
+        r'^To Whom It May Concern,?\s*\n*',
+        r'^Hello,?\s*\n*',
+        r'^Hi,?\s*\n*',
+        r'^Greetings,?\s*\n*',
+        r'^Good (morning|afternoon|evening),?\s*\n*',
+        r'^Dear Team,?\s*\n*',
+        r'^Dear Recruiter,?\s*\n*',
+        r'^Dear HR Team,?\s*\n*',
+        r'^Dear Hiring Team,?\s*\n*',
+        r'^Respected Sir/Madam,?\s*\n*',
+        r'^Hi there,?\s*\n*',
+        r'^Hello there,?\s*\n*',
+    ]
+    
+    # Remove any matching greeting pattern from the start
+    for pattern in greeting_patterns:
+        email_content = re.sub(pattern, '', email_content, count=1, flags=re.IGNORECASE | re.MULTILINE)
+    
+    # Remove extra blank lines at the start
+    email_content = email_content.lstrip('\n')
+    
+    return email_content
+
 def generate_email_templates(role, resume_info, recruiter_email=None):
     """Generate professional email subject and body based on role and resume"""
     
@@ -2220,12 +2252,11 @@ def send_job_email():
         # Personalize email content with recruiter's email
         personalized_greeting = get_personalized_greeting(job_email)
         
-        # Try to replace "Dear Hiring Manager" first, if not found, add greeting at start
-        if "Dear Hiring Manager" in email_content:
-            personalized_content = email_content.replace("Dear Hiring Manager", personalized_greeting)
-        else:
-            # Add personalized greeting at the beginning
-            personalized_content = f"{personalized_greeting},\n\n{email_content}"
+        # Remove any common greetings from the content
+        cleaned_content = remove_common_greetings(email_content)
+        
+        # Add personalized greeting at the beginning
+        personalized_content = f"{personalized_greeting},\n\n{cleaned_content}"
         
         try:
             msg = MIMEMultipart()
@@ -2879,12 +2910,11 @@ def send_emails_from_existing_jobs(subject, email_content, attachment_path, cc_e
                 # Personalize email content with recruiter's email
                 personalized_greeting = get_personalized_greeting(receiver_email)
                 
-                # Try to replace "Dear Hiring Manager" first, if not found, add greeting at start
-                if "Dear Hiring Manager" in email_content:
-                    personalized_content = email_content.replace("Dear Hiring Manager", personalized_greeting)
-                else:
-                    # Add personalized greeting at the beginning
-                    personalized_content = f"{personalized_greeting},\n\n{email_content}"
+                # Remove any common greetings from the content
+                cleaned_content = remove_common_greetings(email_content)
+                
+                # Add personalized greeting at the beginning
+                personalized_content = f"{personalized_greeting},\n\n{cleaned_content}"
                 
                 personalized_content = personalized_content.replace("{company}", company).replace("{Company}", company)
                 
@@ -3608,12 +3638,11 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 # Personalize email content with recruiter's email
                 personalized_greeting = get_personalized_greeting(receiver_email)
                 
-                # Try to replace "Dear Hiring Manager" first, if not found, add greeting at start
-                if "Dear Hiring Manager" in email_content:
-                    personalized_email = email_content.replace("Dear Hiring Manager", personalized_greeting)
-                else:
-                    # Add personalized greeting at the beginning
-                    personalized_email = f"{personalized_greeting},\n\n{email_content}"
+                # Remove any common greetings from the content
+                cleaned_content = remove_common_greetings(email_content)
+                
+                # Add personalized greeting at the beginning
+                personalized_email = f"{personalized_greeting},\n\n{cleaned_content}"
                 
                 msg.attach(MIMEText(personalized_email, "plain", "utf-8"))
 

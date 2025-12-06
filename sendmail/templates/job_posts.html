@@ -1640,7 +1640,7 @@
                         <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Total</span>
                     </div>
                     <div class="stat-number" id="countAll" style="font-size: 2.5rem; font-weight: 800; color: #1f2937; line-height: 1;">{{ job_posts|length }}</div>
-                    <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">Total Jobs</div>
+                    <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; text-transform: uppercase;">TOTAL JOBS</div>
                     <div style="margin-top: 0.75rem; color: #10b981; font-size: 0.875rem; font-weight: 600;">
                         <span style="color: #10b981;">↑ +12%</span> from last week
                     </div>
@@ -1657,7 +1657,7 @@
                         <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Applied</span>
                     </div>
                     <div class="stat-number" id="countSent" style="font-size: 2.5rem; font-weight: 800; color: #1f2937; line-height: 1;">0</div>
-                    <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">Applications Sent</div>
+                    <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; text-transform: uppercase;">APPLICATIONS SENT</div>
                     <div style="margin-top: 0.75rem;">
                         <div style="height: 4px; background: #f3f4f6; border-radius: 2px; overflow: hidden;">
                             <div style="height: 100%; width: 40%; background: linear-gradient(90deg, #ec4899, #f472b6); border-radius: 2px;"></div>
@@ -1676,7 +1676,7 @@
                         <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Saved</span>
                     </div>
                     <div class="stat-number" id="countRemaining" style="font-size: 2.5rem; font-weight: 800; color: #1f2937; line-height: 1;">0</div>
-                    <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">Bookmarked Jobs</div>
+                    <div class="stat-label" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; text-transform: uppercase;">BOOKMARKED JOBS</div>
                     <div style="margin-top: 0.75rem; color: #6b7280; font-size: 0.875rem;">
                         Review and apply later
                     </div>
@@ -2365,33 +2365,11 @@
                     }
                 });
                 
-                // Update stats based on visible cards
+                // Update stats - Total Jobs always shows all jobs, others show filtered
                 const totalVisible = visibleCards.length;
-                countAll.textContent = totalVisible;
+                countAll.textContent = cards.length; // Always show total count
                 countSent.textContent = visibleSent;
-                countRemaining.textContent = visibleRemaining;
-                let visibleRemaining = 0;
-                
-                // First, filter cards
-                cards.forEach(c => {
-                    if (matches(c)){
-                        visibleCards.push(c);
-                        
-                        const isSent = c.querySelector('.btn-naukri-applied') || c.querySelector('.sent-badge');
-                        if (isSent) {
-                            visibleSent++;
-                        } else {
-                            const hasEmail = c.querySelector('.naukri-contact-info a');
-                            if (hasEmail) visibleRemaining++;
-                        }
-                    }
-                });
-                
-                // Update stats based on visible cards
-                const totalVisible = visibleCards.length;
-                countAll.textContent = totalVisible;
-                countSent.textContent = visibleSent;
-                countRemaining.textContent = visibleRemaining;
+                countRemaining.textContent = bookmarkedJobs.size; // Show bookmarked count
                 
                 // Add pulse animation to stats
                 [countAll, countSent, countRemaining].forEach(el => {

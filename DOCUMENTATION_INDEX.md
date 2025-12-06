@@ -12,6 +12,7 @@
 |----------|---------|------|------|
 | **SYSTEM_DOCUMENTATION.md** | Complete system guide with architecture, routes, logic, and deployment | 1,334 lines | [Open →](./SYSTEM_DOCUMENTATION.md) |
 | **DATABASE_REFERENCE.md** | Database schemas, queries, examples, and maintenance | 633 lines | [Open →](./DATABASE_REFERENCE.md) |
+| **UI_BUTTON_REFERENCE.md** | Every button, form, and interactive element documented (165+ elements) | 1,147 lines | [Open →](./UI_BUTTON_REFERENCE.md) |
 | **PRODUCTION_SUMMARY.md** | Current deployment status, changes, and quick reference | 530 lines | [Open →](./PRODUCTION_SUMMARY.md) |
 | **README.md** | Project overview and getting started guide | Standard | [Open →](./README.md) |
 
@@ -22,7 +23,8 @@
 ### New Developer Onboarding
 1. **Start here:** [PRODUCTION_SUMMARY.md](./PRODUCTION_SUMMARY.md) - Get current status
 2. **Then read:** [SYSTEM_DOCUMENTATION.md](./SYSTEM_DOCUMENTATION.md) - Understand architecture
-3. **Reference:** [DATABASE_REFERENCE.md](./DATABASE_REFERENCE.md) - Learn database structure
+3. **Learn UI:** [UI_BUTTON_REFERENCE.md](./UI_BUTTON_REFERENCE.md) - Every button and action
+4. **Reference:** [DATABASE_REFERENCE.md](./DATABASE_REFERENCE.md) - Learn database structure
 
 ### Need to Fix a Bug?
 → [SYSTEM_DOCUMENTATION.md](./SYSTEM_DOCUMENTATION.md) - Section: "Known Issues & Fixes"
@@ -59,6 +61,29 @@
 - Adding new features
 - Debugging issues
 - Onboarding new developers
+
+---
+
+### UI_BUTTON_REFERENCE.md
+
+**Table of Contents:**
+1. Landing Page (all buttons and forms)
+2. Authentication Modal (sign in/up flows)
+3. Dashboard (quick actions and stats)
+4. Profile Page (resume upload, settings)
+5. Jobs Page (filters, apply buttons)
+6. Automation Page (configuration, execution)
+7. Sent Emails Page (history, export)
+8. Subscription Page (upgrade, billing)
+9. Settings Page (account, notifications)
+10. Navigation Menu (all links)
+
+**Best For:**
+- Understanding what each button does
+- Finding UI elements quickly
+- Learning user interaction flows
+- Implementing new UI features
+- Testing UI functionality
 
 ---
 
@@ -124,11 +149,12 @@
 |----------|----------|---------|
 | Add a new route? | SYSTEM_DOCUMENTATION.md | Routes & Endpoints |
 | Query the database? | DATABASE_REFERENCE.md | Common Queries |
+| What does this button do? | UI_BUTTON_REFERENCE.md | Button Actions |
 | Deploy changes? | PRODUCTION_SUMMARY.md | Deployment Commands |
 | Fix email issues? | SYSTEM_DOCUMENTATION.md | Email System |
 | Understand automation? | SYSTEM_DOCUMENTATION.md | Automation Flow |
 | Check table structure? | DATABASE_REFERENCE.md | Table Schemas |
-| See button actions? | SYSTEM_DOCUMENTATION.md | Button Actions & Triggers |
+| See button actions? | UI_BUTTON_REFERENCE.md | Any page section |
 | View deployment status? | PRODUCTION_SUMMARY.md | Current System Status |
 | Backup database? | DATABASE_REFERENCE.md | Security & Backups |
 | Monitor logs? | PRODUCTION_SUMMARY.md | Monitoring & Logs |

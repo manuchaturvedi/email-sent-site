@@ -2217,9 +2217,15 @@ def send_job_email():
         smtp_user = "manudrive06@gmail.com"  # Gmail account for authentication
         sender_password = "ozds nrqo gduy mnwd"  # Gmail App Password
         
-        # Personalize email content with recruiter's name
+        # Personalize email content with recruiter's email
         personalized_greeting = get_personalized_greeting(job_email)
-        personalized_content = email_content.replace("Dear Hiring Manager", personalized_greeting)
+        
+        # Try to replace "Dear Hiring Manager" first, if not found, add greeting at start
+        if "Dear Hiring Manager" in email_content:
+            personalized_content = email_content.replace("Dear Hiring Manager", personalized_greeting)
+        else:
+            # Add personalized greeting at the beginning
+            personalized_content = f"{personalized_greeting},\n\n{email_content}"
         
         try:
             msg = MIMEMultipart()
@@ -2870,9 +2876,16 @@ def send_emails_from_existing_jobs(subject, email_content, attachment_path, cc_e
                 log(f"[→] Sending to {company} ({receiver_email})...")
                 send_event(f"[→] Sending to {company}...")
                 
-                # Personalize email content with recruiter's name
+                # Personalize email content with recruiter's email
                 personalized_greeting = get_personalized_greeting(receiver_email)
-                personalized_content = email_content.replace("Dear Hiring Manager", personalized_greeting)
+                
+                # Try to replace "Dear Hiring Manager" first, if not found, add greeting at start
+                if "Dear Hiring Manager" in email_content:
+                    personalized_content = email_content.replace("Dear Hiring Manager", personalized_greeting)
+                else:
+                    # Add personalized greeting at the beginning
+                    personalized_content = f"{personalized_greeting},\n\n{email_content}"
+                
                 personalized_content = personalized_content.replace("{company}", company).replace("{Company}", company)
                 
                 # Send email
@@ -3592,9 +3605,15 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                 # Ensure content is string and properly encoded
                 email_content = str(email_content).encode('utf-8').decode('utf-8')
                 
-                # Personalize email content with recruiter's name
+                # Personalize email content with recruiter's email
                 personalized_greeting = get_personalized_greeting(receiver_email)
-                personalized_email = email_content.replace("Dear Hiring Manager", personalized_greeting)
+                
+                # Try to replace "Dear Hiring Manager" first, if not found, add greeting at start
+                if "Dear Hiring Manager" in email_content:
+                    personalized_email = email_content.replace("Dear Hiring Manager", personalized_greeting)
+                else:
+                    # Add personalized greeting at the beginning
+                    personalized_email = f"{personalized_greeting},\n\n{email_content}"
                 
                 msg.attach(MIMEText(personalized_email, "plain", "utf-8"))
 

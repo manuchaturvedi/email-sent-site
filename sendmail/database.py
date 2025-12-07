@@ -87,6 +87,27 @@ class Database:
             except Exception as e:
                 print(f'[WARN] Could not add bookmarked column: {e}')
         
+        # Add featured column to job_posts if missing
+        if 'featured' not in job_cols:
+            try:
+                cursor.execute('ALTER TABLE job_posts ADD COLUMN featured INTEGER DEFAULT 0')
+                conn.commit()
+                print('[OK] Added featured column to job_posts')
+                
+                # Auto-mark big companies as featured
+                big_companies = ['Google', 'Microsoft', 'Amazon', 'Apple', 'Meta', 'Netflix', 'Tesla', 
+                                'Uber', 'Airbnb', 'Adobe', 'Salesforce', 'Oracle', 'IBM', 'Intel', 
+                                'NVIDIA', 'AMD', 'Qualcomm', 'Twitter', 'LinkedIn', 'Spotify']
+                
+                for company in big_companies:
+                    cursor.execute('UPDATE job_posts SET featured = 1 WHERE company LIKE ? AND featured = 0', (f'%{company}%',))
+                
+                conn.commit()
+                featured_count = cursor.execute('SELECT COUNT(*) FROM job_posts WHERE featured = 1').fetchone()[0]
+                print(f'[OK] Marked {featured_count} jobs from big companies as featured')
+            except Exception as e:
+                print(f'[WARN] Could not add featured column: {e}')
+        
         # Job posts table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS job_posts (
@@ -367,6 +388,9 @@ class Database:
             # Map recruiter_email to email for template compatibility
             if 'recruiter_email' in job and job['recruiter_email']:
                 job['email'] = job['recruiter_email']
+            # Ensure featured flag exists
+            if 'featured' not in job:
+                job['featured'] = 0
             jobs.append(job)
         
         print(f"[INFO] Returning {len(jobs)} job posts (universal for all users)")

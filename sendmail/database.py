@@ -97,7 +97,9 @@ class Database:
                 # Auto-mark big companies as featured
                 big_companies = ['Google', 'Microsoft', 'Amazon', 'Apple', 'Meta', 'Netflix', 'Tesla', 
                                 'Uber', 'Airbnb', 'Adobe', 'Salesforce', 'Oracle', 'IBM', 'Intel', 
-                                'NVIDIA', 'AMD', 'Qualcomm', 'Twitter', 'LinkedIn', 'Spotify']
+                                'NVIDIA', 'AMD', 'Qualcomm', 'Twitter', 'LinkedIn', 'Spotify',
+                                'TCS', 'Tata Consultancy', 'Infosys', 'Accenture', 'Cognizant', 
+                                'Capgemini', 'Cap Gemini', 'Wipro', 'HCL', 'Tech Mahindra']
                 
                 for company in big_companies:
                     cursor.execute('UPDATE job_posts SET featured = 1 WHERE company LIKE ? AND featured = 0', (f'%{company}%',))
@@ -365,12 +367,12 @@ class Database:
         if limit is None:
             cursor.execute('''
                 SELECT * FROM job_posts 
-                ORDER BY created_at DESC
+                ORDER BY featured DESC, created_at DESC
             ''')
         else:
             cursor.execute('''
                 SELECT * FROM job_posts 
-                ORDER BY created_at DESC 
+                ORDER BY featured DESC, created_at DESC 
                 LIMIT ?
             ''', (limit,))
         

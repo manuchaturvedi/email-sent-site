@@ -3425,6 +3425,36 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         search_urls = [search_url]
         all_emails = set()
 
+        # Helper function to extract location from job post text
+        def extract_location(text):
+            """Extract location from job post text using regex patterns"""
+            import re
+            
+            # Common location patterns
+            location_patterns = [
+                r'(?:Location|Loc|Work Location)[\s:]+([A-Z][a-zA-Z\s,]+(?:India|US|USA|UK|Canada|Remote|Hybrid|Onsite|On-site)?)',
+                r'(?:Based in|Working from)[\s:]+([A-Z][a-zA-Z\s,]+)',
+                r'📍\s*([A-Z][a-zA-Z\s,]+)',
+                r'🌍\s*([A-Z][a-zA-Z\s,]+)',
+                r'🗺️\s*([A-Z][a-zA-Z\s,]+)',
+                r'\(([A-Z][a-zA-Z\s]+(?:India|US|USA|UK|Remote|Hybrid|Onsite|On-site))\)',
+                r'(?:Bangalore|Bengaluru|Mumbai|Delhi|Hyderabad|Pune|Chennai|Kolkata|Noida|Gurgaon|Gurugram|New York|San Francisco|London|Toronto|Remote|Hybrid|Onsite|On-site)',
+            ]
+            
+            for pattern in location_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    location = match.group(1) if match.lastindex else match.group(0)
+                    return location.strip()
+            
+            # Check for Remote/Hybrid/Onsite keywords
+            if re.search(r'\b(Remote|Hybrid|Work from Home|WFH)\b', text, re.IGNORECASE):
+                return "Remote"
+            if re.search(r'\b(Onsite|On-site|Office)\b', text, re.IGNORECASE):
+                return "Onsite"
+            
+            return "Remote"  # Default fallback
+
         for url in search_urls:
             # Check stop flag
             if automation_stop_flag:
@@ -3585,6 +3615,9 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                         email = m.get_attribute("href").replace("mailto:", "")
                         all_emails.add(email)
                         
+                        # Extract location from full post text
+                        extracted_location = extract_location(full_text)
+                        
                         # Save job post with email
                         job_post = {
                             "title": title,
@@ -3592,7 +3625,7 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                             "description": description,
                             "full_text": full_text,  # Save complete post text
                             "email": email,
-                            "location": "Remote/On-site",  # You can enhance this with actual location parsing
+                            "location": extracted_location,  # Extract location from post text
                             "job_type": "Full-time",      # You can enhance this with actual job type parsing
                             "posted_date": datetime.now().strftime("%Y-%m-%d"),
                             "url": url,

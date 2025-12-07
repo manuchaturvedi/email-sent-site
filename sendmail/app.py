@@ -3424,9 +3424,6 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
         
         search_urls = [search_url]
         all_emails = set()
-        
-        # Initialize job analyzer for location extraction
-        analyzer = JobAnalyzer()
 
         for url in search_urls:
             # Check stop flag
@@ -3588,23 +3585,20 @@ def run_automation(subject, email_content, attachment_path, cc_email, run_id=Non
                         email = m.get_attribute("href").replace("mailto:", "")
                         all_emails.add(email)
                         
-                        # Create initial job post data
+                        # Save job post with email - analyzer will process it in save_job_post()
                         job_post = {
                             "title": title,
                             "company": company,
                             "description": description,
                             "full_text": full_text,  # Save complete post text
                             "email": email,
-                            "location": "Remote/On-site",  # Will be analyzed
+                            "location": "Remote/On-site",  # Will be analyzed by JobAnalyzer
                             "job_type": "Full-time",
                             "posted_date": datetime.now().strftime("%Y-%m-%d"),
                             "url": url,
                             "job_url": url,
                             "skills": []
                         }
-                        
-                        # Use JobAnalyzer to extract proper location, role, and other details
-                        job_post = analyzer.analyze_post(job_post)
                         save_job_post(job_post, user_email)
                         
                         # Admin test mode - stop after first job found

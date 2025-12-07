@@ -133,6 +133,7 @@ def load_job_posts():
 def save_job_post(post, user_email=None):
     """
     Save a job post to SQLite and local storage, avoiding duplicates.
+    Uses JobAnalyzer to extract proper location and other details before saving.
     
     Args:
         post: Job post dict to save
@@ -141,7 +142,15 @@ def save_job_post(post, user_email=None):
     Returns:
         bool: True if saved successfully, False if duplicate or error
     """
+    from job_analyzer import JobAnalyzer
+    
     try:
+        # Analyze the post BEFORE checking for duplicates or saving
+        # This ensures location and other fields are properly extracted
+        analyzer = JobAnalyzer()
+        post = analyzer.analyze_post(post)
+        print(f"[ANALYZER] Analyzed post - Location: {post.get('location')}, Role: {post.get('role')}")
+        
         # First check if this is a duplicate
         if is_duplicate_job_post(post, user_email=user_email):
             print(f"[WARN] Duplicate job post found for {post.get('company')} - {post.get('title')}")

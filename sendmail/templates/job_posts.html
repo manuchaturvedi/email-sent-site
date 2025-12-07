@@ -1706,7 +1706,7 @@
                         </div>
                         <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">Remaining</span>
                     </div>
-                    <div style="font-size: 2.5rem; font-weight: 800; line-height: 1; position: relative;">{{ job_posts|length }}</div>
+                    <div style="font-size: 2.5rem; font-weight: 800; line-height: 1; position: relative;">{{ (job_posts|length) - (job_posts|selectattr('already_sent')|list|length) }}</div>
                     <div style="font-size: 0.875rem; margin-top: 0.5rem; opacity: 0.95; position: relative;">Remaining to Apply</div>
                     <div style="margin-top: 0.75rem; font-size: 0.875rem; font-weight: 600; opacity: 0.95; position: relative;">
                         Apply now before they close

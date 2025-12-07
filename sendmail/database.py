@@ -359,7 +359,11 @@ class Database:
         jobs = []
         for row in rows:
             job = dict(row)
-            job['skills'] = json.loads(job['skills']) if job['skills'] else []
+            # Parse skills JSON safely - handle empty strings and invalid JSON
+            try:
+                job['skills'] = json.loads(job['skills']) if (job['skills'] and job['skills'].strip()) else []
+            except (json.JSONDecodeError, TypeError):
+                job['skills'] = []
             # Map recruiter_email to email for template compatibility
             if 'recruiter_email' in job and job['recruiter_email']:
                 job['email'] = job['recruiter_email']

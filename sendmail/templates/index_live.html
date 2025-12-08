@@ -6,7 +6,7 @@
  <style>
   /* Main container styles */
   .email-composer {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
   }
@@ -15,9 +15,9 @@
   .campaign-card {
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(12px);
-    border-radius: 24px;
-    border: 1px solid rgba(168,230,207,0.1);
-    box-shadow: var(--card-shadow);
+    border-radius: 20px;
+    border: 1px solid rgba(229, 231, 235, 0.5);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     color: var(--text-dark);
     padding: 2rem;
   }
@@ -25,43 +25,44 @@
   /* Campaign header */
   .campaign-header {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
   }
 
   .campaign-icon {
-    width: 120px;
-    height: 120px;
-    border-radius: 60px;
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 1.5rem;
-    font-size: 3rem;
+    margin: 0 auto 1rem;
+    font-size: 2rem;
     color: white;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
   }
 
   /* Stats and progress */
   .stats-row {
     display: flex;
     justify-content: center;
-    gap: 2rem;
-    margin-bottom: 3rem;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
   }
 
   .stat-card {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 16px;
-    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 12px;
+    padding: 1.25rem;
     text-align: center;
     flex: 1;
-    border: 1px solid rgba(168,230,207,0.1);
-    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
   }
 
   .stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(168,230,207,0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
   /* Form group styling */
@@ -71,18 +72,17 @@
 
   .form-label {
     font-weight: 600;
-    color: #374151;
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.875rem;
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   .form-label i {
-    color: #667eea;
-    font-size: 1.1rem;
+    color: #6b7280;
+    font-size: 1rem;
+    margin-right: 0.25rem;
   }
 
   /* Input group styling */
@@ -107,24 +107,23 @@
   }
 
   .form-control {
-    background: #f9fafb;
-    border: 2px solid #e5e7eb;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
     color: var(--text-dark) !important;
-    border-radius: 12px;
-    padding: 14px 18px;
-    font-size: 0.95rem;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.875rem;
     line-height: 1.5;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     flex: 1 1 auto;
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   .form-control:focus {
     background: #ffffff;
-    border-color: #667eea;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     outline: none;
-    transform: translateY(-1px);
   }
 
   /* Helper text */
@@ -147,21 +146,22 @@
 
   /* Button styles */
   .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     border: none;
-    border-radius: 12px;
-    padding: 16px;
+    border-radius: 8px;
+    padding: 12px 24px;
     font-weight: 600;
-    font-size: 1.05rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: white;
   }
 
   .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
   }
 
   .btn-primary:active {
@@ -170,7 +170,7 @@
 
   textarea.form-control {
     resize: vertical;
-    min-height: 140px;
+    min-height: 120px;
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
@@ -650,13 +650,12 @@
   <div class="row mb-5">
     <div class="col-lg-11 mx-auto">
       <div class="campaign-header">
-        <div class="campaign-icon" style="--gradient-start: #a8e6cf; --gradient-end: #c8f5e0">
-          <i class="bi bi-rocket"></i>
+        <div class="campaign-icon">
+          🎁
         </div>
-        <h1 class="display-5 fw-bold mb-3">AI-Powered Job Search & Email Automation</h1>
-        <p class="lead text-muted mb-5">
-          <i class="bi bi-lightning-charge-fill text-warning me-1"></i>
-          <strong>Live search based on your skills</strong> - Find job posts matching your profile name and send personalized emails directly to recruiters
+        <h1 class="display-5 fw-bold mb-3">AI Email Writer</h1>
+        <p class="lead text-muted mb-4">
+          Let our AI analyze your resume and create a personalized email that highlights your strengths.
         </p>
         
 
@@ -949,58 +948,68 @@
       <div class="mt-5" id="automationProgressSection">
         <h5 class="d-flex align-items-center mb-4" style="color: #1f2937; font-weight: 700;">
           <i class="bi bi-graph-up-arrow text-primary me-2"></i>
-          Automation Progress
+          Campaign Status
         </h5>
+        <p class="text-muted small mb-4">Real-time tracking and analytics</p>
         
         <!-- Stats Cards -->
-        <div class="row g-4">
-          <div class="col-md-4">
-            <div class="card h-100 bg-gradient">
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="icon-circle bg-info bg-opacity-10 me-3">
-                    <i class="bi bi-envelope-paper-fill text-info"></i>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <div class="card h-100 border" style="border-radius: 12px;">
+              <div class="card-body p-3 text-center">
+                <div class="mb-2">
+                  <div class="icon-circle bg-primary bg-opacity-10 mx-auto" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-target text-primary"></i>
                   </div>
-                  <h6 class="mb-0">Emails Found</h6>
                 </div>
-                <div class="d-flex align-items-baseline">
-                  <h2 id="emailsFound" class="display-6 mb-0 me-2">0</h2>
-                  <span class="text-muted small">contacts</span>
-                </div>
+                <h6 class="mb-1 text-muted" style="font-size: 0.8125rem; font-weight: 500;">Total</h6>
+                <h3 id="emailsFound" class="mb-0" style="font-weight: 700; font-size: 1.75rem;">0</h3>
+                <small class="text-muted">Targets Found</small>
               </div>
             </div>
           </div>
           
-          <div class="col-md-4">
-            <div class="card h-100 bg-gradient">
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="icon-circle bg-success bg-opacity-10 me-3">
-                    <i class="bi bi-send-check-fill text-success"></i>
+          <div class="col-md-3">
+            <div class="card h-100 border" style="border-radius: 12px;">
+              <div class="card-body p-3 text-center">
+                <div class="mb-2">
+                  <div class="icon-circle bg-success bg-opacity-10 mx-auto" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-check-circle text-success"></i>
                   </div>
-                  <h6 class="mb-0">Successfully Sent</h6>
                 </div>
-                <div class="d-flex align-items-baseline">
-                  <h2 id="emailsSent" class="display-6 mb-0 me-2">0</h2>
-                  <span class="text-muted small">emails</span>
-                </div>
+                <h6 class="mb-1 text-muted" style="font-size: 0.8125rem; font-weight: 500;">Success</h6>
+                <h3 id="emailsSent" class="mb-0" style="font-weight: 700; font-size: 1.75rem;">0</h3>
+                <small class="text-muted">Emails Sent</small>
               </div>
             </div>
           </div>
           
-          <div class="col-md-4">
-            <div class="card h-100 bg-gradient">
-              <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="icon-circle bg-warning bg-opacity-10 me-3">
-                    <i class="bi bi-exclamation-diamond-fill text-warning"></i>
+          <div class="col-md-3">
+            <div class="card h-100 border" style="border-radius: 12px;">
+              <div class="card-body p-3 text-center">
+                <div class="mb-2">
+                  <div class="icon-circle bg-danger bg-opacity-10 mx-auto" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-x-circle text-danger"></i>
                   </div>
-                  <h6 class="mb-0">Missed Opportunities</h6>
                 </div>
-                <div class="d-flex align-items-baseline">
-                  <h2 id="emailsFailed" class="display-6 mb-0 me-2">0</h2>
-                  <span class="text-muted small">opportunities</span>
+                <h6 class="mb-1 text-muted" style="font-size: 0.8125rem; font-weight: 500;">Failed</h6>
+                <h3 id="emailsFailed" class="mb-0" style="font-weight: 700; font-size: 1.75rem;">0</h3>
+                <small class="text-muted">Bounced</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="card h-100 border" style="border-radius: 12px;">
+              <div class="card-body p-3 text-center">
+                <div class="mb-2">
+                  <div class="icon-circle bg-warning bg-opacity-10 mx-auto" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-clock text-warning"></i>
+                  </div>
                 </div>
+                <h6 class="mb-1 text-muted" style="font-size: 0.8125rem; font-weight: 500;">Queue</h6>
+                <h3 id="emailsPending" class="mb-0" style="font-weight: 700; font-size: 1.75rem;">0</h3>
+                <small class="text-muted">Pending</small>
               </div>
             </div>
           </div>
@@ -1308,6 +1317,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       emailsSent: 0,
       emailsFailed: 0,
       emailsSkipped: 0,
+      emailsPending: 0,
       emailList: new Set()
     };
     
@@ -1710,6 +1720,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Calculate missed opportunities = found - sent
     const missed = Math.max(0, window.stats.emailsFound - window.stats.emailsSent);
     document.getElementById('emailsFailed').textContent = missed;
+    
+    // Calculate pending = found - sent - failed
+    const pending = Math.max(0, window.stats.emailsFound - window.stats.emailsSent - missed);
+    document.getElementById('emailsPending').textContent = pending;
+    window.stats.emailsPending = pending;
     
     // Update progress bar based on emails sent vs found
     const progressBar = document.getElementById('progressBar');

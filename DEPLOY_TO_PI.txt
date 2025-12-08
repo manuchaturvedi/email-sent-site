@@ -1,0 +1,31 @@
+========================================
+  DEPLOY TO RASPBERRY PI - INSTRUCTIONS
+========================================
+
+Run this command on your Raspberry Pi via SSH:
+
+ssh manu@localhost -p 8888
+
+Then run these commands:
+
+cd /home/pi/justmailit
+git pull origin manu
+docker restart justmailit-app
+
+========================================
+
+OR use this single command from Windows PowerShell:
+
+ssh manu@localhost -p 8888 "cd /home/pi/justmailit && git pull origin manu && docker restart justmailit-app"
+
+========================================
+
+What's being deployed:
+✅ Landing page HTML fixes
+✅ Job posts page updates (10 per page pagination)
+✅ Bookmark functionality with database persistence
+✅ All database changes included
+✅ Relative date display (Today, Yesterday, etc.)
+
+The database changes are already in the code - when the
+container restarts, it will automatically update the schema.

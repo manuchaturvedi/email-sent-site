@@ -11,35 +11,71 @@
     padding: 2rem;
   }
 
+  /* Two-column layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  @media (max-width: 992px) {
+    .main-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
   /* Card styles */
   .campaign-card {
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(12px);
-    border-radius: 20px;
-    border: 1px solid rgba(229, 231, 235, 0.5);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     color: var(--text-dark);
     padding: 2rem;
   }
 
+  .sidebar-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sidebar-card h6 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #9ca3af;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+
   /* Campaign header */
   .campaign-header {
-    text-align: center;
-    margin-bottom: 2rem;
+    text-align: left;
+    margin-bottom: 1.5rem;
+  }
+
+  .campaign-header h6 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #9ca3af;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .campaign-header p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
   }
 
   .campaign-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 20px;
-    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1rem;
-    font-size: 2rem;
-    color: white;
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    display: none;
   }
 
   /* Stats and progress */
@@ -146,22 +182,23 @@
 
   /* Button styles */
   .btn-primary {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: #1e293b;
     border: none;
     border-radius: 8px;
-    padding: 12px 24px;
+    padding: 14px 24px;
     font-weight: 600;
     font-size: 0.9375rem;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 2px 8px rgba(30, 41, 59, 0.3);
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: white;
+    width: 100%;
   }
 
   .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 4px 12px rgba(30, 41, 59, 0.4);
+    background: #0f172a;
   }
 
   .btn-primary:active {
@@ -210,6 +247,151 @@
   .alert-light {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Sidebar styles */
+  .overview-stat {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .overview-stat:last-child {
+    border-bottom: none;
+  }
+
+  .overview-stat .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+  }
+
+  .overview-stat .dot.blue { background: #3b82f6; }
+  .overview-stat .dot.green { background: #10b981; }
+  .overview-stat .dot.purple { background: #8b5cf6; }
+
+  .overview-stat .label {
+    flex: 1;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .overview-stat .value {
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .progress-stat {
+    margin-bottom: 1.25rem;
+  }
+
+  .progress-stat:last-child {
+    margin-bottom: 0;
+  }
+
+  .progress-stat .label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .progress-stat .label {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .progress-stat .value {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 0.875rem;
+  }
+
+  .progress-bar-custom {
+    height: 6px;
+    background: #f3f4f6;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-bar-custom .fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-bar-custom .fill.purple {
+    background: #8b5cf6;
+  }
+
+  .activity-item {
+    display: flex;
+    align-items: start;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .activity-item:last-child {
+    border-bottom: none;
+  }
+
+  .activity-item .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+    margin-top: 0.375rem;
+    flex-shrink: 0;
+  }
+
+  .activity-item .dot.green { background: #10b981; }
+  .activity-item .dot.blue { background: #3b82f6; }
+  .activity-item .dot.red { background: #ef4444; }
+
+  .activity-item .content {
+    flex: 1;
+  }
+
+  .activity-item .title {
+    font-size: 0.875rem;
+    color: #1f2937;
+    margin-bottom: 0.125rem;
+  }
+
+  .activity-item .subtitle {
+    font-size: 0.75rem;
+    color: #9ca3af;
+  }
+
+  .pro-tip-box {
+    background: #1e293b;
+    color: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+
+  .pro-tip-box .icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .pro-tip-box h6 {
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .pro-tip-box p {
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+    margin: 0;
   }
 
   .progress-container {
@@ -646,21 +828,12 @@
 
 {% block content %}
  <div class="container py-4">
-  <!-- Campaign Header -->
-  <div class="row mb-5">
-    <div class="col-lg-11 mx-auto">
-      <div class="campaign-header">
-        <div class="campaign-icon">
-          🎁
-        </div>
-        <h1 class="display-5 fw-bold mb-3">AI Email Writer</h1>
-        <p class="lead text-muted mb-4">
-          Let our AI analyze your resume and create a personalized email that highlights your strengths.
-        </p>
-        
+  <!-- Hide old benefits sections -->
+  <style>
+    #benefitsSection, #templateGeneratorSection { display: none !important; }
+  </style>
 
-
-  <!-- Why Direct Email Benefits Section -->
+  <!-- Main Form Section -->
   <div class="row mb-5" id="benefitsSection">
     <div class="col-lg-11 mx-auto">
       <div class="campaign-card" style="background: linear-gradient(135deg, rgba(168,230,207,0.05), rgba(139,159,255,0.05)); border: 2px solid rgba(168,230,207,0.3);">
@@ -767,55 +940,49 @@
         </div>
       </div>
     </div>
+
+    <!-- Two Column Layout -->
+    <div class="main-grid">
+      <!-- Left Column: Form -->
+      <div>
     
     <div class="campaign-card" id="automationFormCard">
-      <form id="automationForm" enctype="multipart/form-data">
-        <!-- Config Alert -->
-        <div class="alert alert-info d-flex align-items-center mb-4 border-0" 
-             style="background: rgba(168,230,207,0.1);">
-          <i class="bi bi-info-circle-fill fs-4 me-3 text-primary"></i>
-          <div>
-            <h6 class="mb-1 fw-bold">Email Configuration</h6>
-            <p class="mb-0 text-muted">Emails are delivered by JustMailIt; you'll receive a copy for your records.</p>
-          </div>
+      <div class="campaign-header">
+        <h6>Email Configuration</h6>
+        <p>Configure your automated job application emails</p>
+        <div class="text-end">
+          <small class="text-muted">Powered by JustMailIt</small>
         </div>
+      </div>
 
+      <form id="automationForm" enctype="multipart/form-data">
         <!-- Form Grid -->
-        <div class="row g-4">
+        <div class="row g-3">
           <!-- Search Role/Skills -->
-          <div class="col-md-8">
+          <div class="col-12">
             <div class="form-group">
-              <label class="form-label d-flex align-items-center" for="searchRole">
-                <i class="bi bi-search text-primary me-2"></i>
-                <span>
-                  Job Search Role/Skills
-                  <span class="text-muted small ms-2">(What roles are you looking for?)</span>
-                </span>
+              <label class="form-label" for="searchRole">
+                Job Search Roles
+                <span class="text-danger">*</span>
               </label>
               <input 
                 type="text" 
                 id="searchRole" 
                 name="searchRole" 
-                class="form-control form-control-lg" 
-                placeholder="e.g., devops, cloud engineer, site reliability" 
+                class="form-control" 
+                placeholder="e.g., Frontend Developer, React Engineer, UI Designer" 
                 required 
               />
-              <div class="form-text">
-                <i class="bi bi-info-circle me-1"></i>
-                Separate multiple roles/skills with commas
-              </div>
+              <div class="form-text">Separate multiple roles with commas for better targeting</div>
             </div>
           </div>
 
         <!-- Search Time Period -->
-          <div class="col-md-4">
+          <div class="col-12">
             <div class="form-group">
-              <label class="form-label d-flex align-items-center" for="searchTimePeriod">
-                <i class="bi bi-clock-history text-primary me-2"></i>
-                <span>
-                  Time Period
-                  <span class="text-muted small ms-2">(How recent?)</span>
-                </span>
+              <label class="form-label" for="searchTimePeriod">
+                Job Posting Age
+                <span class="text-danger">*</span>
               </label>
               <select 
                 id="searchTimePeriod" 
@@ -828,67 +995,68 @@
               <option value="past-month">Past Month</option>
             </select>
           </div>
-          <div class="form-text">More recent posts may have higher response rates</div>
         </div>
 
         <!-- Email Subject -->
-        <div class="mb-4">
+        <div class="col-12">
+          <div class="form-group">
           <label class="form-label" for="emailSubject">
-            <i class="bi bi-card-text me-2"></i>Email Subject
-            <span class="text-muted small ms-1">(Make it attention-grabbing)</span>
+            Email Subject Line
+            <span class="text-danger">*</span>
           </label>
-          <div class="input-group input-group-lg">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
             <input 
               type="text" 
               id="emailSubject" 
               name="subject" 
               class="form-control" 
-              placeholder="e.g., Application for Senior DevOps Engineer Position - Your Name" 
+              placeholder="Application for {job_title} - Your Name" 
               required 
             />
           </div>
-          <div class="form-text">
-            <i class="bi bi-info-circle me-1"></i>
-            Include your name in the subject line. Recruiters get hundreds of emails daily!
-          </div>
+          <div class="form-text">Use {job_title} and {company} as dynamic placeholders</div>
+        </div>
         </div>
 
         <!-- Email Content -->
-        <div class="mb-4">
+        <div class="col-12">
+          <div class="form-group">
           <label class="form-label" for="emailContent">
-            <i class="bi bi-chat-dots me-2"></i>Email Body
-            <span class="text-muted small ms-1">(Your pitch to the employer)</span>
+            Email Message
+            <span class="text-danger">*</span>
           </label>
-          <div class="input-group input-group-lg">
-            <textarea 
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <small class="text-muted"><i class="bi bi-robot me-1"></i> AI Generator</small>
+            <small class="text-muted"><i class="bi bi-stars me-1"></i> Templates</small>
+          </div>
+          <textarea 
               id="emailContent" 
               name="content" 
               class="form-control" 
               rows="6" 
-              placeholder="Introduce yourself and explain why you're a great fit for the role..." 
+              placeholder="Write your email message here..." 
               required
             ></textarea>
-          </div>
-          <div class="d-flex align-items-center mt-2">
-            <a href="/profile" class="text-primary text-decoration-none small">
-              <i class="bi bi-gear me-1"></i>Load template from profile
-            </a>
-            <span class="text-muted mx-2">•</span>
-            <a href="/email_templates" target="_blank" class="text-primary text-decoration-none small">
-              <i class="bi bi-stars me-1"></i>Browse professional templates
-            </a>
-            <span class="text-muted mx-2">•</span>
-            <span class="text-muted small">Use {company} placeholder for company name</span>
+            <div class="form-text mt-2">
+              <div class="d-flex flex-wrap gap-2">
+                <span class="badge bg-light text-dark">{company_name}</span>
+                <span class="badge bg-light text-dark">{job_title}</span>
+                <span class="badge bg-light text-dark">{recruiter_name}</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Resume Upload -->
-        <div class="mb-4">
+        <div class="col-12">
+          <div class="form-group">
           <label class="form-label">
-            <i class="bi bi-file-earmark-pdf me-2"></i>Resume
-            <span class="text-muted small ms-1">(PDF format recommended)</span>
+            Resume Attachment
+            <span class="text-danger">*</span>
           </label>
-          <div class="input-group input-group-lg">
+          <small class="text-muted d-block mb-2">PDF, DOC, DOCX</small>
+          <div class="input-group">
             <input 
               type="file" 
               id="resumeFile" 
@@ -926,23 +1094,126 @@
           </div>
           {% endif %}
         </div>
+        </div>
 
         <!-- Submit Button -->
-        <div class="d-grid gap-2 mt-5">
-          <button type="submit" id="runBtn" class="btn btn-primary btn-lg">
-            <i class="bi bi-rocket-takeoff me-2"></i>Start Email Automation
+        <div class="col-12 mt-4">
+          <button type="submit" id="runBtn" class="btn btn-primary">
+            <i class="bi bi-stars me-2"></i>Start Email Automation
           </button>
-          <button type="button" id="stopBtn" class="btn btn-danger btn-lg" style="display: none;" onclick="stopAutomation()">
+          <button type="button" id="stopBtn" class="btn btn-danger" style="display: none; width: 100%; margin-top: 0.5rem;" onclick="stopAutomation()">
             <i class="bi bi-stop-circle me-2"></i>Stop Automation
           </button>
-          <button type="button" id="resetBtn" class="btn btn-warning btn-sm" style="display: none;" onclick="resetStuckAutomation()">
+          <button type="button" id="resetBtn" class="btn btn-warning btn-sm" style="display: none; width: 100%; margin-top: 0.5rem;" onclick="resetStuckAutomation()">
             <i class="bi bi-arrow-clockwise me-2"></i>Reset Stuck Session
           </button>
-          <div class="text-center text-muted small mt-2">
-            The automation runs in the background and you'll see live progress below
-          </div>
+        </div>
         </div>
       </form>
+    </div>
+      </div>
+
+      <!-- Right Column: Sidebar -->
+      <div>
+        <!-- Overview Card -->
+        <div class="sidebar-card">
+          <h6>Overview</h6>
+          <small class="text-muted d-block mb-3">This week</small>
+          
+          <div class="overview-stat">
+            <span class="dot blue"></span>
+            <span class="label">Campaigns</span>
+            <span class="value">24</span>
+          </div>
+          <div class="overview-stat">
+            <span class="dot green"></span>
+            <span class="label">Success Rate</span>
+            <span class="value">83%</span>
+          </div>
+          <div class="overview-stat">
+            <span class="dot purple"></span>
+            <span class="label">Active Jobs</span>
+            <span class="value">158</span>
+          </div>
+        </div>
+
+        <!-- Performance Card -->
+        <div class="sidebar-card">
+          <h6>Performance</h6>
+          
+          <div class="progress-stat">
+            <div class="label-row">
+              <span class="label">Response Rate</span>
+              <span class="value">18%</span>
+            </div>
+          </div>
+
+          <div class="progress-stat">
+            <div class="label-row">
+              <span class="label">Emails Sent</span>
+              <span class="value" id="sidebarEmailsSent">0/0</span>
+            </div>
+            <div class="progress-bar-custom">
+              <div class="fill" id="sidebarEmailsProgress" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="progress-stat">
+            <div class="label-row">
+              <span class="label">Interviews</span>
+              <span class="value">3 scheduled</span>
+            </div>
+            <div class="progress-bar-custom">
+              <div class="fill purple" style="width: 30%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity Card -->
+        <div class="sidebar-card">
+          <h6>Recent Activity</h6>
+          
+          <div class="activity-item">
+            <span class="dot green"></span>
+            <div class="content">
+              <div class="title">Email sent successfully</div>
+              <div class="subtitle">Tech Startups • 5 mins ago</div>
+            </div>
+          </div>
+
+          <div class="activity-item">
+            <span class="dot green"></span>
+            <div class="content">
+              <div class="title">Email sent successfully</div>
+              <div class="subtitle">CloudSystems • 5 mins ago</div>
+            </div>
+          </div>
+
+          <div class="activity-item">
+            <span class="dot blue"></span>
+            <div class="content">
+              <div class="title">New job found</div>
+              <div class="subtitle">DataFlow Solutions • 7 mins ago</div>
+            </div>
+          </div>
+
+          <div class="activity-item">
+            <span class="dot red"></span>
+            <div class="content">
+              <div class="title">Email failed</div>
+              <div class="subtitle">No contact found • 8 mins ago</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pro Tip Card -->
+        <div class="pro-tip-box">
+          <div class="icon">💡</div>
+          <h6>Pro Tip</h6>
+          <p>Personalized subject lines increase response rates by 37%. Always include the company name or position title.</p>
+        </div>
+      </div>
+    </div>
 
       <!-- Automation Progress -->
       <div class="mt-5" id="automationProgressSection">
@@ -1725,6 +1996,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const pending = Math.max(0, window.stats.emailsFound - window.stats.emailsSent - missed);
     document.getElementById('emailsPending').textContent = pending;
     window.stats.emailsPending = pending;
+    
+    // Update sidebar stats
+    const sidebarEmailsSent = document.getElementById('sidebarEmailsSent');
+    if (sidebarEmailsSent) {
+      sidebarEmailsSent.textContent = `${window.stats.emailsSent}/${window.stats.emailsFound}`;
+    }
+    
+    const sidebarProgress = document.getElementById('sidebarEmailsProgress');
+    if (sidebarProgress && window.stats.emailsFound > 0) {
+      const percent = Math.round((window.stats.emailsSent / window.stats.emailsFound) * 100);
+      sidebarProgress.style.width = percent + '%';
+    }
     
     // Update progress bar based on emails sent vs found
     const progressBar = document.getElementById('progressBar');

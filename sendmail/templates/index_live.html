@@ -1207,6 +1207,25 @@
 
       <!-- Right Column: Sidebar -->
       <div>
+        <!-- Live Progress Card -->
+        <div class="sidebar-card" id="automationProgressSection">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">
+              <i class="bi bi-terminal-fill text-primary me-2"></i>
+              Live Progress
+            </h6>
+            <div class="badge bg-secondary" id="progressStatus" style="font-size: 0.75rem;">Ready</div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="progress mb-3" style="height: 8px; border-radius: 4px;">
+            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"></div>
+          </div>
+
+          <!-- Progress Log -->
+          <div id="progressBox" class="progress-box" style="max-height: 250px; overflow-y: auto; font-size: 0.85rem;"></div>
+        </div>
+
         <!-- Overview Card -->
         <div class="sidebar-card">
           <h6>Overview</h6>
@@ -1238,25 +1257,6 @@
               No emails sent yet
             </div>
           </div>
-        </div>
-
-        <!-- Live Progress Card -->
-        <div class="sidebar-card" id="automationProgressSection">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="mb-0">
-              <i class="bi bi-terminal-fill text-primary me-2"></i>
-              Live Progress
-            </h6>
-            <div class="badge bg-secondary" id="progressStatus" style="font-size: 0.75rem;">Ready</div>
-          </div>
-
-          <!-- Progress Bar -->
-          <div class="progress mb-3" style="height: 8px; border-radius: 4px;">
-            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"></div>
-          </div>
-
-          <!-- Progress Log -->
-          <div id="progressBox" class="progress-box" style="max-height: 250px; overflow-y: auto; font-size: 0.85rem;"></div>
         </div>
 
         <!-- Pro Tip Card -->

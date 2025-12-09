@@ -2053,25 +2053,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     const progressBar = document.getElementById('progressBar');
     const progressPercentage = document.getElementById('progressPercentage');
     
-    if (progressBar && window.stats.emailsFound > 0) {
-      const totalProcessed = window.stats.emailsSent + window.stats.emailsFailed;
-      const percent = Math.min(100, Math.round((window.stats.emailsSent / window.stats.emailsFound) * 100));
-      progressBar.style.width = percent + '%';
-      
-      // Update percentage text
-      if (progressPercentage) {
-        progressPercentage.textContent = percent + '%';
-        progressPercentage.style.color = '#1e293b';
-        progressPercentage.style.fontWeight = '700';
-      }
-      
-      // Change color based on success rate
-      if (missed > 0 && window.stats.emailsSent > 0) {
-        progressBar.style.backgroundColor = '#f59e0b'; // Warning amber if some missed
-      } else if (missed > 0 && window.stats.emailsSent === 0) {
-        progressBar.style.backgroundColor = '#ef4444'; // Red if all missed
+    if (progressBar) {
+      if (window.stats.emailsFound > 0) {
+        const totalProcessed = window.stats.emailsSent + window.stats.emailsFailed;
+        const percent = Math.min(100, Math.round((window.stats.emailsSent / window.stats.emailsFound) * 100));
+        progressBar.style.width = percent + '%';
+        
+        // Update percentage text
+        if (progressPercentage) {
+          progressPercentage.textContent = percent + '%';
+          progressPercentage.style.color = '#1e293b';
+          progressPercentage.style.fontWeight = '700';
+        }
+        
+        // Change color based on success rate
+        if (missed > 0 && window.stats.emailsSent > 0) {
+          progressBar.style.backgroundColor = '#f59e0b'; // Warning amber if some missed
+        } else if (missed > 0 && window.stats.emailsSent === 0) {
+          progressBar.style.backgroundColor = '#ef4444'; // Red if all missed
+        } else {
+          progressBar.style.backgroundColor = '#10b981'; // Green for success
+        }
       } else {
-        progressBar.style.backgroundColor = '#10b981'; // Green for success
+        // Reset to initial state when no emails found yet
+        progressBar.style.width = '0%';
+        progressBar.style.backgroundColor = '#94a3b8';
+        if (progressPercentage) {
+          progressPercentage.textContent = '0%';
+          progressPercentage.style.color = '#64748b';
+        }
       }
     }
     
@@ -3289,13 +3299,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
     else if (msg.startsWith('EMAIL_SENT:')) {
-      // Mark email as sent
+      // Mark email as sent (internal tracking message - not displayed)
       const email = msg.replace('EMAIL_SENT:', '').trim();
       if (email) {
         window.stats.emailList.delete(email);
         window.stats.emailList.add(`✅ ${email}`);
-        // Ensure sent counter increments for explicit EMAIL_SENT events
         window.stats.emailsSent++;
+        console.log(`[STATS] Email sent: ${email}, Total sent: ${window.stats.emailsSent}/${window.stats.emailsFound}`);
       }
     }
     else if (msg.includes('📧 Sending email to') || msg.includes('[EMAIL] Sending email to') || msg.startsWith('[→] Sending to')) {
@@ -3305,7 +3315,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     else if ((msg.includes('✅ Email sent to') && msg.includes('successfully!')) || (msg.includes('[OK] Email sent to') && msg.includes('successfully')) || msg.startsWith('[✓] Email sent to')) {
       progressStatus.textContent = 'Processing...';
       progressStatus.className = 'badge bg-primary';
-      window.stats.emailsSent++;
+      // Only count if not already counted by EMAIL_SENT message
+      const emailMatch = msg.match(/to\s+([\w\.-]+@[\w\.-]+\.\w+)/);
+      if (emailMatch && !window.stats.emailList.has(`✅ ${emailMatch[1]}`)) {
+        window.stats.emailsSent++;
+      }
     }
     else if (msg.includes('❌ Failed to send email to') || msg.includes('[ERROR] Failed to send email to')) {
       window.stats.emailsFailed++;

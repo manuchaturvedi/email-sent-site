@@ -1487,6 +1487,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const progressBar = document.getElementById('progressBar');
   const emailListContent = document.getElementById('emailListContent');
   
+  if (!automationForm) {
+    console.error('Automation form not found!');
+    return;
+  }
+  
   // Load user profile data before any autostart logic
   await loadUserProfile();
   

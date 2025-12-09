@@ -1118,22 +1118,22 @@
         <!-- Overview Card -->
         <div class="sidebar-card">
           <h6>Overview</h6>
-          <small class="text-muted d-block mb-3">This week</small>
+          <small class="text-muted d-block mb-3">Current Session</small>
           
           <div class="overview-stat">
             <span class="dot blue"></span>
-            <span class="label">Campaigns</span>
-            <span class="value">24</span>
+            <span class="label">Jobs Found</span>
+            <span class="value" id="overviewJobsFound">0</span>
           </div>
           <div class="overview-stat">
             <span class="dot green"></span>
-            <span class="label">Success Rate</span>
-            <span class="value">83%</span>
+            <span class="label">Emails Sent</span>
+            <span class="value" id="overviewEmailsSent">0</span>
           </div>
           <div class="overview-stat">
-            <span class="dot purple"></span>
-            <span class="label">Active Jobs</span>
-            <span class="value">158</span>
+            <span class="dot red"></span>
+            <span class="label">Missed</span>
+            <span class="value" id="overviewMissed">0</span>
           </div>
         </div>
 
@@ -1891,6 +1891,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const pending = Math.max(0, window.stats.emailsFound - window.stats.emailsSent - missed);
     document.getElementById('emailsPending').textContent = pending;
     window.stats.emailsPending = pending;
+    
+    // Update Overview section
+    const overviewJobsFound = document.getElementById('overviewJobsFound');
+    const overviewEmailsSent = document.getElementById('overviewEmailsSent');
+    const overviewMissed = document.getElementById('overviewMissed');
+    
+    if (overviewJobsFound) overviewJobsFound.textContent = window.stats.emailsFound;
+    if (overviewEmailsSent) overviewEmailsSent.textContent = window.stats.emailsSent;
+    if (overviewMissed) overviewMissed.textContent = missed;
     
     // Update sidebar stats
     const sidebarEmailsSent = document.getElementById('sidebarEmailsSent');

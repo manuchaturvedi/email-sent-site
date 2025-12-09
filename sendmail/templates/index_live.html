@@ -785,17 +785,23 @@
       }
     }
     
-    /* Saved resume checkbox - always has border and background */
+    /* Saved resume checkbox - dashed border style */
     .saved-resume-check {
       border: 2px dashed #cbd5e1 !important;
-      background: linear-gradient(135deg, rgba(102,126,234,0.03), rgba(118,75,162,0.03)) !important;
-      padding: 0.875rem 1rem !important;
-      border-radius: 10px !important;
+      background: #ffffff !important;
+      padding: 1rem !important;
+      border-radius: 12px !important;
+      transition: all 0.3s ease !important;
     }
     
     .saved-resume-check:hover {
-      background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.08)) !important;
-      border-color: #667eea !important;
+      background: #f8fafc !important;
+      border-color: #94a3b8 !important;
+    }
+    
+    .saved-resume-check .form-check-input:checked ~ .form-check-label {
+      color: #1e293b !important;
+      font-weight: 600 !important;
     }
     
     /* Fix labels */
@@ -1107,7 +1113,6 @@
               required 
             />
           </div>
-          <div class="form-text">Use {job_title} and {company} as dynamic placeholders</div>
         </div>
         </div>
 
@@ -1118,10 +1123,6 @@
             Email Message
             <span class="text-danger">*</span>
           </label>
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <small class="text-muted"><i class="bi bi-robot me-1"></i> AI Generator</small>
-            <small class="text-muted"><i class="bi bi-stars me-1"></i> Templates</small>
-          </div>
           <textarea 
               id="emailContent" 
               name="content" 
@@ -1130,13 +1131,7 @@
               placeholder="Write your email message here..." 
               required
             ></textarea>
-            <div class="form-text mt-2">
-              <div class="d-flex flex-wrap gap-2">
-                <span class="badge bg-light text-dark">{company_name}</span>
-                <span class="badge bg-light text-dark">{job_title}</span>
-                <span class="badge bg-light text-dark">{recruiter_name}</span>
-              </div>
-            </div>
+            
           </div>
         </div>
 
@@ -1163,11 +1158,13 @@
             <strong>Selected:</strong> <span id="resumeFileNameText"></span>
           </div>
           <div id="savedResumeSection" class="mt-3 d-none">
-            <div class="form-check saved-resume-check">
-              <input class="form-check-input" type="checkbox" id="useSavedResume" onchange="toggleSavedResume(this.checked)">
-              <label class="form-check-label" for="useSavedResume" id="savedResumeLabel" style="font-weight: 500 !important;">
-                <i class="bi bi-file-earmark-check me-2 text-success"></i>Use saved resume from profile instead
-              </label>
+            <div class="saved-resume-check" style="border: 2px dashed #cbd5e1; background: #ffffff; padding: 1rem; border-radius: 12px;">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="useSavedResume" onchange="toggleSavedResume(this.checked)">
+                <label class="form-check-label" for="useSavedResume" id="savedResumeLabel" style="font-weight: 500; color: #64748b;">
+                  Use saved resume from profile (resume_20251209_185622.pdf)
+                </label>
+              </div>
             </div>
           </div>
           
@@ -1286,7 +1283,7 @@
         <div class="pro-tip-box">
           <div class="icon">💡</div>
           <h6>Pro Tip</h6>
-          <p>Use {company_name} and {job_title} placeholders in your subject and message. JustMailIt automatically personalizes each email for better response rates!</p>
+          <p>Use KeywoJustMailIt automatically personalizes each email for better response rates!</p>
         </div>
       </div>
     </div>

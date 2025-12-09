@@ -1230,16 +1230,19 @@
         <!-- Live Progress Card -->
         <div class="sidebar-card" id="automationProgressSection">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="mb-0">
-              <i class="bi bi-terminal-fill text-primary me-2"></i>
-              Live Progress
-            </h6>
+            <div class="d-flex align-items-center gap-2">
+              <h6 class="mb-0">
+                <i class="bi bi-terminal-fill text-primary me-2"></i>
+                Live Progress
+              </h6>
+              <span id="progressPercentage" style="font-size: 0.85rem; font-weight: 600; color: #64748b;">0%</span>
+            </div>
             <div class="badge bg-secondary" id="progressStatus" style="font-size: 0.75rem;">Ready</div>
           </div>
 
           <!-- Progress Bar -->
-          <div class="progress mb-3" style="height: 8px; border-radius: 4px;">
-            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"></div>
+          <div class="progress mb-3" style="height: 8px; border-radius: 4px; background: #e2e8f0;">
+            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="background: #94a3b8;"></div>
           </div>
 
           <!-- Progress Log -->
@@ -2039,18 +2042,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Update progress bar based on emails sent vs found
     const progressBar = document.getElementById('progressBar');
+    const progressPercentage = document.getElementById('progressPercentage');
+    
     if (progressBar && window.stats.emailsFound > 0) {
       const totalProcessed = window.stats.emailsSent + window.stats.emailsFailed;
       const percent = Math.min(100, Math.round((window.stats.emailsSent / window.stats.emailsFound) * 100));
       progressBar.style.width = percent + '%';
       
+      // Update percentage text
+      if (progressPercentage) {
+        progressPercentage.textContent = percent + '%';
+        progressPercentage.style.color = '#1e293b';
+        progressPercentage.style.fontWeight = '700';
+      }
+      
       // Change color based on success rate
       if (missed > 0 && window.stats.emailsSent > 0) {
-        progressBar.style.backgroundColor = '#ffc107'; // Warning yellow if some missed
+        progressBar.style.backgroundColor = '#f59e0b'; // Warning amber if some missed
       } else if (missed > 0 && window.stats.emailsSent === 0) {
-        progressBar.style.backgroundColor = '#dc3545'; // Red if all missed
+        progressBar.style.backgroundColor = '#ef4444'; // Red if all missed
       } else {
-        progressBar.style.backgroundColor = '#28a745'; // Green for success
+        progressBar.style.backgroundColor = '#10b981'; // Green for success
       }
     }
     

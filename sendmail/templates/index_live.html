@@ -1014,6 +1014,26 @@
       </div>
     </div>
 
+    <!-- Email Template Generator Card -->
+    <div class="campaign-card mb-4" style="background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.08)); border: 2px solid #667eea;">
+      <div class="text-center py-4">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">✨</div>
+        <h5 class="mb-3" style="color: #1e293b; font-weight: 700;">
+          Not sure what to write? Let AI create your perfect email!
+        </h5>
+        <p class="text-muted mb-4" style="max-width: 600px; margin: 0 auto;">
+          Upload your resume and we'll generate a professional, personalized email template in seconds. Just review and customize!
+        </p>
+        <button type="button" class="btn btn-lg" onclick="showTemplateHelper()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 1rem 2.5rem; font-size: 1.1rem; font-weight: 600; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+          <i class="bi bi-magic me-2"></i>Create Email Template
+        </button>
+        <p class="text-muted small mt-3 mb-0">
+          <i class="bi bi-lightbulb text-warning me-1"></i>
+          <strong>Pro Tip:</strong> Include your phone number and email in the body so recruiters can easily reach you!
+        </p>
+      </div>
+    </div>
+
     <!-- Two Column Layout -->
     <div class="main-grid">
       <!-- Left Column: Form -->
@@ -1021,15 +1041,8 @@
     
     <div class="campaign-card" id="automationFormCard">
       <div class="campaign-header">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-          <div>
-            <h6>Email Configuration</h6>
-            <p>Configure your automated job application emails</p>
-          </div>
-          <button type="button" class="btn btn-sm" onclick="showTemplateHelper()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1rem; white-space: nowrap;">
-            <i class="bi bi-magic me-1"></i>Create Email Template
-          </button>
-        </div>
+        <h6>Email Configuration</h6>
+        <p>Configure your automated job application emails</p>
         <div class="text-end">
           <small class="text-muted">Powered by JustMailIt</small>
         </div>
@@ -1038,6 +1051,13 @@
       <form id="automationForm" enctype="multipart/form-data">
         <!-- Form Grid -->
         <div class="row g-3">
+          <!-- Search Role/Skills -->
+          <div class="col-12">
+            <div class="form-group">
+              <label class="form-label" for="searchRole">
+                Job Search Roles
+                <span class="text-danger">*</span>
+              </label>
           <!-- Search Role/Skills -->
           <div class="col-12">
             <div class="form-group">

@@ -1559,28 +1559,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   useSavedResumeCheckbox?.addEventListener('change', (e) => {
     toggleSavedResume(e.target.checked);
-  });    // Global stats object
-    window.stats = {
-      emailsFound: 0,
-      emailsSent: 0,
-      emailsFailed: 0,
-      emailsSkipped: 0,
-      emailsPending: 0,
-      emailList: new Set()
-    };
-    
-    // Restore progress state if user returns to page
-    restoreProgressState();
-    
-    // Initialize event handlers
-    automationForm.addEventListener('submit', handleSubmit);
-    
-    // Check if there's an active automation running
-    checkActiveAutomation();
+  });
+  
+  // Global stats object
+  window.stats = {
+    emailsFound: 0,
+    emailsSent: 0,
+    emailsFailed: 0,
+    emailsSkipped: 0,
+    emailsPending: 0,
+    emailList: new Set()
+  };
+  
+  // Restore progress state if user returns to page
+  restoreProgressState();
+  
+  // Initialize event handlers
+  automationForm.addEventListener('submit', handleSubmit);
+  
+  // Check if there's an active automation running
+  checkActiveAutomation();
 
-    // Handle page visibility changes (tab switching)
-    document.addEventListener('visibilitychange', function() {
-      if (document.hidden) {
+  // Handle page visibility changes (tab switching)
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
         // Save state when user leaves tab
         saveProgressState();
         console.log('Tab hidden - state saved');

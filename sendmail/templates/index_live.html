@@ -1021,8 +1021,15 @@
     
     <div class="campaign-card" id="automationFormCard">
       <div class="campaign-header">
-        <h6>Email Configuration</h6>
-        <p>Configure your automated job application emails</p>
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+          <div>
+            <h6>Email Configuration</h6>
+            <p>Configure your automated job application emails</p>
+          </div>
+          <button type="button" class="btn btn-sm" onclick="showTemplateHelper()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1rem; white-space: nowrap;">
+            <i class="bi bi-magic me-1"></i>Create Email Template
+          </button>
+        </div>
         <div class="text-end">
           <small class="text-muted">Powered by JustMailIt</small>
         </div>

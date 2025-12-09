@@ -2020,16 +2020,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function updateStats() {
-    document.getElementById('emailsFound').textContent = window.stats.emailsFound;
-    document.getElementById('emailsSent').textContent = window.stats.emailsSent;
+    const emailsFoundEl = document.getElementById('emailsFound');
+    const emailsSentEl = document.getElementById('emailsSent');
+    const emailsFailedEl = document.getElementById('emailsFailed');
+    const emailsPendingEl = document.getElementById('emailsPending');
+    
+    if (emailsFoundEl) emailsFoundEl.textContent = window.stats.emailsFound;
+    if (emailsSentEl) emailsSentEl.textContent = window.stats.emailsSent;
     
     // Calculate missed opportunities = found - sent
     const missed = Math.max(0, window.stats.emailsFound - window.stats.emailsSent);
-    document.getElementById('emailsFailed').textContent = missed;
+    if (emailsFailedEl) emailsFailedEl.textContent = missed;
     
     // Calculate pending = found - sent - failed
     const pending = Math.max(0, window.stats.emailsFound - window.stats.emailsSent - missed);
-    document.getElementById('emailsPending').textContent = pending;
+    if (emailsPendingEl) emailsPendingEl.textContent = pending;
     window.stats.emailsPending = pending;
     
     // Update Overview section
@@ -2095,7 +2100,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                    style="width: 48px; height: 48px; border-radius: 12px; object-fit: contain; background: white; padding: 4px; border: 2px solid #e2e8f0;">`;
     }
     
-    document.getElementById('emailListContent').innerHTML = emailList.length ? `
+    const emailListContent = document.getElementById('emailListContent');
+    if (emailListContent) {
+      emailListContent.innerHTML = emailList.length ? `
       <div class="row g-3">
         ${emailList.map((email, index) => {
           const status = email.includes('✅') ? 'success' : email.includes('❌') ? 'danger' : 'info';
@@ -2140,10 +2147,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       </div>
     ` : '<div class="text-muted text-center py-4" style="background: #f8fafc; border-radius: 12px; border: 2px dashed #cbd5e0;"><i class="bi bi-inbox" style="font-size: 2rem; color: #94a3b8;"></i><div class="mt-2">No emails processed yet</div></div>';
     
-    // Add skipped emails info if applicable
-    if (window.stats.emailsSkipped > 0) {
-      const emailListContent = document.getElementById('emailListContent');
-      emailListContent.innerHTML += `
+      // Add skipped emails info if applicable
+      if (window.stats.emailsSkipped > 0 && emailListContent) {
+        emailListContent.innerHTML += `
         <div class="alert alert-warning mt-3 mb-0" style="border-left: 4px solid #ffc107;">
           <div class="d-flex align-items-center">
             <i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.5rem;"></i>
@@ -2154,6 +2160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       `;
+      }
     }
   }
 

@@ -62,16 +62,28 @@
     "@context": "https://schema.org",
     "@type": "Product",
     "name": "JustMailIt",
-    "image": "https://justmailit.in/static/images/og-image.png",
+    "image": [
+      "https://justmailit.in/static/images/og-image.png",
+      "https://justmailit.in/static/images/justmailit-logo.png"
+    ],
+    "description": "Automate your job search with AI-powered LinkedIn scraping and automatic email sending to recruiters. Send unlimited personalized emails with one click.",
     "brand": {
       "@type": "Brand",
       "name": "JustMailIt"
     },
+    "sku": "JUSTMAILIT-PRO",
+    "mpn": "JUSTMAILIT-001",
     "offers": {
       "@type": "Offer",
+      "url": "https://justmailit.in/pricing",
       "price": "19",
       "priceCurrency": "INR",
-      "availability": "https://schema.org/InStock"
+      "availability": "https://schema.org/InStock",
+      "priceValidUntil": "2025-12-31",
+      "seller": {
+        "@type": "Organization",
+        "name": "JustMailIt"
+      }
     },
     "aggregateRating": {
       "@type": "AggregateRating",
@@ -79,15 +91,7 @@
       "ratingCount": "150",
       "bestRating": "5",
       "worstRating": "1"
-    },
-    "description": "Automate your job search with AI-powered LinkedIn scraping and automatic email sending to recruiters",
-    "featureList": [
-      "AI-powered job scraping",
-      "Automatic email sending",
-      "LinkedIn integration",
-      "Smart job matching",
-      "Unlimited applications"
-    ]
+    }
   }
   </script>
   

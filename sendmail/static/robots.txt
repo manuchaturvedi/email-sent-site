@@ -1,4 +1,5 @@
-# BEGIN Cloudflare Managed content
+# robots.txt for JustMailIt
+# Note: Content-signal directives removed - causing indexing issues
 
 User-Agent: *
 Allow: /

@@ -1,41 +1,5 @@
-# robots.txt for JustMailIt
-# Note: Content-signal directives removed - causing indexing issues
-
-User-Agent: *
-Allow: /
-
-User-agent: Amazonbot
-Disallow: /
-
-User-agent: Applebot-Extended
-Disallow: /
-
-User-agent: Bytespider
-Disallow: /
-
-User-agent: CCBot
-Disallow: /
-
-User-agent: ClaudeBot
-Disallow: /
-
-User-agent: Google-Extended
-Disallow: /
-
-User-agent: GPTBot
-Disallow: /
-
-User-agent: meta-externalagent
-Disallow: /
-
-# END Cloudflare Managed Content
-
 User-agent: *
 Allow: /
-Allow: /static/
-Allow: /static/images/
-Allow: /static/css/
-Allow: /static/js/
 Disallow: /dashboard
 Disallow: /send
 Disallow: /jobs
